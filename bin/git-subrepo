@@ -7,12 +7,18 @@ def command_fetch(subdir)
   branch = `git config --file #{config_name} subrepo.branch`.chomp
   last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
 
+  remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
+  if remote_commit.empty?
+    puts "Branch #{branch} not on remote yet"
+    return false
+  end
   system "git fetch --no-tags \"#{remote}\" \"#{branch}\""
   new_commit = `git rev-parse FETCH_HEAD`.chomp
   puts "Fetched #{new_commit}"
   puts "No change" if new_commit == last_merged_commit
   refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
   system "git update-ref #{refs_subrepo_fetch} #{new_commit}"
+  true
 end
 
 def command_merge(subdir)
@@ -46,8 +52,48 @@ def command_merge(subdir)
   system "git commit --amend --no-edit"
 end
 
+def command_pull(subdir)
+  command_fetch(subdir)
+  command_merge(subdir)
+end
+
 def command_push(subdir)
-  raise "Not implemented yet"
+  fetched = command_fetch(subdir)
+
+  current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+  config_name = "#{subdir}/.gitrepo"
+  remote = `git config --file #{config_name} subrepo.remote`.chomp
+  branch = `git config --file #{config_name} subrepo.branch`.chomp
+  last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
+  last_pushed_commit = `git config --file #{config_name} subrepo.parent`.chomp
+
+  if fetched
+    refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
+    last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
+    last_fetched_commit == last_merged_commit or
+      raise "There are new changes upstream, you need to pull first."
+
+    raise "Not implemented yet"
+  else
+    split_branch = "subrepo-#{subdir}"
+    unless `git show-ref #{split_branch}`.chomp.empty?
+      raise "It seems #{split_branch} already exists. Remove it first"
+    end
+    system "git co -b #{split_branch}"
+    puts "Filtering #{subdir}"
+    system "git filter-branch --subdirectory-filter #{subdir}"
+    system "git push \"#{remote}\" #{split_branch}:#{branch}"
+    pushed_commit = `git rev-parse HEAD`
+
+    system "git co #{current_branch}"
+
+    parent_commit = `git rev-parse HEAD`
+
+    system "git config --file #{config_name} subrepo.commit #{pushed_commit}"
+    system "git config --file #{config_name} subrepo.parent #{parent_commit}"
+    system "git add -f -- #{config_name}"
+    system "git commit -m \"Mark last pushed commit for subrepo #{subdir}\""
+  end
 end
 
 def command_init(subdir, remote, branch)
@@ -76,6 +122,7 @@ end
 
 command = ARGV.shift or raise "Provide command"
 
+`git status -s`.chomp == "" or raise "Unclean"
 case command
 when "init"
   subdir = ARGV.shift or raise "Provide dir"
@@ -90,8 +137,7 @@ when "merge"
   command_merge(subdir)
 when "pull"
   subdir = ARGV.shift or raise "Provide dir"
-  command_fetch(subdir)
-  command_merge(subdir)
+  command_pull(subdir)
 when "push"
   subdir = ARGV.shift or raise "Provide dir"
   command_push(subdir)
