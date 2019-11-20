@@ -6,7 +6,7 @@ def command_fetch(subdir)
   remote = `git config --file #{config_name} subrepo.remote`.chomp
   branch = `git config --file #{config_name} subrepo.branch`.chomp
   last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
-  puts "#{remote}:#{branch}:#{last_merged_commit}"
+
   system "git fetch --no-tags \"#{remote}\" \"#{branch}\""
   new_commit = `git rev-parse FETCH_HEAD`.chomp
   puts "Fetched #{new_commit}"
@@ -46,9 +46,42 @@ def command_merge(subdir)
   system "git commit --amend --no-edit"
 end
 
+def command_push(subdir)
+  raise "Not implemented yet"
+end
+
+def command_init(subdir, remote, branch)
+  File.exist? subdir or raise "The subdir '#{subdir} does not exist."
+  config_name = File.join(subdir, ".gitrepo")
+  File.exist? config_name and
+    raise "The subdir '#{subdir}' is already a subrepo."
+  last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
+  last_subdir_commit.empty? and
+    raise "The subdir '#{subdir}' is not part of this repo."
+  File.write(config_name, <<~HEADER)
+    ; DO NOT EDIT (unless you know what you are doing)
+    ;
+    ; This subdirectory is a git "subrepo", and this file is maintained by the
+    ; git-subrepo-ng command.
+    ;
+  HEADER
+  system "git config --file #{config_name} subrepo.remote #{remote}"
+  system "git config --file #{config_name} subrepo.branch #{branch}"
+  system "git config --file #{config_name} subrepo.commit \"\""
+  system "git config --file #{config_name} subrepo.method merge"
+  system "git config --file #{config_name} subrepo.cmdver 0.0.1"
+  system "git add -f -- #{config_name}"
+  system "git commit -m \"Initialize subrepo #{subdir}\""
+end
+
 command = ARGV.shift or raise "Provide command"
 
 case command
+when "init"
+  subdir = ARGV.shift or raise "Provide dir"
+  remote = ARGV.shift or raise "Provide remote"
+  branch = ARGV.shift or raise "Provide branch"
+  command_init(subdir, remote, branch)
 when "fetch"
   subdir = ARGV.shift or raise "Provide dir"
   command_fetch(subdir)
@@ -59,6 +92,9 @@ when "pull"
   subdir = ARGV.shift or raise "Provide dir"
   command_fetch(subdir)
   command_merge(subdir)
+when "push"
+  subdir = ARGV.shift or raise "Provide dir"
+  command_push(subdir)
 else
   raise "Unknown: #{command}"
 end
