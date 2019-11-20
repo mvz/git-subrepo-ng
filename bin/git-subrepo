@@ -81,7 +81,10 @@ def command_push(subdir)
     end
     system "git co -b #{split_branch}"
     puts "Filtering #{subdir}"
-    system "git filter-branch --subdirectory-filter #{subdir}"
+    system "git filter-branch" \
+      " --subdirectory-filter #{subdir}" \
+      " --index-filter 'git rm --cached --ignore-unmatch .gitrepo'" \
+      " --prune-empty"
     system "git push \"#{remote}\" #{split_branch}:#{branch}"
     pushed_commit = `git rev-parse HEAD`
 
