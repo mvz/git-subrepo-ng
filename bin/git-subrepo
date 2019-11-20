@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+def command_fetch(subdir)
+  config_name = "#{subdir}/.gitrepo"
+  remote = `git config --file #{config_name} subrepo.remote`.chomp
+  branch = `git config --file #{config_name} subrepo.branch`.chomp
+  last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
+  puts "#{remote}:#{branch}:#{last_merged_commit}"
+  system "git fetch --no-tags \"#{remote}\" \"#{branch}\""
+  new_commit = `git rev-parse FETCH_HEAD`.chomp
+  puts "Fetched #{new_commit}"
+  puts "No change" if new_commit == last_merged_commit
+  refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
+  system "git update-ref #{refs_subrepo_fetch} #{new_commit}"
+end
+
+def command_merge(subdir)
+  current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+  config_name = "#{subdir}/.gitrepo"
+  remote = `git config --file #{config_name} subrepo.remote`.chomp
+  branch = `git config --file #{config_name} subrepo.branch`.chomp
+  last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
+  last_local_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
+  refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
+  last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
+
+  if last_fetched_commit == last_merged_commit
+    warn "Nothing to do"
+    return
+  end
+
+  command = "git rebase" \
+    " --onto #{last_local_commit} #{last_merged_commit} #{last_fetched_commit}" \
+    " --rebase-merges" \
+    " -X subtree=#{subdir}"
+
+  system command
+
+  rebased_head = `git rev-parse HEAD`.chomp
+  system "git checkout #{current_branch}"
+  system "git merge #{rebased_head} --no-ff --no-edit -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
+
+  system "git config --file #{config_name} subrepo.commit #{last_fetched_commit}"
+  system "git add \"#{config_name}\""
+  system "git commit --amend --no-edit"
+end
+
+command = ARGV.shift or raise "Provide command"
+
+case command
+when "fetch"
+  subdir = ARGV.shift or raise "Provide dir"
+  command_fetch(subdir)
+when "merge"
+  subdir = ARGV.shift or raise "Provide dir"
+  command_merge(subdir)
+when "pull"
+  subdir = ARGV.shift or raise "Provide dir"
+  command_fetch(subdir)
+  command_merge(subdir)
+else
+  raise "Unknown: #{command}"
+end
