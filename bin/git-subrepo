@@ -73,7 +73,27 @@ def command_push(subdir)
     last_fetched_commit == last_merged_commit or
       raise "There are new changes upstream, you need to pull first."
 
-    raise "Not implemented yet"
+    split_branch = "subrepo-#{subdir}"
+    unless `git show-ref #{split_branch}`.chomp.empty?
+      raise "It seems #{split_branch} already exists. Remove it first"
+    end
+    system "git co -b #{split_branch}"
+    puts "Filtering #{subdir}"
+    system "git filter-branch" \
+      " --subdirectory-filter #{subdir}" \
+      " --index-filter 'git rm --cached --ignore-unmatch .gitrepo'" \
+      " --prune-empty"
+    system "git push \"#{remote}\" #{split_branch}:#{branch}"
+    pushed_commit = `git rev-parse HEAD`
+
+    system "git co #{current_branch}"
+
+    parent_commit = `git rev-parse HEAD`
+
+    system "git config --file #{config_name} subrepo.commit #{pushed_commit}"
+    system "git config --file #{config_name} subrepo.parent #{parent_commit}"
+    system "git add -f -- #{config_name}"
+    system "git commit -m \"Mark last pushed commit for subrepo #{subdir}\""
   else
     split_branch = "subrepo-#{subdir}"
     unless `git show-ref #{split_branch}`.chomp.empty?
