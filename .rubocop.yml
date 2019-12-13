@@ -1,0 +1,65 @@
+inherit_from: .rubocop_todo.yml
+
+require:
+  - rubocop-performance
+
+# Tables are nice
+Layout/HashAlignment:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+  EnforcedLastArgumentHashStyle: ignore_implicit
+
+# Don't force lonely closing parentheses
+Layout/MultilineMethodCallBraceLayout:
+  EnforcedStyle: same_line
+
+# Multi-line method calls should be simply indented. Aligning them makes it
+# even harder to keep a sane line length.
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+# Multi-line assignment should be simply indented. Aligning them makes it even
+# harder to keep a sane line length.
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
+# Force consistent spacing independent of block contents
+Layout/SpaceBeforeBlockBraces:
+  EnforcedStyleForEmptyBraces: space
+
+# This cop gives bad advice
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+# Allow if (foo = get_foo) style
+Lint/AssignmentInCondition:
+  AllowSafeAssignment: true
+
+# Be lenient with line length
+Metrics/LineLength:
+  Max: 92
+
+# Allow and/or for control flow only
+Style/AndOr:
+  EnforcedStyle: conditionals
+
+# Prefer actual numerics
+Style/NumericPredicate:
+  EnforcedStyle: comparison
+
+# Use older RuboCop default
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%w': ()
+
+# Allow explicit return with multiple return values
+Style/RedundantReturn:
+  AllowMultipleReturnValues: true
+
+# Do not commit to use of interpolation
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+# Prefer symbols to look like symbols
+Style/SymbolArray:
+  EnforcedStyle: brackets

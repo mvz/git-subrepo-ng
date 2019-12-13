@@ -23,7 +23,7 @@ module Subrepo
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       puts "Fetched #{new_commit}"
       puts "No change" if new_commit == last_merged_commit
-      refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
+      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       system "git update-ref #{refs_subrepo_fetch} #{new_commit}"
       true
     end
@@ -35,7 +35,7 @@ module Subrepo
       branch = `git config --file #{config_name} subrepo.branch`.chomp
       last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
       last_local_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
-      refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
+      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
 
       if last_fetched_commit == last_merged_commit
@@ -52,7 +52,8 @@ module Subrepo
 
       rebased_head = `git rev-parse HEAD`.chomp
       system "git checkout #{current_branch}"
-      system "git merge #{rebased_head} --no-ff --no-edit -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
+      system "git merge #{rebased_head} --no-ff --no-edit" \
+        " -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
 
       system "git config --file #{config_name} subrepo.commit #{last_fetched_commit}"
       system "git add \"#{config_name}\""
@@ -75,7 +76,7 @@ module Subrepo
       last_pushed_commit = `git config --file #{config_name} subrepo.parent`.chomp
 
       if fetched
-        refs_subrepo_fetch="refs/subrepo/#{subdir}/fetch"
+        refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
         last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
         last_fetched_commit == last_merged_commit or
           raise "There are new changes upstream, you need to pull first."
@@ -84,6 +85,7 @@ module Subrepo
         unless `git show-ref #{split_branch}`.chomp.empty?
           raise "It seems #{split_branch} already exists. Remove it first"
         end
+
         system "git co -b #{split_branch}"
         puts "Filtering #{subdir}"
         system "git filter-branch" \
@@ -108,6 +110,7 @@ module Subrepo
         unless `git show-ref #{split_branch}`.chomp.empty?
           raise "It seems #{split_branch} already exists. Remove it first"
         end
+
         system "git co -b #{split_branch}"
         puts "Filtering #{subdir}"
         system "git filter-branch" \
