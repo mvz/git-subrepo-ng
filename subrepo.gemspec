@@ -28,8 +28,10 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "rugged", "~> 0.28.3"
+  spec.add_runtime_dependency("gli", '~> 2.5')
 
   spec.add_development_dependency "bundler", "~> 2.0"
+  spec.add_development_dependency "pry", "~> 0.12.2"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
 end
