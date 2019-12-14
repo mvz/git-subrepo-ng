@@ -91,11 +91,12 @@ module Subrepo
         system "git filter-branch" \
           " --subdirectory-filter #{subdir}" \
           " --index-filter 'git rm --cached --ignore-unmatch .gitrepo'" \
-          " --prune-empty"
+          " --prune-empty --force"
         system "git push \"#{remote}\" #{split_branch}:#{branch}"
         pushed_commit = `git rev-parse HEAD`
 
         system "git co #{current_branch}"
+        system "git branch -D #{split_branch}"
 
         parent_commit = `git rev-parse HEAD`
 
