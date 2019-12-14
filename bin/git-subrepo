@@ -28,10 +28,10 @@ module Subrepo
       true
     end
 
-    def command_merge(subdir)
+    def command_merge(subdir, remote: nil)
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config_name = "#{subdir}/.gitrepo"
-      remote = `git config --file #{config_name} subrepo.remote`.chomp
+      remote ||= `git config --file #{config_name} subrepo.remote`.chomp
       branch = `git config --file #{config_name} subrepo.branch`.chomp
       last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
       last_local_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
@@ -60,9 +60,9 @@ module Subrepo
       system "git commit --amend --no-edit"
     end
 
-    def command_pull(subdir)
-      command_fetch(subdir)
-      command_merge(subdir)
+    def command_pull(subdir, remote: nil)
+      command_fetch(subdir, remote: remote)
+      command_merge(subdir, remote: remote)
     end
 
     def command_push(subdir, remote: nil, branch: nil)
@@ -177,9 +177,10 @@ module Subrepo
       desc "Fetch latest commits from a subrepo's remote"
       arg :dir
       command :fetch do |cmd|
-        cmd.action do |_, _options, args|
+        cmd.flag [:remote, :r], arg_name: "url"
+        cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
-          command_fetch(subdir)
+          command_fetch(subdir, remote: options[:remote])
         end
       end
 
@@ -195,9 +196,10 @@ module Subrepo
       desc "Pull upstream changes into a subrepo"
       arg :dir
       command :pull do |cmd|
+        cmd.flag [:remote, :r], arg_name: "url"
         cmd.action do |_, _options, args|
           subdir = args.shift or raise "Provide dir"
-          command_pull(subdir)
+          command_pull(subdir, remote: options[:remote])
         end
       end
 
