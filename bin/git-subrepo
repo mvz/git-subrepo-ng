@@ -8,9 +8,9 @@ module Subrepo
   class CLI
     include GLI::App
 
-    def command_fetch(subdir)
+    def command_fetch(subdir, remote: nil)
       config_name = "#{subdir}/.gitrepo"
-      remote = `git config --file #{config_name} subrepo.remote`.chomp
+      remote ||= `git config --file #{config_name} subrepo.remote`.chomp
       branch = `git config --file #{config_name} subrepo.branch`.chomp
       last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
 
@@ -65,13 +65,13 @@ module Subrepo
       command_merge(subdir)
     end
 
-    def command_push(subdir)
-      fetched = command_fetch(subdir)
+    def command_push(subdir, remote: nil, branch: nil)
+      fetched = command_fetch(subdir, remote: remote)
 
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config_name = "#{subdir}/.gitrepo"
-      remote = `git config --file #{config_name} subrepo.remote`.chomp
-      branch = `git config --file #{config_name} subrepo.branch`.chomp
+      remote ||= `git config --file #{config_name} subrepo.remote`.chomp
+      branch ||= `git config --file #{config_name} subrepo.branch`.chomp
       last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
       last_pushed_commit = `git config --file #{config_name} subrepo.parent`.chomp
 
@@ -203,9 +203,11 @@ module Subrepo
       desc "Push latest changes to a subrepo to its remote"
       arg :dir
       command :push do |cmd|
-        cmd.action do |_, _options, args|
+        cmd.flag [:remote, :r], arg_name: "url"
+        cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
-          command_push(subdir)
+          command_push(subdir, remote: options[:remote], branch: options[:branch])
         end
       end
     end
