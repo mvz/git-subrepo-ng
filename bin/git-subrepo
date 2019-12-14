@@ -132,7 +132,7 @@ module Subrepo
       end
     end
 
-    def command_init(subdir, remote, branch)
+    def command_init(subdir, remote:, branch:)
       File.exist? subdir or raise "The subdir '#{subdir} does not exist."
       config_name = File.join(subdir, ".gitrepo")
       File.exist? config_name and
@@ -170,7 +170,7 @@ module Subrepo
           subdir = args.shift or raise "Provide dir"
           remote = options[:remote] or raise "Provide remote"
           branch = options[:branch] or raise "Provide branch"
-          command_init(subdir, remote, branch)
+          command_init(subdir, remote: remote, branch: branch)
         end
       end
 
