@@ -15,7 +15,7 @@ Feature: Initializing a directory as a new subrepo
       [subrepo]
       \tremote = ../barbar
       \tbranch = master
-      \tcommit = 
+      \tcommit = ""
       \tmethod = merge
       \tcmdver = 0.1.0
       """

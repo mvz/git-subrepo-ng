@@ -207,14 +207,17 @@ module Subrepo
         ; git-subrepo-ng command.
         ;
       HEADER
-      system "git config --file #{config_name} subrepo.remote #{remote}"
-      system "git config --file #{config_name} subrepo.branch #{branch}"
-      system "git config --file #{config_name} subrepo.commit \"\""
-      system "git config --file #{config_name} subrepo.method merge"
-      system "git config --file #{config_name} subrepo.cmdver #{Subrepo::VERSION}"
+
+      config = Rugged::Config.new config_name
+
+      config["subrepo.remote"] = "#{remote}"
+      config["subrepo.branch"] = "#{branch}"
+      config["subrepo.commit"] = ""
+      config["subrepo.method"] = "merge"
+      config["subrepo.cmdver"] = Subrepo::VERSION
+
       system "git add -f -- #{config_name}"
       system "git commit -m \"Initialize subrepo #{subdir}\""
     end
-
   end
 end
