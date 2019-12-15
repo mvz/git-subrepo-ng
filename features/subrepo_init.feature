@@ -4,7 +4,7 @@ Feature: Initializing a directory as a new subrepo
     Given I have an empty remote named "barbar"
     And I have an existing git project named "foo"
     And I have a subdirectory "bar" with commits
-    When I init the subrepo "bar" with remote "barbar" and branch "master"
+    When I init the subrepo "bar" with remote "../barbar" and branch "master"
     Then the file "foo/bar/.gitrepo" should contain:
       """
       ; DO NOT EDIT (unless you know what you are doing)
@@ -13,7 +13,7 @@ Feature: Initializing a directory as a new subrepo
       ; git-subrepo-ng command.
       ;
       [subrepo]
-      \tremote = barbar
+      \tremote = ../barbar
       \tbranch = master
       \tcommit = 
       \tmethod = merge
