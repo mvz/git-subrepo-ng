@@ -193,6 +193,8 @@ module Subrepo
     end
 
     def command_init(subdir, remote:, branch:)
+      repo = Rugged::Repository.new(".")
+
       File.exist? subdir or raise "The subdir '#{subdir} does not exist."
       config_name = File.join(subdir, ".gitrepo")
       File.exist? config_name and
@@ -216,8 +218,12 @@ module Subrepo
       config["subrepo.method"] = "merge"
       config["subrepo.cmdver"] = Subrepo::VERSION
 
-      system "git add -f -- #{config_name}"
-      system "git commit -m \"Initialize subrepo #{subdir}\""
+      index = repo.index
+      index.add config_name
+      index.write
+      Rugged::Commit.create(repo, tree: index.write_tree,
+                            message: "Initialize subrepo #{subdir}",
+                            parents: [repo.head.target], update_ref: "HEAD")
     end
   end
 end
