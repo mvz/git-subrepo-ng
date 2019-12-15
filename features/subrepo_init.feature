@@ -17,5 +17,5 @@ Feature: Initializing a directory as a new subrepo
       \tbranch = master
       \tcommit = 
       \tmethod = merge
-      \tcmdver = 0.0.1
+      \tcmdver = 0.1.0
       """

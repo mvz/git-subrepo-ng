@@ -215,7 +215,7 @@ module Subrepo
       system "git config --file #{config_name} subrepo.branch #{branch}"
       system "git config --file #{config_name} subrepo.commit \"\""
       system "git config --file #{config_name} subrepo.method merge"
-      system "git config --file #{config_name} subrepo.cmdver 0.0.1"
+      system "git config --file #{config_name} subrepo.cmdver #{Subrepo::VERSION}"
       system "git add -f -- #{config_name}"
       system "git commit -m \"Initialize subrepo #{subdir}\""
     end
