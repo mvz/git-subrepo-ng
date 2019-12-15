@@ -5,6 +5,7 @@ Given("I have an existing git project named {string}") do |proj|
     write_file "README", "Hi!"
     index = repo.index
     index.add "README"
+    index.write
     Rugged::Commit.create(repo, tree: index.write_tree, message: "Initial commit",
                           parents: [], update_ref: "HEAD")
   end
@@ -18,6 +19,7 @@ Given("I have a subdirectory {string} with commits") do |subdir|
     write_file "#{subdir}/a_file", "stuff"
     index = repo.index
     index.add "#{subdir}/a_file"
+    index.write
     Rugged::Commit.create(repo, tree: index.write_tree, message: "Add stuff in #{subdir}",
                           parents: [repo.head.target], update_ref: "HEAD")
   end
