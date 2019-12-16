@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "subrepo/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "subrepo"
+  spec.name          = "git-subrepo-ng"
   spec.version       = Subrepo::VERSION
   spec.authors       = ["Matijs van Zuijlen"]
   spec.email         = ["matijs@matijs.net"]
