@@ -1,1 +1,3 @@
-require 'aruba/cucumber'
+# frozen_string_literal: true
+
+require "aruba/cucumber"

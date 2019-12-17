@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Given("I have an existing git project named {string}") do |proj|
   create_directory proj
   cd proj do

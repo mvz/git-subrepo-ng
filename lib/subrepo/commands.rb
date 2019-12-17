@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rugged"
 require "subrepo/version"
 
@@ -100,7 +102,7 @@ module Subrepo
 
         last_commit = nil
 
-        commits.reverse.each do |commit|
+        commits.reverse_each do |commit|
           # Fetch subrepo's tree
           subtree = repo.lookup commit.tree[subdir][:oid]
 
@@ -212,8 +214,8 @@ module Subrepo
 
       config = Rugged::Config.new config_name
 
-      config["subrepo.remote"] = "#{remote}"
-      config["subrepo.branch"] = "#{branch}"
+      config["subrepo.remote"] = remote.to_s
+      config["subrepo.branch"] = branch.to_s
       config["subrepo.commit"] = ""
       config["subrepo.method"] = "merge"
       config["subrepo.cmdver"] = Subrepo::VERSION
