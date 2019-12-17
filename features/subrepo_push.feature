@@ -1,0 +1,13 @@
+Feature: Pushing a subrepo
+
+  Scenario: Pushing a freshly initialized subrepo
+    Given I have an empty remote named "barbar"
+    And I have an existing git project named "foo"
+    And I have a subdirectory "bar" with commits
+    When I init the subrepo "bar" with remote "../barbar" and branch "master"
+    And I push the subrepo "bar"
+    Then the remote should contain the contents of "bar"
+    And the remote's log should equal:
+      """
+      Add stuff in bar
+      """

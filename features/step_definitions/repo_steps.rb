@@ -31,4 +31,28 @@ Given("I have an empty remote named {string}") do |remote|
   in_current_directory do
     Rugged::Repository.init_at(remote, :bare)
   end
+  @remote = remote
+end
+
+Then("the remote should contain the contents of {string}") do |string|
+  repo = Rugged::Repository.new expand_path(@remote)
+  tree = repo.head.target.tree
+  subrepo = expand_path string, @main_repo
+  expected_entries = Dir.new(subrepo).entries - %w(. .. .gitrepo)
+  subrepo_entries = tree.entries.map { |it| it[:name] }
+  expect(subrepo_entries).to match_array expected_entries
+  tree.entries.each do |entry|
+    raise "Unsupported" unless entry[:type] == :blob
+
+    blob = repo.lookup entry[:oid]
+    expect(blob.text).to eq File.read(File.join(subrepo, entry[:name]))
+  end
+end
+
+Then("the remote's log should equal:") do |string|
+  repo = Rugged::Repository.new expand_path(@remote)
+  walker = Rugged::Walker.new(repo)
+  walker.push repo.head.target.oid
+  log = walker.map(&:summary).join("\n")
+  expect(log).to eq string
 end
