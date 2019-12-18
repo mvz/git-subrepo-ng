@@ -186,6 +186,8 @@ module Subrepo
 
         system "git co #{current_branch}"
 
+        system "git branch -D #{split_branch}"
+
         parent_commit = `git rev-parse HEAD`
 
         system "git config --file #{config_name} subrepo.commit #{pushed_commit}"
