@@ -11,12 +11,12 @@ module Subrepo
 
     attr_reader :subrepo
 
-    def config_name
-      @config_name ||= "#{subrepo}/.gitrepo"
+    def file_name
+      @file_name ||= File.join(subrepo, ".gitrepo")
     end
 
     def create(remote, branch)
-      File.write(config_name, <<~HEADER)
+      File.write(file_name, <<~HEADER)
         ; DO NOT EDIT (unless you know what you are doing)
         ;
         ; This subdirectory is a git "subrepo", and this file is maintained by the
@@ -43,14 +43,22 @@ module Subrepo
       config["subrepo.commit"]
     end
 
+    def commit=(commit_sha)
+      config["subrepo.commit"] = commit_sha
+    end
+
     def parent
       config["subrepo.parent"]
+    end
+
+    def parent=(parent_sha)
+      config["subrepo.parent"] = parent_sha
     end
 
     private
 
     def config
-      @config ||= Rugged::Config.new config_name
+      @config ||= Rugged::Config.new file_name
     end
   end
 end

@@ -30,10 +30,13 @@ module Subrepo
 
     def command_merge(subdir, remote: nil)
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
-      config_name = "#{subdir}/.gitrepo"
-      remote ||= `git config --file #{config_name} subrepo.remote`.chomp
-      branch = `git config --file #{config_name} subrepo.branch`.chomp
-      last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
+      config = Config.new(subdir)
+      remote ||= config.remote
+      branch = config.branch
+      last_merged_commit = config.commit
+
+      config_name = config.file_name
+
       last_local_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
@@ -55,7 +58,7 @@ module Subrepo
       system "git merge #{rebased_head} --no-ff --no-edit" \
         " -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
 
-      system "git config --file #{config_name} subrepo.commit #{last_fetched_commit}"
+      config.commit = last_fetched_commit
       system "git add \"#{config_name}\""
       system "git commit --amend --no-edit"
     end
@@ -71,14 +74,13 @@ module Subrepo
       repo = Rugged::Repository.new(".")
 
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
-      config_name = "#{subdir}/.gitrepo"
 
-      config = Rugged::Config.new config_name
+      config = Config.new(subdir)
 
-      remote ||= config["subrepo.remote"]
-      branch ||= config["subrepo.branch"]
-      last_merged_commit = config["subrepo.commit"]
-      last_pushed_commit = config["subrepo.parent"]
+      remote ||= config.remote
+      branch ||= config.branch
+      last_merged_commit = config.commit
+      last_pushed_commit = config.parent
 
       upstream = Rugged::Repository.new(remote)
 
@@ -161,12 +163,12 @@ module Subrepo
 
         system "git branch -D #{split_branch_name}"
 
-        parent_commit = `git rev-parse HEAD`
+        parent_commit = `git rev-parse HEAD`.chomp
 
         unless last_pushed_commit == pushed_commit
-          system "git config --file #{config_name} subrepo.commit #{pushed_commit}"
-          system "git config --file #{config_name} subrepo.parent #{parent_commit}"
-          system "git add -f -- #{config_name}"
+          config.commit = pushed_commit
+          config.parent = parent_commit
+          system "git add -f -- #{config.file_name}"
           system "git commit -m \"Push subrepo #{subdir}\""
         end
       else
@@ -183,17 +185,17 @@ module Subrepo
           " --index-filter 'git rm --cached --ignore-unmatch .gitrepo'" \
           " --prune-empty"
         system "git push \"#{remote}\" #{split_branch}:#{branch}"
-        pushed_commit = `git rev-parse HEAD`
+        pushed_commit = `git rev-parse HEAD`.chomp
 
         system "git co #{current_branch}"
 
         system "git branch -D #{split_branch}"
 
-        parent_commit = `git rev-parse HEAD`
+        parent_commit = `git rev-parse HEAD`.chomp
 
-        system "git config --file #{config_name} subrepo.commit #{pushed_commit}"
-        system "git config --file #{config_name} subrepo.parent #{parent_commit}"
-        system "git add -f -- #{config_name}"
+        config.commit = pushed_commit
+        config.parent = parent_commit
+        system "git add -f -- #{config.file_name}"
         system "git commit -m \"Push subrepo #{subdir}\""
       end
     end
@@ -202,27 +204,15 @@ module Subrepo
       repo = Rugged::Repository.new(".")
 
       File.exist? subdir or raise "The subdir '#{subdir} does not exist."
-      config_name = File.join(subdir, ".gitrepo")
+      config = Config.new(subdir)
+      config_name = config.file_name
       File.exist? config_name and
         raise "The subdir '#{subdir}' is already a subrepo."
       last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
       last_subdir_commit.empty? and
         raise "The subdir '#{subdir}' is not part of this repo."
-      File.write(config_name, <<~HEADER)
-        ; DO NOT EDIT (unless you know what you are doing)
-        ;
-        ; This subdirectory is a git "subrepo", and this file is maintained by the
-        ; git-subrepo-ng command.
-        ;
-      HEADER
 
-      config = Rugged::Config.new config_name
-
-      config["subrepo.remote"] = remote.to_s
-      config["subrepo.branch"] = branch.to_s
-      config["subrepo.commit"] = ""
-      config["subrepo.method"] = "merge"
-      config["subrepo.cmdver"] = Subrepo::VERSION
+      config.create(remote, branch)
 
       index = repo.index
       index.add config_name
