@@ -89,57 +89,35 @@ module Subrepo
         last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
         last_fetched_commit == last_merged_commit or
           raise "There are new changes upstream, you need to pull first."
+      end
 
-        split_branch_name = "subrepo-#{subdir}"
-        if repo.branches.exist? split_branch_name
-          raise "It seems #{split_branch_name} already exists. Remove it first"
-        end
+      split_branch_name = "subrepo-#{subdir}"
+      if repo.branches.exist? split_branch_name
+        raise "It seems #{split_branch_name} already exists. Remove it first"
+      end
 
-        last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
+      last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
 
-        unless last_commit
+      unless last_commit
+        if fetched
           puts "No changes to push"
           return
+        else
+          raise "Nothing mapped"
         end
-
-        split_branch = repo.branches.create split_branch_name, last_commit
-
-        system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
-        pushed_commit = last_commit
-
-        system "git branch -D #{split_branch_name}"
-
-        parent_commit = `git rev-parse HEAD`.chomp
-
-        unless last_pushed_commit == pushed_commit
-          config.commit = pushed_commit
-          config.parent = parent_commit
-          system "git add -f -- #{config.file_name}"
-          system "git commit -m \"Push subrepo #{subdir}\""
-        end
-      else
-        split_branch_name = "subrepo-#{subdir}"
-        if repo.branches.exist? split_branch_name
-          raise "It seems #{split_branch_name} already exists. Remove it first"
-        end
-
-        last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
-
-        raise "Nothing mapped" unless last_commit
-
-        split_branch = repo.branches.create split_branch_name, last_commit
-        system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
-        pushed_commit = last_commit
-
-        system "git branch -D #{split_branch_name}"
-
-        parent_commit = `git rev-parse HEAD`.chomp
-
-        config.commit = pushed_commit
-        config.parent = parent_commit
-        system "git add -f -- #{config.file_name}"
-        system "git commit -m \"Push subrepo #{subdir}\""
       end
+
+      split_branch = repo.branches.create split_branch_name, last_commit
+      system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
+      pushed_commit = last_commit
+
+      system "git branch -D #{split_branch_name}"
+      parent_commit = `git rev-parse HEAD`.chomp
+
+      config.commit = pushed_commit
+      config.parent = parent_commit
+      system "git add -f -- #{config.file_name}"
+      system "git commit -m \"Push subrepo #{subdir}\""
     end
 
     def command_init(subdir, remote:, branch:)
