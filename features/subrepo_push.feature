@@ -11,3 +11,15 @@ Feature: Pushing a subrepo
       """
       Add stuff in bar
       """
+
+  Scenario: Pushing again to an existing subrepo
+    Given I have a git project "foo" with subrepo "bar" with remote "baz"
+    And I have initialized and pushed the subrepo
+    When I add a new commit to the subrepo
+    And I push the subrepo "bar"
+    Then the remote should contain the contents of "bar"
+    And the remote's log should equal:
+      """
+      Add more stuff in bar
+      Add stuff in bar
+      """

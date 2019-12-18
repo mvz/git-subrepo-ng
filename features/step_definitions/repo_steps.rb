@@ -1,37 +1,41 @@
 # frozen_string_literal: true
 
 Given("I have an existing git project named {string}") do |proj|
-  create_directory proj
-  cd proj do
-    repo = Rugged::Repository.init_at(".")
-    write_file "README", "Hi!"
-    index = repo.index
-    index.add "README"
-    index.write
-    Rugged::Commit.create(repo, tree: index.write_tree, message: "Initial commit",
-                          parents: [], update_ref: "HEAD")
-  end
+  initialize_project proj
   @main_repo = proj
 end
 
 Given("I have a subdirectory {string} with commits") do |subdir|
-  cd @main_repo do
-    repo = Rugged::Repository.new(".")
-    create_directory subdir
-    write_file "#{subdir}/a_file", "stuff"
-    index = repo.index
-    index.add "#{subdir}/a_file"
-    index.write
-    Rugged::Commit.create(repo, tree: index.write_tree, message: "Add stuff in #{subdir}",
-                          parents: [repo.head.target], update_ref: "HEAD")
-  end
+  subdir_with_commits_in_project(@main_repo, subdir: subdir)
 end
 
 Given("I have an empty remote named {string}") do |remote|
-  in_current_directory do
-    Rugged::Repository.init_at(remote, :bare)
-  end
+  empty_remote(remote)
   @remote = remote
+end
+
+Given(
+  "I have a git project {string} with subrepo {string} with remote {string}"
+) do |proj, subdir, remote|
+  initialize_project proj
+  subdir_with_commits_in_project(proj, subdir: subdir)
+  empty_remote(remote)
+  @main_repo = proj
+  @subrepo = subdir
+  @remote = remote
+end
+
+When("I add a new commit to the subrepo") do
+  cd @main_repo do
+    repo = Rugged::Repository.new(".")
+    write_file "#{@subrepo}/other_file", "more stuff"
+
+    index = repo.index
+    index.add_all
+    index.write
+    Rugged::Commit.create(repo, tree: index.write_tree, message: "Add more stuff in #{@subrepo}",
+                          parents: [repo.head.target], update_ref: "HEAD")
+  end
 end
 
 Then("the remote should contain the contents of {string}") do |string|
