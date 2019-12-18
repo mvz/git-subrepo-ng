@@ -2,16 +2,17 @@
 
 require "rugged"
 require "subrepo/version"
+require "subrepo/config"
 
 module Subrepo
   module Commands
     module_function
 
     def command_fetch(subdir, remote: nil)
-      config_name = "#{subdir}/.gitrepo"
-      remote ||= `git config --file #{config_name} subrepo.remote`.chomp
-      branch = `git config --file #{config_name} subrepo.branch`.chomp
-      last_merged_commit = `git config --file #{config_name} subrepo.commit`.chomp
+      config = Config.new(subdir)
+      remote ||= config.remote
+      branch = config.branch
+      last_merged_commit = config.commit
 
       remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
       if remote_commit.empty?
