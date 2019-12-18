@@ -104,7 +104,6 @@ module Subrepo
 
         split_branch = repo.branches.create split_branch_name, last_commit
 
-        puts "git push \"#{remote}\" #{split_branch_name}:#{branch}"
         system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
         pushed_commit = last_commit
 
@@ -119,24 +118,20 @@ module Subrepo
           system "git commit -m \"Push subrepo #{subdir}\""
         end
       else
-        split_branch = "subrepo-#{subdir}"
-        unless `git show-ref #{split_branch}`.chomp.empty?
-          raise "It seems #{split_branch} already exists. Remove it first"
+        split_branch_name = "subrepo-#{subdir}"
+        if repo.branches.exist? split_branch_name
+          raise "It seems #{split_branch_name} already exists. Remove it first"
         end
 
-        system "git co -b #{split_branch}"
-        puts "Filtering #{subdir}"
-        ENV["FILTER_BRANCH_SQUELCH_WARNING"] = "1"
-        system "git filter-branch" \
-          " --subdirectory-filter #{subdir}" \
-          " --index-filter 'git rm --cached --ignore-unmatch .gitrepo'" \
-          " --prune-empty"
-        system "git push \"#{remote}\" #{split_branch}:#{branch}"
-        pushed_commit = `git rev-parse HEAD`.chomp
+        last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
 
-        system "git co #{current_branch}"
+        raise "Nothing mapped" unless last_commit
 
-        system "git branch -D #{split_branch}"
+        split_branch = repo.branches.create split_branch_name, last_commit
+        system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
+        pushed_commit = last_commit
+
+        system "git branch -D #{split_branch_name}"
 
         parent_commit = `git rev-parse HEAD`.chomp
 
@@ -170,35 +165,47 @@ module Subrepo
     end
 
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
+      last_merged_commit = nil if last_merged_commit == ""
       # Walk all commits that haven't been pushed yet
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
-      walker.hide last_pushed_commit
-      commits = walker.to_a
+      if last_pushed_commit
+        walker.hide last_pushed_commit
+        commit_map = { last_pushed_commit => last_merged_commit }
+      else
+        commit_map = {}
+      end
 
-      commit_map = { last_pushed_commit => last_merged_commit }
+      commits = walker.to_a
 
       last_commit = nil
 
       commits.reverse_each do |commit|
-        # Fetch subrepo's tree
-        subtree = repo.lookup commit.tree[subdir][:oid]
-
-        # Filter out .gitrepo
-        builder = Rugged::Tree::Builder.new(repo)
-        subtree.filter { |it| it[:name] != ".gitrepo" }.each { |it| builder << it }
-        rewritten_tree_sha = builder.write
-        rewritten_tree = repo.lookup rewritten_tree_sha
-
         # Map parent commits
         parent_shas = commit.parents.map(&:oid)
         target_parent_shas = parent_shas.map do |sha|
           # TODO: Improve upon last_merged_commit as best guess
           commit_map.fetch sha, last_merged_commit
-        end.uniq
+        end.uniq.compact
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
 
-        if target_parents.one?
+        # Calculate part of the tree that is in the subrepo
+        subtree_oid = commit.tree[subdir]&.fetch(:oid)
+        builder = Rugged::Tree::Builder.new(repo)
+
+        if subtree_oid
+          subtree = repo.lookup subtree_oid
+
+          # Filter out .gitrepo
+          subtree.filter { |it| it[:name] != ".gitrepo" }.each { |it| builder << it }
+        end
+
+        rewritten_tree_sha = builder.write
+        rewritten_tree = repo.lookup rewritten_tree_sha
+
+        if target_parents.empty?
+          next if rewritten_tree.entries.empty?
+        elsif target_parents.one?
           target_parent = target_parents.first
           diff = target_parent.tree.diff rewritten_tree
           # If commit tree is no different from the target parent, map this
