@@ -176,6 +176,7 @@ module Subrepo
 
         system "git co -b #{split_branch}"
         puts "Filtering #{subdir}"
+        ENV["FILTER_BRANCH_SQUELCH_WARNING"] = "1"
         system "git filter-branch" \
           " --subdirectory-filter #{subdir}" \
           " --index-filter 'git rm --cached --ignore-unmatch .gitrepo'" \
@@ -184,6 +185,8 @@ module Subrepo
         pushed_commit = `git rev-parse HEAD`
 
         system "git co #{current_branch}"
+
+        system "git branch -D #{split_branch}"
 
         parent_commit = `git rev-parse HEAD`
 
