@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "Clone of git subrepo, with improvements"
   # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
-  spec.license       = "TBD"
+  spec.license       = "GPL-3.0+"
 
   spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 

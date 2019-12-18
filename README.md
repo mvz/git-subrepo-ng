@@ -48,7 +48,10 @@ the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
-The gem will be available as open source, license to be determined.
+Copyright &copy; 2019 [Matijs van Zuijlen](http://www.matijs.net)
+
+This is free software, distributed under the terms of the GNU General Public
+License, version 3.0 or later. See the file COPYING for more information.
 
 ## Code of Conduct
 
