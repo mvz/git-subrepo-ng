@@ -5,6 +5,7 @@ require "subrepo/version"
 require "subrepo/config"
 
 module Subrepo
+  # Entry point for each of the subrepo commands
   module Commands
     module_function
 

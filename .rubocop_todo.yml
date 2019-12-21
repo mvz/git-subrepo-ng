@@ -31,12 +31,3 @@ Metrics/ModuleLength:
 
 Metrics/PerceivedComplexity:
   Max: 10
-
-Style/Documentation:
-  Exclude:
-    - 'spec/**/*'
-    - 'test/**/*'
-    - 'bin/git-subrepo'
-    - 'features/support/repo.rb'
-    - 'lib/subrepo/commands.rb'
-    - 'lib/subrepo/config.rb'

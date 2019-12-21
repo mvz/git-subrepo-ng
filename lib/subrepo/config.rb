@@ -4,6 +4,7 @@ require "rugged"
 require "subrepo/version"
 
 module Subrepo
+  # Encapsulate operations on the subrepo config stored in .gitrepo
   class Config
     def initialize(subrepo)
       @subrepo = subrepo
