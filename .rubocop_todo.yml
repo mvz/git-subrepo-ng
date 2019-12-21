@@ -45,9 +45,3 @@ Style/Documentation:
 Style/GuardClause:
   Exclude:
     - 'lib/subrepo/commands.rb'
-
-# Cop supports --auto-correct.
-# Configuration parameters: AllowMultipleReturnValues.
-Style/RedundantReturn:
-  Exclude:
-    - 'lib/subrepo/commands.rb'

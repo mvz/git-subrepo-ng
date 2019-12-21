@@ -209,7 +209,7 @@ module Subrepo
         commit_map[commit.oid] = new_commit_sha
         last_commit = new_commit_sha
       end
-      return last_commit
+      last_commit
     end
   end
 end
