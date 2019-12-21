@@ -73,21 +73,6 @@ Then("the subrepo and the remote should have the same contents") do
   end
 end
 
-Then("the remote should contain the contents of {string}") do |string|
-  repo = Rugged::Repository.new expand_path(@remote)
-  tree = repo.head.target.tree
-  subrepo = expand_path string, @main_repo
-  expected_entries = Dir.new(subrepo).entries - %w(. .. .gitrepo)
-  subrepo_entries = tree.entries.map { |it| it[:name] }
-  expect(subrepo_entries).to match_array expected_entries
-  tree.entries.each do |entry|
-    raise "Unsupported" unless entry[:type] == :blob
-
-    blob = repo.lookup entry[:oid]
-    expect(blob.text).to eq File.read(File.join(subrepo, entry[:name]))
-  end
-end
-
 Then("the remote's log should equal:") do |string|
   log = get_log_from_repo(@remote)
   expect(log).to eq string

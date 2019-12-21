@@ -6,7 +6,7 @@ Feature: Pushing a subrepo
     And I have a subdirectory "bar" with commits
     When I init the subrepo "bar" with remote "../barbar" and branch "master"
     And I push the subrepo "bar"
-    Then the remote should contain the contents of "bar"
+    Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
       Add stuff in bar
@@ -17,7 +17,7 @@ Feature: Pushing a subrepo
     And I have initialized and pushed the subrepo
     When I add a new commit to the subrepo
     And I push the subrepo "bar"
-    Then the remote should contain the contents of "bar"
+    Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
       Add more stuff in bar
