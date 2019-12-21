@@ -33,7 +33,8 @@ When("I add a new commit to the subrepo") do
     index = repo.index
     index.add_all
     index.write
-    Rugged::Commit.create(repo, tree: index.write_tree, message: "Add more stuff in #{@subrepo}",
+    Rugged::Commit.create(repo, tree: index.write_tree,
+                          message: "Add more stuff in #{@subrepo}",
                           parents: [repo.head.target], update_ref: "HEAD")
   end
 end

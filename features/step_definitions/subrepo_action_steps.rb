@@ -7,7 +7,8 @@ Given("I have initialized and pushed the subrepo") do
   end
 end
 
-When("I init the subrepo {string} with remote {string} and branch {string}") do |subrepo, remote, branch|
+When "I init the subrepo {string} with remote {string} and branch {string}" \
+  do |subrepo, remote, branch|
   cd(@main_repo) do
     Subrepo::Commands.command_init subrepo, remote: remote, branch: branch
   end
