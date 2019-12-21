@@ -19,3 +19,9 @@ When("I push the subrepo {string}") do |subrepo|
     Subrepo::Commands.command_push subrepo
   end
 end
+
+When("I pull the subrepo") do
+  cd(@main_repo) do
+    Subrepo::Commands.command_pull @subrepo
+  end
+end

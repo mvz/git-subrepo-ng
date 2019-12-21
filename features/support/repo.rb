@@ -35,6 +35,13 @@ module Repo
       Rugged::Repository.init_at(remote, :bare)
     end
   end
+
+  def get_log_from_repo(repo_name)
+    repo = Rugged::Repository.new expand_path(repo_name)
+    walker = Rugged::Walker.new(repo)
+    walker.push repo.head.target.oid
+    walker.map(&:summary).join("\n")
+  end
 end
 
 World Repo
