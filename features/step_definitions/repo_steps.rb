@@ -14,9 +14,8 @@ Given("I have an empty remote named {string}") do |remote|
   @remote = remote
 end
 
-Given(
-  "I have a git project {string} with subrepo {string} with remote {string}"
-) do |proj, subdir, remote|
+Given "I have a git project {string} with subrepo {string} with remote {string}" \
+  do |proj, subdir, remote|
   initialize_project proj
   subdir_with_commits_in_project(proj, subdir: subdir)
   empty_remote(remote)
@@ -33,7 +32,8 @@ When("I add a new commit to the subrepo") do
     index = repo.index
     index.add_all
     index.write
-    Rugged::Commit.create(repo, tree: index.write_tree, message: "Add more stuff in #{@subrepo}",
+    Rugged::Commit.create(repo, tree: index.write_tree,
+                          message: "Add more stuff in #{@subrepo}",
                           parents: [repo.head.target], update_ref: "HEAD")
   end
 end

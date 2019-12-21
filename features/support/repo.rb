@@ -2,6 +2,7 @@
 
 require "rugged"
 
+# Helper methods for repo-related steps
 module Repo
   def initialize_project(proj)
     create_directory proj

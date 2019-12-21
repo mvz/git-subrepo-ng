@@ -6,6 +6,7 @@ require "subrepo/commands"
 require "subrepo/version"
 
 module Subrepo
+  # Command line interface for the subrepo commands
   class CLI
     include GLI::App
     include Subrepo::Commands

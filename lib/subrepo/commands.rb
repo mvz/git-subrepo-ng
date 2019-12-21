@@ -5,6 +5,7 @@ require "subrepo/version"
 require "subrepo/config"
 
 module Subrepo
+  # Entry point for each of the subrepo commands
   module Commands
     module_function
 
@@ -28,10 +29,9 @@ module Subrepo
       true
     end
 
-    def command_merge(subdir, remote: nil)
+    def command_merge(subdir)
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config = Config.new(subdir)
-      remote ||= config.remote
       branch = config.branch
       last_merged_commit = config.commit
 
@@ -65,7 +65,7 @@ module Subrepo
 
     def command_pull(subdir, remote: nil)
       command_fetch(subdir, remote: remote)
-      command_merge(subdir, remote: remote)
+      command_merge(subdir)
     end
 
     def command_push(subdir, remote: nil, branch: nil)
@@ -73,16 +73,12 @@ module Subrepo
 
       repo = Rugged::Repository.new(".")
 
-      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
-
       config = Config.new(subdir)
 
       remote ||= config.remote
       branch ||= config.branch
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
-
-      upstream = Rugged::Repository.new(remote)
 
       if fetched
         refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
@@ -100,14 +96,14 @@ module Subrepo
 
       unless last_commit
         if fetched
-          puts "No changes to push"
-          return
+          warn "No changes to push"
         else
-          raise "Nothing mapped"
+          warn "Nothing mapped"
         end
+        return
       end
 
-      split_branch = repo.branches.create split_branch_name, last_commit
+      repo.branches.create split_branch_name, last_commit
       system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
       pushed_commit = last_commit
 
@@ -209,7 +205,7 @@ module Subrepo
         commit_map[commit.oid] = new_commit_sha
         last_commit = new_commit_sha
       end
-      return last_commit
+      last_commit
     end
   end
 end

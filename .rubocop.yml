@@ -9,6 +9,10 @@ Layout/HashAlignment:
   EnforcedHashRocketStyle: table
   EnforcedLastArgumentHashStyle: ignore_implicit
 
+# Be lenient with line length
+Layout/LineLength:
+  Max: 92
+
 # Don't force lonely closing parentheses
 Layout/MultilineMethodCallBraceLayout:
   EnforcedStyle: same_line
@@ -34,10 +38,6 @@ Lint/AmbiguousBlockAssociation:
 # Allow if (foo = get_foo) style
 Lint/AssignmentInCondition:
   AllowSafeAssignment: true
-
-# Be lenient with line length
-Metrics/LineLength:
-  Max: 92
 
 # Allow and/or for control flow only
 Style/AndOr:
