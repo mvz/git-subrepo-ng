@@ -14,9 +14,8 @@ Given("I have an empty remote named {string}") do |remote|
   @remote = remote
 end
 
-Given(
-  "I have a git project {string} with subrepo {string} with remote {string}"
-) do |proj, subdir, remote|
+Given "I have a git project {string} with subrepo {string} with remote {string}" \
+  do |proj, subdir, remote|
   initialize_project proj
   subdir_with_commits_in_project(proj, subdir: subdir)
   empty_remote(remote)
