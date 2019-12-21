@@ -40,8 +40,3 @@ Style/Documentation:
     - 'features/support/repo.rb'
     - 'lib/subrepo/commands.rb'
     - 'lib/subrepo/config.rb'
-
-# Configuration parameters: MinBodyLength.
-Style/GuardClause:
-  Exclude:
-    - 'lib/subrepo/commands.rb'

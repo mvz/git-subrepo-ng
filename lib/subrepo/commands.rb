@@ -100,11 +100,11 @@ module Subrepo
 
       unless last_commit
         if fetched
-          puts "No changes to push"
-          return
+          warn "No changes to push"
         else
-          raise "Nothing mapped"
+          warn "Nothing mapped"
         end
+        return
       end
 
       split_branch = repo.branches.create split_branch_name, last_commit
