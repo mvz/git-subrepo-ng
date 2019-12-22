@@ -48,3 +48,29 @@ Feature: Pushing after pulling
       Add stuff in bar
       Initial commit
       """
+
+  Scenario: Pushing newer commits after pulling
+    Given I have a git project with a subrepo with a remote
+    And I have initialized and pushed the subrepo
+    When I add a new commit to the remote
+    And I pull the subrepo
+    And I add a new commit to the subrepo
+    And I push the subrepo "bar"
+    Then the subrepo and the remote should have the same contents
+    And the remote's log should equal:
+      """
+      Add more stuff in bar
+      Add another_file in baz
+      Add stuff in bar
+      """
+    And the project's log should equal:
+      """
+      Push subrepo bar
+      Add more stuff in bar
+      Subrepo-merge bar/master into master
+      Add another_file in baz
+      Push subrepo bar
+      Initialize subrepo bar
+      Add stuff in bar
+      Initial commit
+      """
