@@ -9,8 +9,8 @@ Feature: Pulling a subrepo
     And the project's log should equal:
       """
       Subrepo-merge bar/master into master
-      Push subrepo bar
       Add another_file in baz
+      Push subrepo bar
       Initialize subrepo bar
       Add stuff in bar
       Initial commit
