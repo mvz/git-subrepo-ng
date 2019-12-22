@@ -58,6 +58,25 @@ When("I add a new commit to the remote") do
                         parents: [repo.head.target], update_ref: "HEAD")
 end
 
+When("I create a branch with some commits in the main project") do
+  cd @main_repo do
+    `git checkout -b unrelated-branch`
+    write_file "another_main_file", "stuff"
+    `git add -A`
+    `git commit -am "Working"`
+    write_file "yet_another", "more stuff"
+    `git add -A`
+    `git commit -am "More working"`
+    `git checkout master`
+  end
+end
+
+When("I merge in the main project branch") do
+  cd @main_repo do
+    `git merge unrelated-branch`
+  end
+end
+
 Then("the subrepo and the remote should have the same contents") do
   repo = Rugged::Repository.new expand_path(@remote)
   tree = repo.head.target.tree
