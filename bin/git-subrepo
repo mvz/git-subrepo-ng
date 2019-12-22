@@ -52,7 +52,7 @@ module Subrepo
       arg :dir
       command :pull do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
-        cmd.action do |_, _options, args|
+        cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
           command_pull(subdir, remote: options[:remote])
         end
