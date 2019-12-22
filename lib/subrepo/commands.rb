@@ -155,31 +155,35 @@ module Subrepo
       last_commit = nil
 
       commits.reverse_each do |commit|
+        parents = commit.parents
         # Map parent commits
-        parent_shas = commit.parents.map(&:oid)
+        parent_shas = parents.map(&:oid)
         target_parent_shas = parent_shas.map do |sha|
           # TODO: Improve upon last_merged_commit as best guess
           commit_map.fetch sha, last_merged_commit
         end.uniq.compact
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
-
-        # Calculate part of the tree that is in the subrepo
-        subtree_oid = commit.tree[subdir]&.fetch(:oid)
-        builder = Rugged::Tree::Builder.new(repo)
-
-        if subtree_oid
-          subtree = repo.lookup subtree_oid
-
-          # Filter out .gitrepo
-          subtree.filter { |it| it[:name] != ".gitrepo" }.each { |it| builder << it }
-        end
-
-        rewritten_tree_sha = builder.write
-        rewritten_tree = repo.lookup rewritten_tree_sha
+        rewritten_tree = calculate_subtree(repo, subdir, commit)
 
         if target_parents.empty?
           next if rewritten_tree.entries.empty?
-        elsif target_parents.one?
+        end
+
+        if parents.one?
+          parent = parents.first
+          rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
+          diff = rewritten_parent_tree.diff rewritten_tree
+
+          # If commit tree is no different from the parent, map this
+          # commit to the target parent and skip to the next commit.
+          if diff.none?
+            target_parent = target_parents.first
+            commit_map[commit.oid] = target_parent.oid
+            next
+          end
+        end
+
+        if target_parents.one?
           target_parent = target_parents.first
           diff = target_parent.tree.diff rewritten_tree
           # If commit tree is no different from the target parent, map this
@@ -206,6 +210,22 @@ module Subrepo
         last_commit = new_commit_sha
       end
       last_commit
+    end
+
+    def calculate_subtree(repo, subdir, commit)
+      # Calculate part of the tree that is in the subrepo
+      subtree_oid = commit.tree[subdir]&.fetch(:oid)
+      builder = Rugged::Tree::Builder.new(repo)
+
+      if subtree_oid
+        subtree = repo.lookup subtree_oid
+
+        # Filter out .gitrepo
+        subtree.filter { |it| it[:name] != ".gitrepo" }.each { |it| builder << it }
+      end
+
+      rewritten_tree_sha = builder.write
+      repo.lookup rewritten_tree_sha
     end
   end
 end
