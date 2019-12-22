@@ -20,7 +20,7 @@ module Subrepo
         puts "Branch #{branch} not on remote yet"
         return false
       end
-      system "git fetch --no-tags \"#{remote}\" \"#{branch}\""
+      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       puts "Fetched #{new_commit}"
       puts "No change" if new_commit == last_merged_commit
@@ -54,13 +54,13 @@ module Subrepo
       system command
 
       rebased_head = `git rev-parse HEAD`.chomp
-      system "git checkout #{current_branch}"
+      system "git checkout -q #{current_branch}"
       system "git merge #{rebased_head} --no-ff --no-edit" \
-        " -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
+        " -q -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
 
       config.commit = last_fetched_commit
       system "git add \"#{config_name}\""
-      system "git commit --amend --no-edit"
+      system "git commit -q --amend --no-edit"
     end
 
     def command_pull(subdir, remote: nil)
