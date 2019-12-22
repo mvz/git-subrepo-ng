@@ -169,7 +169,7 @@ module Subrepo
           next if rewritten_tree.entries.empty?
         end
 
-        if parents.one?
+        if parents.any?
           parent = parents.first
           rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
           diff = rewritten_parent_tree.diff rewritten_tree
