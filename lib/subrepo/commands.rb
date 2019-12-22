@@ -155,8 +155,9 @@ module Subrepo
       last_commit = nil
 
       commits.reverse_each do |commit|
+        parents = commit.parents
         # Map parent commits
-        parent_shas = commit.parents.map(&:oid)
+        parent_shas = parents.map(&:oid)
         target_parent_shas = parent_shas.map do |sha|
           # TODO: Improve upon last_merged_commit as best guess
           commit_map.fetch sha, last_merged_commit
@@ -166,6 +167,20 @@ module Subrepo
 
         if target_parents.empty?
           next if rewritten_tree.entries.empty?
+        end
+
+        if parents.one?
+          parent = parents.first
+          rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
+          diff = rewritten_parent_tree.diff rewritten_tree
+
+          # If commit tree is no different from the parent, map this
+          # commit to the target parent and skip to the next commit.
+          if diff.none?
+            target_parent = target_parents.first
+            commit_map[commit.oid] = target_parent.oid
+            next
+          end
         end
 
         if target_parents.one?
