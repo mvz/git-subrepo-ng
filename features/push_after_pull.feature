@@ -9,17 +9,19 @@ Feature: Pushing after pulling
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add another_file in remote baz
-      Add stuff in subdir bar
+      * Add another_file in remote baz
+      * Add stuff in subdir bar
       """
     And the project's log should equal:
       """
-      Subrepo-merge bar/master into master
-      Add another_file in remote baz
-      Push subrepo bar
-      Initialize subrepo bar
-      Add stuff in subdir bar
-      Initial commit
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      |/  
+      * Push subrepo bar
+      * Initialize subrepo bar
+      * Add stuff in subdir bar
+      * Initial commit
       """
 
   Scenario: Pushing older commits after pulling
@@ -32,21 +34,25 @@ Feature: Pushing after pulling
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Subrepo-merge bar/master into master
-      Add more stuff in subrepo bar
-      Add another_file in remote baz
-      Add stuff in subdir bar
+      *   Subrepo-merge bar/master into master
+      |\  
+      * | Add more stuff in subrepo bar
+      |/  
+      * Add another_file in remote baz
+      * Add stuff in subdir bar
       """
     And the project's log should equal:
       """
-      Push subrepo bar
-      Subrepo-merge bar/master into master
-      Add another_file in remote baz
-      Add more stuff in subrepo bar
-      Push subrepo bar
-      Initialize subrepo bar
-      Add stuff in subdir bar
-      Initial commit
+      * Push subrepo bar
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      * | Add more stuff in subrepo bar
+      |/  
+      * Push subrepo bar
+      * Initialize subrepo bar
+      * Add stuff in subdir bar
+      * Initial commit
       """
 
   Scenario: Pushing newer commits after pulling
@@ -59,18 +65,20 @@ Feature: Pushing after pulling
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add more stuff in subrepo bar
-      Add another_file in remote baz
-      Add stuff in subdir bar
+      * Add more stuff in subrepo bar
+      * Add another_file in remote baz
+      * Add stuff in subdir bar
       """
     And the project's log should equal:
       """
-      Push subrepo bar
-      Add more stuff in subrepo bar
-      Subrepo-merge bar/master into master
-      Add another_file in remote baz
-      Push subrepo bar
-      Initialize subrepo bar
-      Add stuff in subdir bar
-      Initial commit
+      * Push subrepo bar
+      * Add more stuff in subrepo bar
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      |/  
+      * Push subrepo bar
+      * Initialize subrepo bar
+      * Add stuff in subdir bar
+      * Initial commit
       """
