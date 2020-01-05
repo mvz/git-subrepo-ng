@@ -166,32 +166,32 @@ module Subrepo
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
         rewritten_tree = calculate_subtree(repo, subdir, commit)
 
-        if target_parents.empty?
+        if parents.empty?
           next if rewritten_tree.entries.empty?
-        end
-
-        if parents.any?
+        else
           parent = parents.first
           rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
           diff = rewritten_parent_tree.diff rewritten_tree
 
-          # If commit tree is no different from the parent, map this
-          # commit to the target parent and skip to the next commit.
+          # If commit tree is no different from the first parent, this is
+          # either a regular commit that makes no changes to the subrepo, or a
+          # merge that has no effect on the mainline. Map this commit to the
+          # target parent and skip to the next commit.
           if diff.none?
             target_parent = target_parents.first
             commit_map[commit.oid] = target_parent.oid
             next
           end
-        end
 
-        if target_parents.one?
-          target_parent = target_parents.first
-          diff = target_parent.tree.diff rewritten_tree
-          # If commit tree is no different from the target parent, map this
-          # commit to the target parent and skip to the next commit.
-          if diff.none?
-            commit_map[commit.oid] = target_parent.oid
-            next
+          if target_parents.one?
+            target_parent = target_parents.first
+            diff = target_parent.tree.diff rewritten_tree
+            # If commit tree is no different from the target parent, map this
+            # commit to the target parent and skip to the next commit.
+            if diff.none?
+              commit_map[commit.oid] = target_parent.oid
+              next
+            end
           end
         end
 
