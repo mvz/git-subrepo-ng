@@ -42,7 +42,7 @@ When("I add a new commit to the subrepo") do
     index.add_all
     index.write
     Rugged::Commit.create(repo, tree: index.write_tree,
-                          message: "Add more stuff in #{@subrepo}",
+                          message: "Add more stuff in subrepo #{@subrepo}",
                           parents: [repo.head.target], update_ref: "HEAD")
   end
 end
@@ -54,7 +54,7 @@ When("I add a new commit to the remote") do
   new_blob_oid = repo.write("new content", :blob)
   index.add path: "another_file", oid: new_blob_oid, mode: 0o100644
   Rugged::Commit.create(repo, tree: index.write_tree,
-                        message: "Add another_file in #{@remote}",
+                        message: "Add another_file in remote #{@remote}",
                         parents: [repo.head.target], update_ref: "HEAD")
 end
 

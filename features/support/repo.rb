@@ -25,8 +25,11 @@ module Repo
       index = repo.index
       index.add "#{subdir}/a_file"
       index.write
-      Rugged::Commit.create(repo, tree: index.write_tree, message: "Add stuff in #{subdir}",
-                            parents: [repo.head.target], update_ref: "HEAD")
+      Rugged::Commit.create(repo,
+                            tree: index.write_tree,
+                            message: "Add stuff in subdir #{subdir}",
+                            parents: [repo.head.target],
+                            update_ref: "HEAD")
     end
   end
 

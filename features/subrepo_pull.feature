@@ -9,10 +9,10 @@ Feature: Pulling a subrepo
     And the project's log should equal:
       """
       Subrepo-merge bar/master into master
-      Add another_file in baz
+      Add another_file in remote baz
       Push subrepo bar
       Initialize subrepo bar
-      Add stuff in bar
+      Add stuff in subdir bar
       Initial commit
       """
 
@@ -26,10 +26,10 @@ Feature: Pulling a subrepo
     And the project's log should equal:
       """
       Subrepo-merge bar/master into master
-      Add another_file in baz
+      Add another_file in remote baz
       Push subrepo bar
       Initialize subrepo bar
-      Add stuff in bar
+      Add stuff in subdir bar
       Initial commit
       """
 

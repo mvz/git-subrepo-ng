@@ -9,16 +9,16 @@ Feature: Pushing after pulling
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add another_file in baz
-      Add stuff in bar
+      Add another_file in remote baz
+      Add stuff in subdir bar
       """
     And the project's log should equal:
       """
       Subrepo-merge bar/master into master
-      Add another_file in baz
+      Add another_file in remote baz
       Push subrepo bar
       Initialize subrepo bar
-      Add stuff in bar
+      Add stuff in subdir bar
       Initial commit
       """
 
@@ -33,19 +33,19 @@ Feature: Pushing after pulling
     And the remote's log should equal:
       """
       Subrepo-merge bar/master into master
-      Add more stuff in bar
-      Add another_file in baz
-      Add stuff in bar
+      Add more stuff in subrepo bar
+      Add another_file in remote baz
+      Add stuff in subdir bar
       """
     And the project's log should equal:
       """
       Push subrepo bar
       Subrepo-merge bar/master into master
-      Add another_file in baz
-      Add more stuff in bar
+      Add another_file in remote baz
+      Add more stuff in subrepo bar
       Push subrepo bar
       Initialize subrepo bar
-      Add stuff in bar
+      Add stuff in subdir bar
       Initial commit
       """
 
@@ -59,18 +59,18 @@ Feature: Pushing after pulling
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add more stuff in bar
-      Add another_file in baz
-      Add stuff in bar
+      Add more stuff in subrepo bar
+      Add another_file in remote baz
+      Add stuff in subdir bar
       """
     And the project's log should equal:
       """
       Push subrepo bar
-      Add more stuff in bar
+      Add more stuff in subrepo bar
       Subrepo-merge bar/master into master
-      Add another_file in baz
+      Add another_file in remote baz
       Push subrepo bar
       Initialize subrepo bar
-      Add stuff in bar
+      Add stuff in subdir bar
       Initial commit
       """
