@@ -93,6 +93,8 @@ module Subrepo
         raise "It seems #{split_branch_name} already exists. Remove it first"
       end
 
+      current_branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
+
       last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
 
       unless last_commit
@@ -108,6 +110,8 @@ module Subrepo
       system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
       pushed_commit = last_commit
 
+      system "git checkout #{current_branch_name}"
+      system "git reset --hard"
       system "git branch -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
@@ -141,6 +145,7 @@ module Subrepo
 
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
       last_merged_commit = nil if last_merged_commit == ""
+
       # Walk all commits that haven't been pushed yet
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
@@ -157,6 +162,7 @@ module Subrepo
 
       commits.reverse_each do |commit|
         parents = commit.parents
+
         # Map parent commits
         parent_shas = parents.map(&:oid)
         target_parent_shas = parent_shas.map do |sha|
@@ -166,8 +172,14 @@ module Subrepo
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
         rewritten_tree = calculate_subtree(repo, subdir, commit)
 
+        parent_map = parent_shas.map { |sha|
+          mapped = commit_map.fetch sha, last_merged_commit
+          [sha, mapped]
+        }.to_h
+
         if parents.empty?
           next if rewritten_tree.entries.empty?
+          commit_tree = rewritten_tree
         else
           diffs = parents.map do |parent|
             rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
@@ -193,12 +205,59 @@ module Subrepo
             commit_map[commit.oid] = target_parent.oid
             next
           end
+
+          if target_parents.any?
+            # There should be something to commit at this point, and there's a
+            # target tree to commit agains.
+            #
+            # Now, apply source diff as a patch to the target tree.
+
+            target_diff = target_parents.first.diff rewritten_tree
+            if target_diff.patch == diffs.first.patch
+              # Take a shortcut if patching the target tree would result in the
+              # same rewritten tree.
+              commit_tree = rewritten_tree
+            else
+              # Do the actual patching
+              #
+              # When Repository#apply is in a released version of rugged, we
+              # can do this:
+              #
+              #    index = repo.index
+              #    index.read_tree(target_parents.first.tree)
+              #    repo.apply diffs.first, location: :index
+              #    target_tree = index.write_tree
+
+              system "git checkout -q #{target_parents.first.oid}"
+              patch = Tempfile.new("subrepo-patch")
+              patch.write diffs.first.patch
+              patch.close
+              system "git apply --cached #{patch.path}"
+              patch.unlink
+              target_tree = `git write-tree`.chomp
+
+              # Check if commit would be
+              # * an empty solo-commit, or
+              # * a merge merging in no changes
+              # This is similar to the checks above, but now with a new diff.
+              target_diff = target_parents.first.diff target_tree
+              if target_diff.none?
+                target_parent = target_parents.first
+                commit_map[commit.oid] = target_parent.oid
+                next
+              end
+
+              commit_tree = target_tree
+            end
+          else
+            commit_tree = rewritten_tree
+          end
         end
 
         # Commit has multiple mapped parents or is non-empty: We should
         # create it in the target branch too.
         options = {}
-        options[:tree] = rewritten_tree
+        options[:tree] = commit_tree
         options[:author] = commit.author
         options[:committer] = commit.committer
         options[:parents] = target_parents
