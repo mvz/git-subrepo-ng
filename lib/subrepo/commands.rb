@@ -166,30 +166,30 @@ module Subrepo
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
         rewritten_tree = calculate_subtree(repo, subdir, commit)
 
-        if target_parents.empty?
+        if parents.empty?
           next if rewritten_tree.entries.empty?
-        end
+        else
+          diffs = parents.map do |parent|
+            rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
+            rewritten_parent_tree.diff rewritten_tree
+          end
 
-        if parents.any?
-          parent = parents.first
-          rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
-          diff = rewritten_parent_tree.diff rewritten_tree
-
-          # If commit tree is no different from the parent, map this
-          # commit to the target parent and skip to the next commit.
-          if diff.none?
+          # If commit tree is no different from the first parent, this is
+          # either a regular commit that makes no changes to the subrepo, or a
+          # merge that has no effect on the mainline. Map this commit to the
+          # target parent and skip to the next commit.
+          if diffs.first.none?
             target_parent = target_parents.first
             commit_map[commit.oid] = target_parent.oid
             next
           end
-        end
 
-        if target_parents.one?
-          target_parent = target_parents.first
-          diff = target_parent.tree.diff rewritten_tree
-          # If commit tree is no different from the target parent, map this
-          # commit to the target parent and skip to the next commit.
-          if diff.none?
+          # If there is only one target parent, and at least one of the
+          # original diffs is empty, this would be an empty merge commit
+          # (regular empty commits have been filtered out above).
+          # Map this commit to the target parent and skip to the next commit.
+          if target_parents.one? && diffs.any?(&:none?)
+            target_parent = target_parents.first
             commit_map[commit.oid] = target_parent.oid
             next
           end
