@@ -17,6 +17,7 @@ Feature: Pulling a subrepo
       * Add stuff in subdir bar
       * Initial commit
       """
+    And the subrepo configuration should contain the latest commit and parent
 
   Scenario: Pulling twice in a row has no extra effect
     Given I have a git project with a subrepo with a remote
@@ -36,4 +37,3 @@ Feature: Pulling a subrepo
       * Add stuff in subdir bar
       * Initial commit
       """
-

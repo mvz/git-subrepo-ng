@@ -101,3 +101,12 @@ Then("the project's log should equal:") do |string|
   log = get_log_from_repo(@main_repo)
   expect(log).to eq string
 end
+
+Then("the subrepo configuration should contain the latest commit and parent") do
+  remote_repo = Rugged::Repository.new expand_path(@remote)
+  repo = Rugged::Repository.new expand_path(@main_repo)
+  subrepo = expand_path @subrepo, @main_repo
+  config = Subrepo::Config.new(subrepo)
+  expect(config.commit).to eq remote_repo.head.target.oid
+  expect(config.parent).to eq repo.head.target.parents.last.oid
+end

@@ -59,6 +59,7 @@ module Subrepo
         " -q -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
 
       config.commit = last_fetched_commit
+      config.parent = rebased_head
       system "git add \"#{config_name}\""
       system "git commit -q --amend --no-edit"
     end
