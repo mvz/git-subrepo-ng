@@ -142,7 +142,7 @@ module Subrepo
       config = Config.new(subdir)
 
       remote ||= config.remote
-      branch ||= config.branch
+      target_branch ||= config.branch
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
 
@@ -158,9 +158,25 @@ module Subrepo
         raise "It seems #{split_branch_name} already exists. Remove it first"
       end
 
-      last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
+      mapped_commit_sha = map_commits(repo, subdir, nil, nil)
 
-      unless last_commit
+      if last_merged_commit.empty?
+        last_commit_sha = mapped_commit_sha
+      else
+        mapped_commit = repo.lookup mapped_commit_sha
+        upstream_commit = repo.lookup last_merged_commit
+        committer = {
+          name: repo.config["user.name"],
+          email: repo.config["user.email"]
+        }
+        rebase = Rugged::Rebase.new(repo, mapped_commit, upstream_commit, inmemory: true)
+        while rebase.next()
+          last_commit_sha = rebase.commit(committer: committer)
+        end
+        rebase.finish(committer)
+      end
+
+      unless last_commit_sha
         if fetched
           warn "No changes to push"
         else
@@ -169,14 +185,13 @@ module Subrepo
         return
       end
 
-      repo.branches.create split_branch_name, last_commit
-      system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
-      pushed_commit = last_commit
+      repo.branches.create split_branch_name, last_commit_sha
+      system "git push \"#{remote}\" #{split_branch_name}:#{target_branch}"
 
       system "git branch -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
-      config.commit = pushed_commit
+      config.commit = last_commit_sha
       config.parent = parent_commit
       system "git add -f -- #{config.file_name}"
       system "git commit -m \"Push subrepo #{subdir}\""
@@ -280,7 +295,7 @@ module Subrepo
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
         rewritten_tree = calculate_subtree(repo, subdir, commit)
 
-        if parents.empty?
+        if target_parents.empty?
           next if rewritten_tree.entries.empty?
         else
           # TODO: Compare tree oids directly instead of doing a full diff
