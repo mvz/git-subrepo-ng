@@ -9,7 +9,7 @@ Feature: Pushing a subrepo
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add stuff in bar
+      * Add stuff in subdir bar
       """
 
   Scenario: Pushing again to an existing subrepo
@@ -20,8 +20,8 @@ Feature: Pushing a subrepo
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add more stuff in bar
-      Add stuff in bar
+      * Add more stuff in subrepo bar
+      * Add stuff in subdir bar
       """
 
   Scenario: Pushing with unrelated merge commits
@@ -34,6 +34,6 @@ Feature: Pushing a subrepo
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      Add more stuff in bar
-      Add stuff in bar
+      * Add more stuff in subrepo bar
+      * Add stuff in subdir bar
       """

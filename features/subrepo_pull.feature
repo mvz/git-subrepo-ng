@@ -8,12 +8,14 @@ Feature: Pulling a subrepo
     Then the subrepo and the remote should have the same contents
     And the project's log should equal:
       """
-      Subrepo-merge bar/master into master
-      Add another_file in baz
-      Push subrepo bar
-      Initialize subrepo bar
-      Add stuff in bar
-      Initial commit
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      |/  
+      * Push subrepo bar
+      * Initialize subrepo bar
+      * Add stuff in subdir bar
+      * Initial commit
       """
 
   Scenario: Pulling twice in a row has no extra effect
@@ -25,11 +27,13 @@ Feature: Pulling a subrepo
     Then the subrepo and the remote should have the same contents
     And the project's log should equal:
       """
-      Subrepo-merge bar/master into master
-      Add another_file in baz
-      Push subrepo bar
-      Initialize subrepo bar
-      Add stuff in bar
-      Initial commit
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      |/  
+      * Push subrepo bar
+      * Initialize subrepo bar
+      * Add stuff in subdir bar
+      * Initial commit
       """
 

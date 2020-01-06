@@ -25,8 +25,11 @@ module Repo
       index = repo.index
       index.add "#{subdir}/a_file"
       index.write
-      Rugged::Commit.create(repo, tree: index.write_tree, message: "Add stuff in #{subdir}",
-                            parents: [repo.head.target], update_ref: "HEAD")
+      Rugged::Commit.create(repo,
+                            tree: index.write_tree,
+                            message: "Add stuff in subdir #{subdir}",
+                            parents: [repo.head.target],
+                            update_ref: "HEAD")
     end
   end
 
@@ -37,11 +40,9 @@ module Repo
   end
 
   def get_log_from_repo(repo_name)
-    repo = Rugged::Repository.new expand_path(repo_name)
-    walker = Rugged::Walker.new(repo)
-    walker.sorting(Rugged::SORT_TOPO)
-    walker.push repo.head.target.oid
-    walker.map(&:summary).join("\n")
+    cd repo_name do
+      `git log --graph --pretty=format:"%s" --abbrev-commit`
+    end
   end
 end
 
