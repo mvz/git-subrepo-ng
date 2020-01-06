@@ -171,6 +171,10 @@ module Subrepo
         raise "It seems #{split_branch_name} already exists. Remove it first"
       end
 
+      # TODO: If last_merged_commit maps to last_pushed_commit,
+      # use mapped_commits(repo, subdir, last_pushed_commit,
+      # last_merged_commit) directly to avoid history rewrite.
+
       mapped_commit_sha = map_commits(repo, subdir, nil, nil)
 
       if last_merged_commit.empty?
