@@ -133,6 +133,19 @@ module Subrepo
       end
     end
 
+    # Push subrepo to the remote
+    #
+    # Steps in the process:
+    #
+    # * Fetch latest state from remote
+    # * Abort if any changes on the remote were not known: In this case, we
+    #   need to pull first
+    # * Map the entire history of the repository, keeping only changes relevant
+    #   to the subrepo
+    # * Rebase the mapped history onto the latest fetched commit
+    # * Push the result
+    # * Record the pushed commit and its local equivalent in the subrepo
+    #   configuration
     def command_push(subdir, remote: nil, branch: nil)
       subdir or raise "No subdir provided"
       fetched = command_fetch(subdir, remote: remote)
