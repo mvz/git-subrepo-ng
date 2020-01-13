@@ -7,5 +7,11 @@ require "subrepo/version"
 
 app = Subrepo::CLI.new
 app.setup
-result = app.run(ARGV)
+begin
+  result = app.run(ARGV)
+rescue => e
+  require 'pry'
+  binding.pry
+end
+
 exit result

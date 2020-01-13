@@ -176,6 +176,8 @@ module Subrepo
       # last_merged_commit) directly to avoid history rewrite.
 
       mapped_commit_sha = map_commits(repo, subdir, nil, nil)
+      require 'pry'
+      binding.pry
 
       if last_merged_commit.empty?
         last_commit_sha = mapped_commit_sha
@@ -187,7 +189,13 @@ module Subrepo
           email: repo.config["user.email"]
         }
         rebase = Rugged::Rebase.new(repo, mapped_commit, upstream_commit, inmemory: true)
-        while rebase.next()
+        while (result = rebase.next())
+          # NOTE: Expect result to contain the in-memory index
+          index = rebase.inmemory_index
+          # NOTE: We would like to do some conflict resolution here, i.e.,
+          # start a merge editor, but the in-memory index has the wrong owner
+          # so can't find its repo.
+          raise if index.conflicts?
           last_commit_sha = rebase.commit(committer: committer)
         end
         rebase.finish(committer)
@@ -202,6 +210,8 @@ module Subrepo
         return
       end
 
+      require 'pry'
+      binding.pry
       repo.branches.create split_branch_name, last_commit_sha
       system "git push \"#{remote}\" #{split_branch_name}:#{target_branch}"
 
@@ -212,6 +222,8 @@ module Subrepo
       config.parent = parent_commit
       system "git add -f -- #{config.file_name}"
       system "git commit -m \"Push subrepo #{subdir}\""
+      require 'pry'
+      binding.pry
     end
 
     def command_init(subdir, remote: nil, branch: nil, method: nil)
