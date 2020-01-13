@@ -188,14 +188,18 @@ module Subrepo
           name: repo.config["user.name"],
           email: repo.config["user.email"]
         }
-        rebase = Rugged::Rebase.new(repo, mapped_commit, upstream_commit, inmemory: true)
+        rebase = Rugged::Rebase.new(repo, mapped_commit, upstream_commit)
         while (result = rebase.next())
           # NOTE: Expect result to contain the in-memory index
-          index = rebase.inmemory_index
+          #index = rebase.inmemory_index
           # NOTE: We would like to do some conflict resolution here, i.e.,
           # start a merge editor, but the in-memory index has the wrong owner
           # so can't find its repo.
-          raise if index.conflicts?
+          #raise if index.conflicts?
+
+          # NOTE: Some conflicts are trivial!
+          require 'pry'
+          binding.pry
           last_commit_sha = rebase.commit(committer: committer)
         end
         rebase.finish(committer)
