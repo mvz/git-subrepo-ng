@@ -281,7 +281,7 @@ module Subrepo
         subtree = repo.lookup subtree_oid
 
         # Filter out .gitrepo
-        subtree.filter { |it| it[:name] != ".gitrepo" }.each { |it| builder << it }
+        subtree.select { |it| it[:name] != ".gitrepo" }.each { |it| builder << it }
       end
 
       rewritten_tree_sha = builder.write
