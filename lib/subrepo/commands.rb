@@ -193,7 +193,7 @@ module Subrepo
           # target parent and skip to the next commit.
           if diffs.first.none?
             target_parent = target_parents.first
-            commit_map[commit.oid] = target_parent.oid
+            commit_map[commit.oid] = target_parent.oid if target_parent
             next
           end
 
