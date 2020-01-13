@@ -233,7 +233,10 @@ module Subrepo
               patch = Tempfile.new("subrepo-patch")
               patch.write diffs.first.patch
               patch.close
-              system "git apply --cached #{patch.path}"
+              result = system "git apply --cached #{patch.path}"
+              unless result
+                raise "Unable to apply patch -- aborting"
+              end
               patch.unlink
               target_tree = `git write-tree`.chomp
               system "git reset --hard HEAD"
