@@ -182,6 +182,8 @@ module Subrepo
           next if rewritten_tree.entries.empty?
           commit_tree = rewritten_tree
         else
+          # TODO: Compare tree oids directly instead of doing a full diff
+          # should be faster.
           diffs = parents.map do |parent|
             rewritten_parent_tree = calculate_subtree(repo, subdir, parent)
             rewritten_parent_tree.diff rewritten_tree
