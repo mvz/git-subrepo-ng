@@ -134,7 +134,11 @@ module Subrepo
       system "git commit -m \"Push subrepo #{subdir}\""
     end
 
-    def command_init(subdir, remote:, branch:)
+    def command_init(subdir, remote: nil, branch: nil, method: nil)
+      branch ||= "master"
+      remote ||= "none"
+      method ||= "merge"
+
       repo = Rugged::Repository.new(".")
 
       File.exist? subdir or raise "The subdir '#{subdir} does not exist."
@@ -146,7 +150,7 @@ module Subrepo
       last_subdir_commit.empty? and
         raise "The subdir '#{subdir}' is not part of this repo."
 
-      config.create(remote, branch)
+      config.create(remote, branch, method)
 
       index = repo.index
       index.add config_name
@@ -154,6 +158,12 @@ module Subrepo
       Rugged::Commit.create(repo, tree: index.write_tree,
                             message: "Initialize subrepo #{subdir}",
                             parents: [repo.head.target], update_ref: "HEAD")
+
+      if remote == "none"
+        puts "Subrepo created from '#{subdir}' (with no remote)."
+      else
+        puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
+      end
     end
 
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)

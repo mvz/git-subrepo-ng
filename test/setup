@@ -21,6 +21,7 @@ rm -fr $TMP
 export UPSTREAM="$TMP/upstream"
 export OWNER="$TMP/owner"
 export COLLAB="$TMP/collab"
+export VERSION=`git subrepo --version | sed 's/.* //'`
 
 mkdir -p "$UPSTREAM" "$OWNER" "$COLLAB"
 
@@ -143,7 +144,7 @@ test-gitrepo-comment-block() {
 ; DO NOT EDIT (unless you know what you are doing)
 ;
 ; This subdirectory is a git \"subrepo\", and this file is maintained by the
-; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+; git-subrepo-ng command.
 ;" \
     'Comment header block is correct'
 }

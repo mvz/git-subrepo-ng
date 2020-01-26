@@ -16,7 +16,7 @@ module Subrepo
       @file_name ||= File.join(subrepo, ".gitrepo")
     end
 
-    def create(remote, branch)
+    def create(remote, branch, method)
       File.write(file_name, <<~HEADER)
         ; DO NOT EDIT (unless you know what you are doing)
         ;
@@ -28,7 +28,7 @@ module Subrepo
       config["subrepo.remote"] = remote.to_s
       config["subrepo.branch"] = branch.to_s
       config["subrepo.commit"] = ""
-      config["subrepo.method"] = "merge"
+      config["subrepo.method"] = method.to_s
       config["subrepo.cmdver"] = Subrepo::VERSION
     end
 

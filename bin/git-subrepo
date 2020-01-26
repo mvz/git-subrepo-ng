@@ -21,11 +21,10 @@ module Subrepo
       command :init do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.flag [:method, :M]
         cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
-          remote = options[:remote] or raise "Provide remote"
-          branch = options[:branch] or raise "Provide branch"
-          command_init(subdir, remote: remote, branch: branch)
+          command_init subdir, **options.slice(:remote, :branch, :method)
         end
       end
 
