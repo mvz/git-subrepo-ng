@@ -9,4 +9,9 @@ Cucumber::Rake::Task.new(:cucumber) do |t|
   t.cucumber_opts = "features --format pretty"
 end
 
+task :compat do
+  success = system "prove test"
+  raise "Compatibility tests failed" unless success
+end
+
 task default: [:spec, :cucumber]
