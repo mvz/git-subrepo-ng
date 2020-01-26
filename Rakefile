@@ -9,9 +9,16 @@ Cucumber::Rake::Task.new(:cucumber) do |t|
   t.cucumber_opts = "features --format pretty"
 end
 
-task :compat do
-  success = system "prove test"
-  raise "Compatibility tests failed" unless success
+namespace :compat do
+  task :full do
+    success = system "prove test"
+    exit 1 unless success
+  end
+
+  task :regression do
+    success = system "prove test/status.t test/init.t"
+    exit 1 unless success
+  end
 end
 
-task default: [:spec, :cucumber]
+task default: [:spec, :cucumber, "compat:regression"]
