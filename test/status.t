@@ -26,22 +26,22 @@ use Test::More
 }
 
 {
-  output="$(git subrepo status --ALL)"
+  output="$(git subrepo status --all-recursive)"
 
   like "$output" "4 subrepos:" \
-    "'status --ALL' intro ok"
+    "'status --all-recursive' intro ok"
 
   like "$output" "Git subrepo 'ext/bashplus':" \
-    "ext/bashplus is in 'status --ALL'"
+    "ext/bashplus is in 'status --all-recursive'"
 
   like "$output" "Git subrepo 'ext/test-more-bash':" \
-    "ext/test-more-bash is in 'status --ALL'"
+    "ext/test-more-bash is in 'status --all-recursive'"
 
   like "$output" "Git subrepo 'ext/test-more-bash/ext/bashplus':" \
-    "ext/test-more-bash/ext/bashplus is in 'status --ALL'"
+    "ext/test-more-bash/ext/bashplus is in 'status --all-recursive'"
 
   like "$output" "Git subrepo 'ext/test-more-bash/ext/test-tap-bash':" \
-    "ext/test-more-bash/ext/test-tap-bash is in 'status --ALL'"
+    "ext/test-more-bash/ext/test-tap-bash is in 'status --all-recursive'"
 }
 
 {

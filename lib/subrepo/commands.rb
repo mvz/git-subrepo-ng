@@ -9,6 +9,23 @@ module Subrepo
   module Commands
     module_function
 
+    def command_status(recursive: false)
+      repo = Rugged::Repository.new(".")
+      tree = repo.head.target.tree
+      subrepos = []
+      tree.walk_blobs do |path, blob|
+        next if blob[:name] != ".gitrepo"
+        unless recursive
+          next if subrepos.any? { |it| path.start_with? it }
+        end
+        subrepos << path
+      end
+      puts "#{subrepos.count} subrepos:"
+      subrepos.each do |it|
+        puts "Git subrepo '#{it.chop}':"
+      end
+    end
+
     def command_fetch(subdir, remote: nil)
       config = Config.new(subdir)
       remote ||= config.remote
