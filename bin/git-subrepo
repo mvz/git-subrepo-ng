@@ -28,6 +28,18 @@ module Subrepo
         end
       end
 
+      desc "Clone a subrepo"
+      arg :dir
+      command :clone do |cmd|
+        cmd.flag [:remote, :r], arg_name: "url"
+        cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.flag [:method, :M]
+        cmd.action do |_, _options, args|
+          origin = args.shift or raise "Provide origin"
+          command_clone origin # , **options.slice(:remote, :branch, :method)
+        end
+      end
+
       desc "Fetch latest commits from a subrepo's remote"
       arg :dir
       command :fetch do |cmd|

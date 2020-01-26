@@ -15,11 +15,13 @@ module Subrepo
       subrepos = []
       tree.walk_blobs do |path, blob|
         next if blob[:name] != ".gitrepo"
+
         unless recursive
           next if subrepos.any? { |it| path.start_with? it }
         end
         subrepos << path
       end
+
       puts "#{subrepos.count} subrepos:"
       subrepos.each do |it|
         puts "Git subrepo '#{it.chop}':"
@@ -32,18 +34,7 @@ module Subrepo
       branch = config.branch
       last_merged_commit = config.commit
 
-      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
-      if remote_commit.empty?
-        puts "Branch #{branch} not on remote yet"
-        return false
-      end
-      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
-      new_commit = `git rev-parse FETCH_HEAD`.chomp
-      puts "Fetched #{new_commit}"
-      puts "No change" if new_commit == last_merged_commit
-      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      system "git update-ref #{refs_subrepo_fetch} #{new_commit}"
-      true
+      perform_fetch(subdir, remote, branch, last_merged_commit)
     end
 
     def command_merge(subdir)
@@ -166,6 +157,41 @@ module Subrepo
       end
     end
 
+    def command_clone(remote, subdir: nil, branch: nil, method: nil)
+      subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
+      branch ||= "master"
+      method ||= "merge"
+
+      repo = Rugged::Repository.new(".")
+      raise "You can't clone into an empty repository" if repo.empty?
+
+      last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
+      last_subdir_commit.empty? or
+        raise "The subdir '#{subdir}' is already part of this repo."
+
+      perform_fetch(subdir, remote, branch, nil) or
+        raise "Unable to fetch from #{remote}"
+
+      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
+      last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
+      result = `git read-tree --prefix="#{subdir}" -u "#{last_fetched_commit}"`
+
+      config = Config.new(subdir)
+      config_name = config.file_name
+      config.create(remote, branch, method)
+      config.commit = last_fetched_commit
+      config.parent = repo.head.target.oid
+
+      index = repo.index
+      index.add config_name
+      index.write
+      Rugged::Commit.create(repo, tree: index.write_tree,
+                            message: "Clone remote #{remote} into #{subdir}",
+                            parents: [repo.head.target], update_ref: "HEAD")
+
+      puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'."
+    end
+
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
       last_merged_commit = nil if last_merged_commit == ""
 
@@ -258,6 +284,20 @@ module Subrepo
 
       rewritten_tree_sha = builder.write
       repo.lookup rewritten_tree_sha
+    end
+
+    def perform_fetch(subdir, remote, branch, last_merged_commit)
+      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
+      if remote_commit.empty?
+        puts "Branch #{branch} not on remote yet"
+        return false
+      end
+      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
+      new_commit = `git rev-parse FETCH_HEAD`.chomp
+      puts "No change" if new_commit == last_merged_commit
+      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
+      system "git update-ref #{refs_subrepo_fetch} #{new_commit}"
+      true
     end
   end
 end

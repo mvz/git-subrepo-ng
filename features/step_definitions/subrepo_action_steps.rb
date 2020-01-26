@@ -26,3 +26,11 @@ When("I pull the subrepo( again)") do
     Subrepo::Commands.command_pull @subrepo
   end
 end
+
+When "I clone into {string} from the remote {string} with branch {string}" \
+  do |subdir, remote, branch|
+  cd(@main_repo) do
+    @subrepo = subdir
+    Subrepo::Commands.command_clone remote, subdir: @subrepo, branch: branch
+  end
+end

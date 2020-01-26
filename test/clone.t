@@ -55,7 +55,7 @@ clone-foo-and-bar
 
   # Check output is correct:
   is "$clone_output_empty" \
-    "git-subrepo: You can't clone into an empty repository" \
+    "error: You can't clone into an empty repository" \
     'subrepo empty clone command output is correct'
 }
 
@@ -78,7 +78,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field "branch" "master"
   test-gitrepo-field "commit" "$bar_head_commit"
   test-gitrepo-field "parent" "$foo_clone_commit"
-  test-gitrepo-field "cmdver" "`git subrepo --version`"
+  test-gitrepo-field "cmdver" $VERSION
 }
 
 # Make sure status is clean:

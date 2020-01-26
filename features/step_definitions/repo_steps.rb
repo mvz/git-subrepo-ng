@@ -33,6 +33,14 @@ Given("I have a git project with a subrepo with a remote") do
   empty_remote(@remote)
 end
 
+Given "I have a remote named {string} with some commits" do |remote|
+  empty_remote(remote)
+  @remote = remote
+  full_remote = expand_path @remote
+  remote_commit_add(full_remote, "this_file", "stuff")
+  remote_commit_add(full_remote, "other_file", "more stuff")
+end
+
 When("I add a new commit to the subrepo") do
   cd @main_repo do
     repo = Rugged::Repository.new(".")
