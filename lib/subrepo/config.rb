@@ -40,12 +40,24 @@ module Subrepo
       config["subrepo.branch"]
     end
 
+    def branch=(branch_name)
+      config["subrepo.branch"] = branch_name
+    end
+
     def commit
       config["subrepo.commit"]
     end
 
     def commit=(commit_sha)
       config["subrepo.commit"] = commit_sha
+    end
+
+    def method
+      config["subrepo.method"]
+    end
+
+    def method=(method_name)
+      config["subrepo.method"] = method_name
     end
 
     def parent

@@ -88,6 +88,16 @@ module Subrepo
           command_status(recursive: options[:all_recursive])
         end
       end
+
+      desc "Config"
+      command :config do |cmd|
+        cmd.action do |_, options, args|
+          subdir = args.shift or raise "Provide dir"
+          config_option = args.shift or raise "Provide option name"
+          config_value = args.shift
+          command_config(subdir, option: config_option, value: config_value)
+        end
+      end
     end
   end
 end

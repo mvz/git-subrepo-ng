@@ -16,7 +16,7 @@ namespace :compat do
   end
 
   task :regression do
-    success = system "prove test/status.t test/init.t test/clone.t"
+    success = system "prove test/status.t test/init.t test/clone.t test/config.t"
     exit 1 unless success
   end
 end
