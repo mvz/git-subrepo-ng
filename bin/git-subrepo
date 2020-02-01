@@ -34,8 +34,7 @@ module Subrepo
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
         cmd.action do |_, options, args|
-          subdir = args.shift or raise "Provide dir"
-          command_init subdir, **options.slice(:remote, :branch, :method)
+          command_init args.shift, **options.slice(:remote, :branch, :method)
         end
       end
     end
@@ -48,8 +47,7 @@ module Subrepo
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
         cmd.action do |_, _options, args|
-          origin = args.shift or raise "Provide origin"
-          command_clone origin # , **options.slice(:remote, :branch, :method)
+          command_clone args.shift # , **options.slice(:remote, :branch, :method)
         end
       end
     end
@@ -60,8 +58,7 @@ module Subrepo
       command :fetch do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.action do |_, options, args|
-          subdir = args.shift or raise "Provide dir"
-          command_fetch(subdir, remote: options[:remote])
+          command_fetch(args.shift, remote: options[:remote])
         end
       end
     end
@@ -73,8 +70,7 @@ module Subrepo
         cmd.switch :squash, default_value: true
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.action do |_, options, args|
-          subdir = args.shift or raise "Provide dir"
-          command_pull(subdir, squash: options[:squash], remote: options[:remote])
+          command_pull(args.shift, squash: options[:squash], remote: options[:remote])
         end
       end
     end
@@ -86,8 +82,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.action do |_, options, args|
-          subdir = args.shift or raise "Provide dir"
-          command_push(subdir, remote: options[:remote], branch: options[:branch])
+          command_push(args.shift, remote: options[:remote], branch: options[:branch])
         end
       end
     end
@@ -97,8 +92,7 @@ module Subrepo
       arg :dir
       command :merge do |cmd|
         cmd.action do |_, _options, args|
-          subdir = args.shift or raise "Provide dir"
-          command_merge(subdir, squash: true)
+          command_merge(args.shift, squash: true)
         end
       end
     end
@@ -118,10 +112,7 @@ module Subrepo
       desc "Config"
       command :config do |cmd|
         cmd.action do |_, _options, args|
-          subdir = args.shift or raise "Provide dir"
-          config_option = args.shift or raise "Provide option name"
-          config_value = args.shift
-          command_config(subdir, option: config_option, value: config_value)
+          command_config(args[0], option: args[1], value: args[2])
         end
       end
     end

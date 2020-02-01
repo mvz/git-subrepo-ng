@@ -29,6 +29,9 @@ module Subrepo
     end
 
     def command_config(subdir, option:, value:, force: false)
+      subdir or raise "No subdir provided"
+      option or raise "No option name provided"
+
       config = Config.new(subdir)
       if value
         if option == "branch" && !force
@@ -44,6 +47,7 @@ module Subrepo
     end
 
     def command_fetch(subdir, remote: nil)
+      subdir or raise "No subdir provided"
       config = Config.new(subdir)
       remote ||= config.remote
       branch = config.branch
@@ -54,6 +58,7 @@ module Subrepo
     end
 
     def command_merge(subdir, squash:)
+      subdir or raise "No subdir provided"
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config = Config.new(subdir)
       branch = config.branch
@@ -113,6 +118,7 @@ module Subrepo
     end
 
     def command_pull(subdir, squash:, remote: nil)
+      subdir or raise "No subdir provided"
       config = Config.new(subdir)
       remote ||= config.remote
       branch = config.branch
@@ -128,6 +134,7 @@ module Subrepo
     end
 
     def command_push(subdir, remote: nil, branch: nil)
+      subdir or raise "No subdir provided"
       fetched = command_fetch(subdir, remote: remote)
 
       repo = Rugged::Repository.new(".")
@@ -179,6 +186,7 @@ module Subrepo
       branch ||= "master"
       remote ||= "none"
       method ||= "merge"
+      subdir or raise "No subdir provided"
 
       repo = Rugged::Repository.new(".")
 
@@ -208,6 +216,7 @@ module Subrepo
     end
 
     def command_clone(remote, subdir: nil, branch: nil, method: nil)
+      remote or raise "No remote provided"
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
       method ||= "merge"
