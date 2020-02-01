@@ -1,0 +1,6 @@
+---
+detectors:
+  UnusedPrivateMethod:
+    enabled: true
+  UtilityFunction:
+    public_methods_only: true
