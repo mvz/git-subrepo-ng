@@ -92,7 +92,7 @@ module Subrepo
 
       desc "Config"
       command :config do |cmd|
-        cmd.action do |_, options, args|
+        cmd.action do |_, _options, args|
           subdir = args.shift or raise "Provide dir"
           config_option = args.shift or raise "Provide option name"
           config_value = args.shift
