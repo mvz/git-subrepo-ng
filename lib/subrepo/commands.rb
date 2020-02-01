@@ -290,21 +290,18 @@ module Subrepo
             rewritten_parent_tree.diff rewritten_tree
           end
 
-          # If commit tree is no different from the first parent, this is
-          # either a regular commit that makes no changes to the subrepo, or a
-          # merge that has no effect on the mainline. Map this commit to the
-          # target parent and skip to the next commit.
-          if diffs.first.none?
-            target_parent = target_parents.first
-            commit_map[commit.oid] = target_parent.oid
-            next
-          end
-
-          # If there is only one target parent, and at least one of the
-          # original diffs is empty, this would be an empty merge commit
-          # (regular empty commits have been filtered out above).
+          # If the commit tree is no different from the first parent, this is
+          # either:
+          #
+          # - a regular commit that makes no changes to the subrepo, or
+          # - a merge that has no effect on the mainline
+          #
+          # Otherwise, if there is only one target parent, and at least one of
+          # the original diffs is empty, then this would become an empty merge
+          # commit that.
+          #
           # Map this commit to the target parent and skip to the next commit.
-          if target_parents.one? && diffs.any?(&:none?)
+          if diffs.first.none? || target_parents.one? && diffs.any?(&:none?)
             target_parent = target_parents.first
             commit_map[commit.oid] = target_parent.oid
             next
