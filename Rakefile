@@ -9,4 +9,19 @@ Cucumber::Rake::Task.new(:cucumber) do |t|
   t.cucumber_opts = "features --format pretty"
 end
 
-task default: [:spec, :cucumber]
+namespace :compat do
+  task :full do
+    success = system "prove test"
+    exit 1 unless success
+  end
+
+  task :regression do
+    test_names = %w(status init clone config pull)
+    test_list = test_names.map { |it| "test/#{it}.t" }.join(" ")
+
+    success = system "prove #{test_list}"
+    exit 1 unless success
+  end
+end
+
+task default: [:spec, :cucumber, "compat:regression"]

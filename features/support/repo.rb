@@ -39,6 +39,25 @@ module Repo
     end
   end
 
+  def remote_commit_add(remote_path, file, contents)
+    repo = Rugged::Repository.new(remote_path)
+    oid = repo.write(contents, :blob)
+    builder = Rugged::Tree::Builder.new(repo)
+    builder << { type: :blob, name: file, oid: oid, filemode: 0o100644 }
+    if repo.empty?
+      parents = []
+    else
+      head_commit = repo.head.target
+      head_commit.tree.each { |it| builder << it }
+      parents = [head_commit]
+    end
+    Rugged::Commit.create(repo,
+                          tree: builder.write,
+                          message: "Add #{file}",
+                          parents: parents,
+                          update_ref: "HEAD")
+  end
+
   def get_log_from_repo(repo_name)
     cd repo_name do
       `git log --graph --pretty=format:"%s" --abbrev-commit`

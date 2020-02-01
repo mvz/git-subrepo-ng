@@ -21,11 +21,22 @@ module Subrepo
       command :init do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.flag [:method, :M]
         cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
-          remote = options[:remote] or raise "Provide remote"
-          branch = options[:branch] or raise "Provide branch"
-          command_init(subdir, remote: remote, branch: branch)
+          command_init subdir, **options.slice(:remote, :branch, :method)
+        end
+      end
+
+      desc "Clone a subrepo"
+      arg :dir
+      command :clone do |cmd|
+        cmd.flag [:remote, :r], arg_name: "url"
+        cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.flag [:method, :M]
+        cmd.action do |_, _options, args|
+          origin = args.shift or raise "Provide origin"
+          command_clone origin # , **options.slice(:remote, :branch, :method)
         end
       end
 
@@ -44,17 +55,18 @@ module Subrepo
       command :merge do |cmd|
         cmd.action do |_, _options, args|
           subdir = args.shift or raise "Provide dir"
-          command_merge(subdir)
+          command_merge(subdir, squash: true)
         end
       end
 
       desc "Pull upstream changes into a subrepo"
       arg :dir
       command :pull do |cmd|
+        cmd.switch :squash, default_value: true
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
-          command_pull(subdir, remote: options[:remote])
+          command_pull(subdir, squash: options[:squash], remote: options[:remote])
         end
       end
 
@@ -66,6 +78,25 @@ module Subrepo
         cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
           command_push(subdir, remote: options[:remote], branch: options[:branch])
+        end
+      end
+
+      desc "Status"
+      command :status do |cmd|
+        cmd.switch :all, default_value: false
+        cmd.switch :all_recursive, defaul_value: false
+        cmd.action do |_, options, _args|
+          command_status(recursive: options[:all_recursive])
+        end
+      end
+
+      desc "Config"
+      command :config do |cmd|
+        cmd.action do |_, options, args|
+          subdir = args.shift or raise "Provide dir"
+          config_option = args.shift or raise "Provide option name"
+          config_value = args.shift
+          command_config(subdir, option: config_option, value: config_value)
         end
       end
     end

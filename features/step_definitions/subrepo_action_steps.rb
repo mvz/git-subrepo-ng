@@ -21,8 +21,22 @@ When("I push the subrepo {string}") do |subrepo|
   end
 end
 
-When("I pull the subrepo( again)") do
+When("I pull the subrepo with squashing( again)") do
   cd(@main_repo) do
-    Subrepo::Commands.command_pull @subrepo
+    Subrepo::Commands.command_pull @subrepo, squash: true
+  end
+end
+
+When("I pull the subrepo without squashing( again)") do
+  cd(@main_repo) do
+    Subrepo::Commands.command_pull @subrepo, squash: false
+  end
+end
+
+When "I clone into {string} from the remote {string} with branch {string}" \
+  do |subdir, remote, branch|
+  cd(@main_repo) do
+    @subrepo = subdir
+    Subrepo::Commands.command_clone remote, subdir: @subrepo, branch: branch
   end
 end
