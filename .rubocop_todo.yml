@@ -7,7 +7,7 @@
 # versions of RuboCop, may require this file to be generated again.
 
 Metrics/AbcSize:
-  Max: 52
+  Max: 48
 
 # Configuration parameters: CountComments, ExcludedMethods.
 # ExcludedMethods: refine
@@ -19,11 +19,11 @@ Metrics/CyclomaticComplexity:
 
 # Configuration parameters: CountComments, ExcludedMethods.
 Metrics/MethodLength:
-  Max: 50
+  Max: 49
 
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
-  Max: 166
+  Max: 267
 
 Metrics/PerceivedComplexity:
   Max: 10
