@@ -4,7 +4,7 @@ Feature: Pushing after pulling
     Given I have a git project with a subrepo with a remote
     And I have initialized and pushed the subrepo
     When I add a new commit to the remote
-    And I pull the subrepo
+    And I pull the subrepo without squashing
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
@@ -29,7 +29,7 @@ Feature: Pushing after pulling
     And I have initialized and pushed the subrepo
     When I add a new commit to the remote
     And I add a new commit to the subrepo
-    And I pull the subrepo
+    And I pull the subrepo without squashing
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
@@ -59,7 +59,7 @@ Feature: Pushing after pulling
     Given I have a git project with a subrepo with a remote
     And I have initialized and pushed the subrepo
     When I add a new commit to the remote
-    And I pull the subrepo
+    And I pull the subrepo without squashing
     And I add a new commit to the subrepo
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents

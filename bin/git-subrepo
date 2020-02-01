@@ -55,17 +55,18 @@ module Subrepo
       command :merge do |cmd|
         cmd.action do |_, _options, args|
           subdir = args.shift or raise "Provide dir"
-          command_merge(subdir)
+          command_merge(subdir, squash: true)
         end
       end
 
       desc "Pull upstream changes into a subrepo"
       arg :dir
       command :pull do |cmd|
+        cmd.switch :squash, default_value: true
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.action do |_, options, args|
           subdir = args.shift or raise "Provide dir"
-          command_pull(subdir, remote: options[:remote])
+          command_pull(subdir, squash: options[:squash], remote: options[:remote])
         end
       end
 

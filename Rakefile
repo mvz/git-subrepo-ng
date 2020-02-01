@@ -16,7 +16,7 @@ namespace :compat do
   end
 
   task :regression do
-    test_names = %w(status init clone config)
+    test_names = %w(status init clone config pull)
     test_list = test_names.map { |it| "test/#{it}.t" }.join(" ")
 
     success = system "prove #{test_list}"

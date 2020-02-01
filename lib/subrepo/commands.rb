@@ -48,10 +48,11 @@ module Subrepo
       branch = config.branch
       last_merged_commit = config.commit
 
-      perform_fetch(subdir, remote, branch, last_merged_commit)
+      last_fetched_commit = perform_fetch(subdir, remote, branch, last_merged_commit)
+      puts "No change" if last_fetched_commit == last_merged_commit
     end
 
-    def command_merge(subdir)
+    def command_merge(subdir, squash:)
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config = Config.new(subdir)
       branch = config.branch
@@ -64,8 +65,17 @@ module Subrepo
       last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
 
       if last_fetched_commit == last_merged_commit
-        warn "Nothing to do"
+        puts "Subrepo '#{subdir}' is up to date."
         return
+      end
+
+      # Check validity of last_merged_commit
+      repo = Rugged::Repository.new(".")
+      walker = Rugged::Walker.new(repo)
+      walker.push last_fetched_commit
+      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
+      unless found
+        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
       end
 
       command = "git rebase" \
@@ -77,18 +87,43 @@ module Subrepo
 
       rebased_head = `git rev-parse HEAD`.chomp
       system "git checkout -q #{current_branch}"
-      system "git merge #{rebased_head} --no-ff --no-edit" \
-        " -q -m \"Subrepo-merge #{subdir}/#{branch} into #{current_branch}\""
+      message =
+        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
+        "merged:   \\\"#{last_fetched_commit}\\\""
 
-      config.commit = last_fetched_commit
-      config.parent = rebased_head
-      system "git add \"#{config_name}\""
-      system "git commit -q --amend --no-edit"
+      system "git merge #{rebased_head} --no-ff --no-edit" \
+        " -q -m \"#{message}\""
+
+      if squash
+        system "git reset --soft #{last_local_commit}"
+
+        config.parent = last_local_commit
+        config.commit = last_fetched_commit
+
+        system "git add \"#{config_name}\""
+        system "git commit -q -m \"#{message}\""
+      else
+        config.parent = rebased_head
+        config.commit = last_fetched_commit
+
+        system "git add \"#{config_name}\""
+        system "git commit -q --amend --no-edit"
+      end
     end
 
-    def command_pull(subdir, remote: nil)
-      command_fetch(subdir, remote: remote)
-      command_merge(subdir)
+    def command_pull(subdir, squash:, remote: nil)
+      config = Config.new(subdir)
+      remote ||= config.remote
+      branch = config.branch
+      last_merged_commit = config.commit
+
+      last_fetched_commit = perform_fetch(subdir, remote, branch, last_merged_commit)
+      if last_fetched_commit == last_merged_commit
+        puts "Subrepo '#{subdir}' is up to date."
+      else
+        command_merge(subdir, squash: squash)
+        puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)."
+      end
     end
 
     def command_push(subdir, remote: nil, branch: nil)
@@ -308,10 +343,9 @@ module Subrepo
       end
       system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
       new_commit = `git rev-parse FETCH_HEAD`.chomp
-      puts "No change" if new_commit == last_merged_commit
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       system "git update-ref #{refs_subrepo_fetch} #{new_commit}"
-      true
+      new_commit
     end
   end
 end

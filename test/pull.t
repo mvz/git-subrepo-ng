@@ -44,14 +44,14 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field "branch" "master"
   test-gitrepo-field "commit" "$bar_head_commit"
   test-gitrepo-field "parent" "$foo_pull_commit"
-  test-gitrepo-field "cmdver" "`git subrepo --version`"
+  test-gitrepo-field "cmdver" $VERSION
 }
 
 # Check commit messages
 {
   foo_new_commit_message="$(cd $OWNER/foo; git log --format=%B -n 1)"
   like "$foo_new_commit_message" \
-      "git subrepo pull bar" \
+      "Subrepo-merge bar/master into master" \
       "Subrepo pull commit message OK"
   bar_commit_short="$(git rev-parse --short $bar_head_commit)"
   like "$foo_new_commit_message" \

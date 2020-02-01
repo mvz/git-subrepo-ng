@@ -21,9 +21,15 @@ When("I push the subrepo {string}") do |subrepo|
   end
 end
 
-When("I pull the subrepo( again)") do
+When("I pull the subrepo with squashing( again)") do
   cd(@main_repo) do
-    Subrepo::Commands.command_pull @subrepo
+    Subrepo::Commands.command_pull @subrepo, squash: true
+  end
+end
+
+When("I pull the subrepo without squashing( again)") do
+  cd(@main_repo) do
+    Subrepo::Commands.command_pull @subrepo, squash: false
   end
 end
 
