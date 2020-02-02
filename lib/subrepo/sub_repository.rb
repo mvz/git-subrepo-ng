@@ -124,7 +124,7 @@ module Subrepo
       walker.push repo.head.target_id
       if last_pushed_commit
         walker.hide last_pushed_commit
-        commit_map = { last_pushed_commit => last_merged_commit }
+        commit_map = full_commit_map(repo, subdir)
       else
         commit_map = {}
       end
@@ -137,12 +137,20 @@ module Subrepo
         mapped_commit = map_commit(last_merged_commit, commit, commit_map)
         last_commit = mapped_commit if mapped_commit
       end
+
       last_commit
     end
 
     def map_commit(last_merged_commit, commit, commit_map)
       target_parents = calculate_target_parents(commit, commit_map, last_merged_commit)
       target_tree = calculate_target_tree(commit, target_parents, commit_map) or return
+
+      # Check if there were relevant changes
+      if last_merged_commit
+        old_tree_oid = repo.lookup(last_merged_commit).tree.oid
+        new_tree_oid = target_tree.oid
+        return if old_tree_oid == new_tree_oid
+      end
 
       # Commit has multiple mapped parents or is non-empty: We should
       # create it in the target branch too.
@@ -224,6 +232,37 @@ module Subrepo
         end
       end
       target_tree
+    end
+
+    def config_file_in_tree(tree)
+      subtree = tree_in_subrepo(tree)
+      subtree[".gitrepo"] if subtree
+    end
+
+    def full_commit_map(repo, subdir)
+      commit_map = {}
+      walker = Rugged::Walker.new(repo)
+      walker.push repo.head.target_id
+      walker.to_a.reverse.each do |commit|
+        parent = commit.parents[0] or next
+        current = config_file_in_tree(commit.tree)
+        next unless current
+        previous = config_file_in_tree(parent.tree)
+        if !previous || (current[:oid] != previous[:oid])
+          tmp = Tempfile.new("config")
+          tmp.write repo.lookup(current[:oid]).text
+          tmp.close
+          config = Rugged::Config.new(tmp.path)
+
+          last_pushed_commit = config["subrepo.parent"] or next
+          last_merged_commit = config["subrepo.commit"]
+          commit_map[last_pushed_commit] = last_merged_commit
+          # FIXME: Only valid current commit contains no other changes in
+          # subrepo.
+          commit_map[commit.oid] = last_merged_commit
+        end
+      end
+      commit_map
     end
 
     def calculate_subtree(commit)

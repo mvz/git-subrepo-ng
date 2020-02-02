@@ -36,9 +36,9 @@ Feature: Pushing after pulling
       """
       *   Subrepo-merge bar/master into master
       |\  
+      | * Add another_file in remote baz
       * | Add more stuff in subrepo bar
       |/  
-      * Add another_file in remote baz
       * Add stuff in subdir bar
       """
     And the project's log should equal:
