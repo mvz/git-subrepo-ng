@@ -64,9 +64,12 @@ module Subrepo
       branch = config.branch
       last_merged_commit = config.commit
 
-      config_name = config.file_name
+      repo = Rugged::Repository.new(".")
 
-      last_local_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
+      last_local_commit = repo.head.target.oid
+      config_name = config.file_name
+      last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
+
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
 
@@ -76,7 +79,6 @@ module Subrepo
       end
 
       # Check validity of last_merged_commit
-      repo = Rugged::Repository.new(".")
       walker = Rugged::Walker.new(repo)
       walker.push last_fetched_commit
       found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
@@ -85,7 +87,7 @@ module Subrepo
       end
 
       command = "git rebase" \
-        " --onto #{last_local_commit} #{last_merged_commit} #{last_fetched_commit}" \
+        " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
         " --rebase-merges" \
         " -X subtree=#{subdir}"
 
@@ -103,7 +105,7 @@ module Subrepo
       if squash
         system "git reset --soft #{last_local_commit}"
 
-        config.parent = last_local_commit
+        config.parent = last_config_commit
         config.commit = last_fetched_commit
 
         system "git add \"#{config_name}\""
@@ -158,6 +160,8 @@ module Subrepo
         raise "It seems #{split_branch_name} already exists. Remove it first"
       end
 
+      current_branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
+
       last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
 
       unless last_commit
@@ -173,6 +177,8 @@ module Subrepo
       system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
       pushed_commit = last_commit
 
+      system "git checkout #{current_branch_name}"
+      system "git reset --hard"
       system "git branch -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
@@ -269,6 +275,7 @@ module Subrepo
       last_commit = nil
 
       commits.reverse_each do |commit|
+        puts "Checking #{commit.summary}"
         parents = commit.parents
 
         # Map parent commits
@@ -280,6 +287,8 @@ module Subrepo
         target_parents = target_parent_shas.map { |sha| repo.lookup sha }
         rewritten_tree = calculate_subtree(repo, subdir, commit)
 
+        target_tree = rewritten_tree
+
         if parents.empty?
           next if rewritten_tree.entries.empty?
         else
@@ -290,6 +299,8 @@ module Subrepo
             rewritten_parent_tree.diff rewritten_tree
           end
 
+          first_target_parent = target_parents.first
+
           # If the commit tree is no different from the first parent, this is
           # either:
           #
@@ -298,20 +309,41 @@ module Subrepo
           #
           # Otherwise, if there is only one target parent, and at least one of
           # the original diffs is empty, then this would become an empty merge
-          # commit that.
+          # commit.
           #
-          # Map this commit to the target parent and skip to the next commit.
-          if diffs.first.none? || target_parents.one? && diffs.any?(&:none?)
-            target_parent = target_parents.first
-            commit_map[commit.oid] = target_parent.oid
+          # Finally, if the rewritten_tree is identical to the single target
+          # parent tree. this would also become an empty regular commit.
+          #
+          # In all of these cases, map this commit to the target parent and
+          # skip to the next commit.
+          if diffs.first.none? ||
+              target_parents.one? && diffs.any?(&:none?) ||
+              target_parents.one? && rewritten_tree.oid == first_target_parent.tree.oid
+            commit_map[commit.oid] = first_target_parent.oid
             next
+          end
+
+          if first_target_parent
+            rewritten_patch = diffs.first.patch
+            target_parent_tree = first_target_parent.tree
+            target_diff = target_parent_tree.diff rewritten_tree
+            target_patch = target_diff.patch
+            if rewritten_patch != target_patch
+              system "git checkout -q #{first_target_parent.oid}"
+              patch = Tempfile.new("subrepo-patch")
+              patch.write rewritten_patch
+              patch.close
+              system "git apply --cached #{patch.path}"
+              patch.unlink
+              target_tree = `git write-tree`.chomp
+            end
           end
         end
 
         # Commit has multiple mapped parents or is non-empty: We should
         # create it in the target branch too.
         options = {}
-        options[:tree] = rewritten_tree
+        options[:tree] = target_tree
         options[:author] = commit.author
         options[:committer] = commit.committer
         options[:parents] = target_parents
