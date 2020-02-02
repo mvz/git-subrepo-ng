@@ -38,7 +38,7 @@ clone-foo-and-bar
     cd $OWNER/foo
     git config user.name 'PushUser'
     git config user.email 'push@push'
-    git subrepo pull --quiet bar
+    git subrepo --quiet pull bar
     git subrepo push bar
   )"
 
@@ -53,21 +53,53 @@ clone-foo-and-bar
   git pull
 ) &> /dev/null || die
 
+# Test log in main repo.
 {
-  pullCommit="$(
-    cd $OWNER/bar
-    git log HEAD -1 --pretty='format:%an %ae %cn %ce'
+  fooLog="$(
+    cd $OWNER/foo
+    git log --graph --pretty=format:'%s' --abbrev-commit
   )"
 
-  is "$pullCommit" \
-    "PushUser push@push PushUser push@push" \
-    "Pull commit has PushUser as both author and committer"
+  expectedFooLog=\
+"* Push subrepo bar
+* Subrepo-merge bar/master into master
+* modified file: bar/FooBar
+* modified file: ./FooBar
+* modified file: bar/FooBar
+* add new file: ./FooBar
+* add new file: bar/FooBar
+* Clone remote ../../../tmp/upstream/bar into bar
+* Foo"
+  is "$fooLog" \
+    "$expectedFooLog" \
+    "Main repo has the correct log"
+}
+
+# Test log in remote. This is different from the result with
+# git-subrepo.
+{
+  barLog="$(
+    cd $OWNER/bar
+    git log --graph --pretty=format:'%s' --abbrev-commit
+  )"
+
+  expectedBarLog=\
+"* modified file: bar/FooBar
+* modified file: bar/FooBar
+* add new file: bar/FooBar
+* add new file: bargy
+* bard/Bard
+* Bar"
+
+  is "$barLog" \
+    "$expectedBarLog" \
+    "barLog"
 }
 
 {
   subrepoCommit="$(
     cd $OWNER/bar
-    git log HEAD^ -1 --pretty='format:%an %ae %cn %ce'
+    git log HEAD -1 --pretty='format:%an %ae %cn %ce'
   )"
 
   is "$subrepoCommit" \
@@ -76,7 +108,7 @@ clone-foo-and-bar
 }
 
 # Check that all commits arrived in subrepo
-test-commit-count "$OWNER/bar" HEAD 7
+test-commit-count "$OWNER/bar" HEAD 6
 
 # Test foo/bar/.gitrepo file contents:
 gitrepo=$OWNER/foo/bar/.gitrepo
@@ -87,7 +119,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field "branch" "master"
   test-gitrepo-field "commit" "$bar_head_commit"
   test-gitrepo-field "parent" "$foo_pull_commit"
-  test-gitrepo-field "cmdver" "`git subrepo --version`"
+  test-gitrepo-field "cmdver" "$VERSION"
 }
 
 (
@@ -167,7 +199,7 @@ test-exists \
 
   # Test the output:
   is "$message" \
-    "git-subrepo: There are new changes upstream, you need to pull first." \
+    "error: There are new changes upstream, you need to pull first." \
     'Stopped by other push'
 }
 
