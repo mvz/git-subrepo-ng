@@ -53,6 +53,49 @@ clone-foo-and-bar
   git pull
 ) &> /dev/null || die
 
+# Test log in main repo.
+{
+  fooLog="$(
+    cd $OWNER/foo
+    git log --graph --pretty=format:'%s' --abbrev-commit
+  )"
+
+  expectedFooLog=\
+"* Push subrepo bar
+* Subrepo-merge bar/master into master
+* modified file: bar/FooBar
+* modified file: ./FooBar
+* modified file: bar/FooBar
+* add new file: ./FooBar
+* add new file: bar/FooBar
+* Clone remote ../../../tmp/upstream/bar into bar
+* Foo"
+  is "$fooLog" \
+    "$expectedFooLog" \
+    "Main repo has the correct log"
+}
+
+# Test log in remote. This is different from the result with
+# git-subrepo.
+{
+  barLog="$(
+    cd $OWNER/bar
+    git log --graph --pretty=format:'%s' --abbrev-commit
+  )"
+
+  expectedBarLog=\
+"* modified file: bar/FooBar
+* modified file: bar/FooBar
+* add new file: bar/FooBar
+* add new file: bargy
+* bard/Bard
+* Bar"
+
+  is "$barLog" \
+    "$expectedBarLog" \
+    "barLog"
+}
+
 {
   subrepoCommit="$(
     cd $OWNER/bar
