@@ -15,6 +15,8 @@ module Subrepo
 
       version VERSION
 
+      switch :quiet
+
       setup_init_command
       setup_clone_command
       setup_fetch_command

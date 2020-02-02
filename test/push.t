@@ -38,7 +38,7 @@ clone-foo-and-bar
     cd $OWNER/foo
     git config user.name 'PushUser'
     git config user.email 'push@push'
-    git subrepo pull --quiet bar
+    git subrepo --quiet pull bar
     git subrepo push bar
   )"
 
