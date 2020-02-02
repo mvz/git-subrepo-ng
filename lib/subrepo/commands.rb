@@ -339,7 +339,6 @@ module Subrepo
         options = {}
         options[:tree] = target_tree
         options[:author] = commit.author
-        options[:committer] = commit.committer
         options[:parents] = target_parents
         options[:message] = commit.message
 
