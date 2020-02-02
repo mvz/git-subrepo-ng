@@ -100,7 +100,7 @@ module Subrepo
       desc "Status"
       command :status do |cmd|
         cmd.switch :all, default_value: false
-        cmd.switch :all_recursive, defaul_value: false
+        cmd.switch :all_recursive, default_value: false
         cmd.action do |_, options, _args|
           command_status(recursive: options[:all_recursive])
         end
