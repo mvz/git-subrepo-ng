@@ -3,6 +3,7 @@
 require "gli"
 require "subrepo/commands"
 require "subrepo/version"
+require "subrepo/runner"
 
 module Subrepo
   # Command line interface for the subrepo commands
@@ -70,9 +71,7 @@ module Subrepo
       command :pull do |cmd|
         cmd.switch :squash, default_value: true
         cmd.flag [:remote, :r], arg_name: "url"
-        cmd.action do |_, options, args|
-          command_pull(args.shift, squash: options[:squash], remote: options[:remote])
-        end
+        cmd.action(&method(:run_pull_command))
       end
     end
 
@@ -116,6 +115,11 @@ module Subrepo
           command_config(args[0], option: args[1], value: args[2])
         end
       end
+    end
+
+    def run_pull_command(global_options, options, args)
+      Runner.new(**global_options.slice(:quiet))
+        .pull(args.shift, **options.slice(:squash, :remote))
     end
   end
 end

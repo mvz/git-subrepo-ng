@@ -4,6 +4,7 @@ require "tempfile"
 require "rugged"
 require "subrepo/version"
 require "subrepo/config"
+require "subrepo/runner"
 
 module Subrepo
   # Entry point for each of the subrepo commands
@@ -120,20 +121,8 @@ module Subrepo
       end
     end
 
-    def command_pull(subdir, squash:, remote: nil)
-      subdir or raise "No subdir provided"
-      config = Config.new(subdir)
-      remote ||= config.remote
-      branch = config.branch
-      last_merged_commit = config.commit
-
-      last_fetched_commit = perform_fetch(subdir, remote, branch, last_merged_commit)
-      if last_fetched_commit == last_merged_commit
-        puts "Subrepo '#{subdir}' is up to date."
-      else
-        command_merge(subdir, squash: squash)
-        puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)."
-      end
+    def command_pull(...)
+      Runner.new.pull(...)
     end
 
     def command_push(subdir, remote: nil, branch: nil)
