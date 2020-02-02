@@ -3,6 +3,9 @@ inherit_from: .rubocop_todo.yml
 require:
   - rubocop-performance
 
+AllCops:
+  TargetRubyVersion: 2.5
+
 # Tables are nice
 Layout/HashAlignment:
   EnforcedColonStyle: table

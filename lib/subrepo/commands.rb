@@ -122,8 +122,8 @@ module Subrepo
       end
     end
 
-    def command_pull(...)
-      Runner.new.pull(...)
+    def command_pull(subdir, squash:, remote: nil)
+      Runner.new.pull(subdir, squash: squash, remote: remote)
     end
 
     def command_push(subdir, remote: nil, branch: nil)
