@@ -337,6 +337,7 @@ module Subrepo
               system "git apply --cached #{patch.path}"
               patch.unlink
               target_tree = `git write-tree`.chomp
+              system "git reset -q --hard"
             end
           end
         end
