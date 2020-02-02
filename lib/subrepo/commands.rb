@@ -50,6 +50,7 @@ module Subrepo
 
     def command_fetch(subdir, remote: nil)
       subdir or raise "No subdir provided"
+
       config = Config.new(subdir)
       remote ||= config.remote
       branch = config.branch
@@ -127,7 +128,6 @@ module Subrepo
 
     def command_push(subdir, remote: nil, branch: nil)
       subdir or raise "No subdir provided"
-      fetched = command_fetch(subdir, remote: remote)
 
       repo = Rugged::Repository.new(".")
 
@@ -137,6 +137,8 @@ module Subrepo
       branch ||= config.branch
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
+
+      fetched = perform_fetch(subdir, remote, branch, last_merged_commit)
 
       if fetched
         refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
@@ -167,15 +169,17 @@ module Subrepo
       system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
       pushed_commit = last_commit
 
-      system "git checkout #{current_branch_name}"
-      system "git reset --hard"
-      system "git branch -D #{split_branch_name}"
+      system "git checkout -q #{current_branch_name}"
+      system "git reset -q --hard"
+      system "git branch -q -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.commit = pushed_commit
       config.parent = parent_commit
       system "git add -f -- #{config.file_name}"
-      system "git commit -m \"Push subrepo #{subdir}\""
+      system "git commit -q -m \"Push subrepo #{subdir}\""
+
+      puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
     end
 
     def command_init(subdir, remote: nil, branch: nil, method: nil)
@@ -265,7 +269,6 @@ module Subrepo
       last_commit = nil
 
       commits.reverse_each do |commit|
-        puts "Checking #{commit.summary}"
         parents = commit.parents
 
         # Map parent commits
@@ -339,8 +342,6 @@ module Subrepo
         options[:committer] = commit.committer
         options[:parents] = target_parents
         options[:message] = commit.message
-
-        puts "Committing #{commit.summary}"
 
         new_commit_sha = Rugged::Commit.create(repo, options)
         commit_map[commit.oid] = new_commit_sha
