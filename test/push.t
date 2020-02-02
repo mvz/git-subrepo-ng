@@ -54,20 +54,9 @@ clone-foo-and-bar
 ) &> /dev/null || die
 
 {
-  pullCommit="$(
-    cd $OWNER/bar
-    git log HEAD -1 --pretty='format:%an %ae %cn %ce'
-  )"
-
-  is "$pullCommit" \
-    "PushUser push@push PushUser push@push" \
-    "Pull commit has PushUser as both author and committer"
-}
-
-{
   subrepoCommit="$(
     cd $OWNER/bar
-    git log HEAD^ -1 --pretty='format:%an %ae %cn %ce'
+    git log HEAD -1 --pretty='format:%an %ae %cn %ce'
   )"
 
   is "$subrepoCommit" \
@@ -76,7 +65,7 @@ clone-foo-and-bar
 }
 
 # Check that all commits arrived in subrepo
-test-commit-count "$OWNER/bar" HEAD 7
+test-commit-count "$OWNER/bar" HEAD 6
 
 # Test foo/bar/.gitrepo file contents:
 gitrepo=$OWNER/foo/bar/.gitrepo
@@ -87,7 +76,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field "branch" "master"
   test-gitrepo-field "commit" "$bar_head_commit"
   test-gitrepo-field "parent" "$foo_pull_commit"
-  test-gitrepo-field "cmdver" "`git subrepo --version`"
+  test-gitrepo-field "cmdver" "$VERSION"
 }
 
 (
@@ -167,7 +156,7 @@ test-exists \
 
   # Test the output:
   is "$message" \
-    "git-subrepo: There are new changes upstream, you need to pull first." \
+    "error: There are new changes upstream, you need to pull first." \
     'Stopped by other push'
 }
 
