@@ -215,8 +215,8 @@ module Subrepo
       end
     end
 
-    def command_clone(remote, subdir: nil, branch: nil, method: nil)
-      Runner.new.clone(remote, subdir: subdir, branch: branch, method: method)
+    def command_clone(remote, subdir=nil, branch: nil, method: nil)
+      Runner.new.clone(remote, subdir, branch: branch, method: method)
     end
 
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)

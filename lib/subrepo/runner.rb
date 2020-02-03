@@ -27,7 +27,7 @@ module Subrepo
       end
     end
 
-    def clone(remote, subdir: nil, branch: nil, method: nil)
+    def clone(remote, subdir=nil, branch: nil, method: nil)
       remote or raise "No remote provided"
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
