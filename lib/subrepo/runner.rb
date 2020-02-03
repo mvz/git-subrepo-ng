@@ -7,7 +7,7 @@ module Subrepo
   class Runner
     attr_reader :quiet
 
-    def initialize(quiet: false)
+    def initialize(quiet: true)
       @quiet = quiet
     end
 
