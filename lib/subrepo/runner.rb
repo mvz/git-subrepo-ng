@@ -7,7 +7,7 @@ module Subrepo
   class Runner
     attr_reader :quiet
 
-    def initialize(quiet: false)
+    def initialize(quiet: true)
       @quiet = quiet
     end
 
@@ -27,7 +27,7 @@ module Subrepo
       end
     end
 
-    def clone(remote, subdir: nil, branch: nil, method: nil)
+    def clone(remote, subdir=nil, branch: nil, method: nil)
       remote or raise "No remote provided"
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"

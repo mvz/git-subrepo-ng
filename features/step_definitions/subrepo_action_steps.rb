@@ -37,6 +37,6 @@ When "I clone into {string} from the remote {string} with branch {string}" \
   do |subdir, remote, branch|
   cd(@main_repo) do
     @subrepo = subdir
-    Subrepo::Commands.command_clone remote, subdir: @subrepo, branch: branch
+    Subrepo::Commands.command_clone remote, @subrepo, branch: branch
   end
 end

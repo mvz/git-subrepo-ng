@@ -44,9 +44,9 @@ module Subrepo
 
     def setup_clone_command
       desc "Clone a subrepo"
+      arg :remote
       arg :dir
       command :clone do |cmd|
-        cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
         cmd.action(&method(:run_clone_command))
@@ -126,7 +126,7 @@ module Subrepo
 
     def run_clone_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .clone(args.shift, **options.slice(:subdir, :branch, :method))
+        .clone(args[0], args[1], **options.slice(:subdir, :branch, :method))
     end
 
     def run_pull_command(global_options, options, args)
