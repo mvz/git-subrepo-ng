@@ -158,7 +158,7 @@ module Subrepo
 
       unless last_commit
         if fetched
-          warn "No changes to push"
+          puts "Subrepo '#{subdir}' has no new commits to push."
         else
           warn "Nothing mapped"
         end
