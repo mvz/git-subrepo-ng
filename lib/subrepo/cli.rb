@@ -26,6 +26,7 @@ module Subrepo
       setup_push_command
       setup_status_command
       setup_config_command
+      setup_clean_command
     end
 
     def setup_init_command
@@ -115,6 +116,14 @@ module Subrepo
       end
     end
 
+    def setup_clean_command
+      desc "Clean subrepo stuff"
+      arg :dir
+      command :clean do |cmd|
+        cmd.action(&method(:run_clean_command))
+      end
+    end
+
     def run_clone_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
         .clone(args.shift, **options.slice(:subdir, :branch, :method))
@@ -123,6 +132,10 @@ module Subrepo
     def run_pull_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
         .pull(args.shift, **options.slice(:squash, :remote))
+    end
+
+    def run_clean_command(global_options, options, args)
+      # Nothing yet
     end
   end
 end
