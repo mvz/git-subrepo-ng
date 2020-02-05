@@ -45,7 +45,7 @@ module Subrepo
 
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
-      `git read-tree --prefix="#{subdir}" -u "#{last_fetched_commit}"`
+      system "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\"", exception: true
 
       config = Config.new(subdir)
       config_name = config.file_name
