@@ -130,7 +130,7 @@ module Subrepo
       Runner.new.pull(subdir, squash: squash, remote: remote)
     end
 
-    def command_push(subdir, remote: nil, branch: nil)
+    def command_push(subdir, remote: nil, branch: nil, force: false)
       subdir or raise "No subdir provided"
 
       repo = Rugged::Repository.new(".")
@@ -144,7 +144,7 @@ module Subrepo
 
       fetched = perform_fetch(subdir, remote, branch, last_merged_commit)
 
-      if fetched
+      if fetched && !force
         refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
         last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
         last_fetched_commit == last_merged_commit or
@@ -170,7 +170,11 @@ module Subrepo
       end
 
       repo.branches.create split_branch_name, last_commit
-      system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
+      if force
+        system "git push --force \"#{remote}\" #{split_branch_name}:#{branch}"
+      else
+        system "git push \"#{remote}\" #{split_branch_name}:#{branch}"
+      end
       pushed_commit = last_commit
 
       system "git checkout -q #{current_branch_name}"
