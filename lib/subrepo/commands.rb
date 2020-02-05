@@ -57,7 +57,11 @@ module Subrepo
       last_merged_commit = config.commit
 
       last_fetched_commit = perform_fetch(subdir, remote, branch, last_merged_commit)
-      puts "No change" if last_fetched_commit == last_merged_commit
+      if last_fetched_commit == last_merged_commit
+        puts "No change"
+      else
+        puts "Fetched '#{subdir}' from '#{remote}' (#{branch})."
+      end
     end
 
     def command_merge(subdir, squash:)
