@@ -80,6 +80,7 @@ module Subrepo
       command :push do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.switch :force, default_value: false
         cmd.action do |_, options, args|
           command_push(args.shift, remote: options[:remote], branch: options[:branch])
         end
