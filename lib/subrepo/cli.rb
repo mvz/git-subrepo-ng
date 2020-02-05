@@ -82,7 +82,8 @@ module Subrepo
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.switch :force, default_value: false
         cmd.action do |_, options, args|
-          command_push(args.shift, remote: options[:remote], branch: options[:branch])
+          command_push(args.shift, remote: options[:remote], branch: options[:branch],
+                       force: options[:force])
         end
       end
     end
