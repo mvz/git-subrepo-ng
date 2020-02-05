@@ -178,6 +178,7 @@ module Subrepo
       system "git branch -q -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
+      config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
       system "git add -f -- #{config.file_name}"
@@ -340,7 +341,6 @@ module Subrepo
     def perform_fetch(subdir, remote, branch, _last_merged_commit)
       remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
       if remote_commit.empty?
-        puts "Branch #{branch} not on remote yet"
         return false
       end
       system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""

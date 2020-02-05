@@ -36,6 +36,10 @@ module Subrepo
       config["subrepo.remote"]
     end
 
+    def remote=(remote_url)
+      config["subrepo.remote"] = remote_url
+    end
+
     def branch
       config["subrepo.branch"]
     end
