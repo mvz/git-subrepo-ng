@@ -303,7 +303,7 @@ module Subrepo
               patch = Tempfile.new("subrepo-patch")
               patch.write rewritten_patch
               patch.close
-              system "git apply --cached #{patch.path}", exception: true
+              system "git apply --3way #{patch.path}", exception: true
               patch.unlink
               target_tree = `git write-tree`.chomp
               system "git reset -q --hard", exception: true
