@@ -19,6 +19,7 @@ namespace :compat do
     test_names = %w(
       status init clone clone-annotated-tag config
       fetch
+      issue29 issue95
       pull
       push push-no-changes push-with-merges
     )
