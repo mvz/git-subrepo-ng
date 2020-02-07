@@ -12,7 +12,7 @@ module Subrepo
       @quiet = quiet
     end
 
-    def pull(subdir, squash:, remote: nil, branch: nil, update: false)
+    def pull(subdir, squash:, remote: nil, branch: nil, message: nil, edit: false, update: false)
       subdir or raise "No subdir provided"
       config = Config.new(subdir)
       remote ||= config.remote
@@ -27,7 +27,7 @@ module Subrepo
       if last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date." unless quiet
       else
-        Commands.command_merge(subdir, squash: squash)
+        Commands.command_merge(subdir, squash: squash, message: message, edit: edit)
         puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)." unless quiet
       end
     end
