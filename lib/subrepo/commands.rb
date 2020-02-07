@@ -173,9 +173,9 @@ module Subrepo
 
       repo.branches.create split_branch_name, last_commit
       if force
-        system "git push --force \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
+        system "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
       else
-        system "git push \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
+        system "git push -q \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
       end
       pushed_commit = last_commit
 
