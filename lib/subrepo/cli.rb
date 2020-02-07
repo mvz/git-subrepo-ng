@@ -36,9 +36,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
-        cmd.action do |_, options, args|
-          command_init args.shift, **options.slice(:remote, :branch, :method)
-        end
+        cmd.action(&method(:run_init_command))
       end
     end
 
@@ -86,10 +84,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.switch :force, default_value: false
-        cmd.action do |_, options, args|
-          command_push(args.shift, remote: options[:remote], branch: options[:branch],
-                       force: options[:force])
-        end
+        cmd.action(&method(:run_push_command))
       end
     end
 
@@ -131,6 +126,11 @@ module Subrepo
       end
     end
 
+    def run_init_command(global_options, options, args)
+      Runner.new(**global_options.slice(:quiet))
+        .init(args[0], **options.slice(:remote, :branch, :method))
+    end
+
     def run_clone_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
         .clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))
@@ -140,6 +140,12 @@ module Subrepo
       Runner.new(**global_options.slice(:quiet))
         .pull(args.shift,
               **options.slice(:squash, :remote, :branch, :message, :edit, :update))
+    end
+
+    def run_push_command(global_options, options, args)
+      Runner.new(**global_options.slice(:quiet))
+        .push(args.shift,
+              **options.slice(:remote, :branch, :force))
     end
 
     def run_clean_command(global_options, options, args)

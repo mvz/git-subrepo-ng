@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-require "tempfile"
+require "open3"
 require "rugged"
+require "tempfile"
+
 require "subrepo/version"
 require "subrepo/config"
 require "subrepo/runner"
@@ -93,28 +95,25 @@ module Subrepo
         raise "Last merged commit #{last_merged_commit} not found in fetched commits"
       end
 
-      command = "git rebase" \
+      run_command "git rebase" \
         " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
         " --rebase-merges" \
         " -X subtree=#{subdir}"
 
-      system command or raise "Command failed"
-
       rebased_head = `git rev-parse HEAD`.chomp
-      system "git checkout -q #{current_branch}" or raise "Command failed"
-      system "git merge #{rebased_head} --no-ff --no-edit -q" or
-        raise "Command failed"
+      run_command "git checkout -q #{current_branch}"
+      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
 
       if squash
-        system "git reset --soft #{last_local_commit}" or raise "Command failed"
-        system "git commit -q -m WIP" or raise "Command failed"
+        run_command "git reset --soft #{last_local_commit}"
+        run_command "git commit -q -m WIP"
         config.parent = last_config_commit
       else
         config.parent = rebased_head
       end
 
       config.commit = last_fetched_commit
-      system "git add \"#{config_name}\"" or raise "Command failed"
+      run_command "git add \"#{config_name}\""
 
       message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
@@ -122,9 +121,9 @@ module Subrepo
 
       command = "git commit -q -m \"#{message}\" --amend" 
       if edit
-        system "#{command} --edit" or raise "Command failed"
+        run_command "#{command} --edit"
       else
-        system command or raise "Command failed"
+        run_command command
       end
     end
 
@@ -133,97 +132,11 @@ module Subrepo
     end
 
     def command_push(subdir, remote: nil, branch: nil, force: false)
-      subdir or raise "No subdir provided"
-
-      repo = Rugged::Repository.new(".")
-
-      config = Config.new(subdir)
-
-      remote ||= config.remote
-      branch ||= config.branch
-      last_merged_commit = config.commit
-      last_pushed_commit = config.parent
-
-      fetched = perform_fetch(subdir, remote, branch, last_merged_commit)
-
-      if fetched && !force
-        refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-        last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
-        last_fetched_commit == last_merged_commit or
-          raise "There are new changes upstream, you need to pull first."
-      end
-
-      split_branch_name = "subrepo-#{subdir}"
-      if repo.branches.exist? split_branch_name
-        raise "It seems #{split_branch_name} already exists. Remove it first"
-      end
-
-      current_branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
-
-      last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
-
-      unless last_commit
-        if fetched
-          puts "Subrepo '#{subdir}' has no new commits to push."
-        else
-          warn "Nothing mapped"
-        end
-        return
-      end
-
-      repo.branches.create split_branch_name, last_commit
-      if force
-        system "git push --force \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
-      else
-        system "git push \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
-      end
-      pushed_commit = last_commit
-
-      system "git checkout -q #{current_branch_name}" or raise "Command failed"
-      system "git reset -q --hard" or raise "Command failed"
-      system "git branch -q -D #{split_branch_name}" or raise "Command failed"
-      parent_commit = `git rev-parse HEAD`.chomp
-
-      config.remote = remote
-      config.commit = pushed_commit
-      config.parent = parent_commit
-      system "git add -f -- #{config.file_name}" or raise "Command failed"
-      system "git commit -q -m \"Push subrepo #{subdir}\"" or raise "Command failed"
-
-      puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
+      Runner.new.push(subdir, remote: remote, branch: branch, force: force)
     end
 
     def command_init(subdir, remote: nil, branch: nil, method: nil)
-      branch ||= "master"
-      remote ||= "none"
-      method ||= "merge"
-      subdir or raise "No subdir provided"
-
-      repo = Rugged::Repository.new(".")
-
-      File.exist? subdir or raise "The subdir '#{subdir} does not exist."
-      config = Config.new(subdir)
-      config_name = config.file_name
-      File.exist? config_name and
-        raise "The subdir '#{subdir}' is already a subrepo."
-      last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
-      last_subdir_commit.empty? and
-        raise "The subdir '#{subdir}' is not part of this repo."
-
-      config.create(remote, branch, method)
-
-      index = repo.index
-      index.add config_name
-      index.write
-      Rugged::Commit.create(repo, tree: index.write_tree,
-                            message: "Initialize subrepo #{subdir}",
-                            parents: [repo.head.target], update_ref: "HEAD")
-
-      if remote == "none"
-        puts "Subrepo created from '#{subdir}' (with no remote)."
-      else
-        puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
-      end
+      Runner.new.init(subdir, remote: remote, branch: branch, method: method)
     end
 
     def command_clone(remote, subdir=nil, branch: nil, method: nil)
@@ -301,14 +214,14 @@ module Subrepo
             target_diff = target_parent_tree.diff rewritten_tree
             target_patch = target_diff.patch
             if rewritten_patch != target_patch
-              system "git checkout -q #{first_target_parent.oid}" or raise "Command failed"
+              run_command "git checkout -q #{first_target_parent.oid}"
               patch = Tempfile.new("subrepo-patch")
               patch.write rewritten_patch
               patch.close
-              system "git apply --3way #{patch.path}" or raise "Command failed"
+              run_command "git apply --3way #{patch.path}"
               patch.unlink
               target_tree = `git write-tree`.chomp
-              system "git reset -q --hard" or raise "Command failed"
+              run_command "git reset -q --hard"
             end
           end
         end
@@ -349,11 +262,16 @@ module Subrepo
       if remote_commit.empty?
         return false
       end
-      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\"" or raise "Command failed"
+      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      system "git update-ref #{refs_subrepo_fetch} #{new_commit}" or raise "Command failed"
+      run_command "git update-ref #{refs_subrepo_fetch} #{new_commit}"
       new_commit
+    end
+
+    def run_command(command)
+      _out, _err, status = Open3.capture3 command
+      status == 0 or raise "Command failed"
     end
   end
 end
