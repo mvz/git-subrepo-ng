@@ -266,7 +266,9 @@ module Subrepo
       if remote_commit.empty?
         return false
       end
-      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\"" or raise "Command failed"
+      command = "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
+      _out, _err, status = Open3.capture3 command
+      status == 0 or raise "Command failed"
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       system "git update-ref #{refs_subrepo_fetch} #{new_commit}" or raise "Command failed"
