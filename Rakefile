@@ -17,8 +17,8 @@ namespace :compat do
 
   task :regression do
     test_names = %w(
-      init clone clone-annotated-tag config
-      fetch
+      clone clone-annotated-tag config
+      fetch gitignore init
       issue29 issue95
       pull
       push push-after-init push-force push-new-branch push-no-changes push-with-merges
