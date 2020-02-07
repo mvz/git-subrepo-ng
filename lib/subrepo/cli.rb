@@ -71,6 +71,8 @@ module Subrepo
       command :pull do |cmd|
         cmd.switch :squash, default_value: true
         cmd.flag [:remote, :r], arg_name: "url"
+        cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.switch [:update, :u], default_value: false
         cmd.action(&method(:run_pull_command))
       end
     end
