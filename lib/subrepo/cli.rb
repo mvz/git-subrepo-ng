@@ -129,7 +129,7 @@ module Subrepo
 
     def run_clone_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .clone(args[0], args[1], **options.slice(:subdir, :branch, :method))
+        .clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))
     end
 
     def run_pull_command(global_options, options, args)

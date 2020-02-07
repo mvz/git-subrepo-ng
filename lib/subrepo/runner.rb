@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "fileutils"
 require "subrepo/config"
 
 module Subrepo
@@ -27,7 +28,7 @@ module Subrepo
       end
     end
 
-    def clone(remote, subdir=nil, branch: nil, method: nil)
+    def clone(remote, subdir=nil, branch: nil, method: nil, force: false)
       remote or raise "No remote provided"
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
@@ -36,18 +37,29 @@ module Subrepo
       repo = Rugged::Repository.new(".")
       raise "You can't clone into an empty repository" if repo.empty?
 
-      last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
-      last_subdir_commit.empty? or
-        raise "The subdir '#{subdir}' is already part of this repo."
+      unless force
+        last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
+        last_subdir_commit.empty? or
+          raise "The subdir '#{subdir}' is already part of this repo."
+      end
 
       Commands.perform_fetch(subdir, remote, branch, nil) or
         raise "Unable to fetch from #{remote}"
 
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
-      system "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\"" or raise "Command failed"
 
       config = Config.new(subdir)
+
+      if force
+        if config.commit == last_fetched_commit
+          puts "Subrepo '#{subdir}' is up to date." unless quiet
+          return
+        end
+        system "git rm -r \"#{subdir}\"" or raise "Command failed"
+      end
+      system "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\"" or raise "Command failed"
+
       config_name = config.file_name
       config.create(remote, branch, method)
       config.commit = last_fetched_commit
