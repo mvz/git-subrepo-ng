@@ -20,7 +20,7 @@ namespace :compat do
       clone clone-annotated-tag config
       fetch gitignore init
       issue29 issue95
-      pull pull-new-branch
+      pull pull-message pull-new-branch
       push push-after-init push-force push-new-branch push-no-changes push-with-merges
       reclone status 
     )
