@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-require "tempfile"
+require "open3"
 require "rugged"
+require "tempfile"
+
 require "subrepo/version"
 require "subrepo/config"
 require "subrepo/runner"
@@ -98,7 +100,8 @@ module Subrepo
         " --rebase-merges" \
         " -X subtree=#{subdir}"
 
-      system command or raise "Command failed"
+      _out, _err, status = Open3.capture3 command
+      status == 0 or raise "Command failed"
 
       rebased_head = `git rev-parse HEAD`.chomp
       system "git checkout -q #{current_branch}" or raise "Command failed"
