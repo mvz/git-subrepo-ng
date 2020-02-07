@@ -107,22 +107,22 @@ module Subrepo
 
       repo.branches.create split_branch_name, last_commit
       if force
-        system "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
+        run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
       else
-        system "git push -q \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
+        run_command "git push -q \"#{remote}\" #{split_branch_name}:#{branch}"
       end
       pushed_commit = last_commit
 
-      system "git checkout -q #{current_branch_name}" or raise "Command failed"
-      system "git reset -q --hard" or raise "Command failed"
-      system "git branch -q -D #{split_branch_name}" or raise "Command failed"
+      run_command "git checkout -q #{current_branch_name}"
+      run_command "git reset -q --hard"
+      run_command "git branch -q -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
-      system "git add -f -- #{config.file_name}" or raise "Command failed"
-      system "git commit -q -m \"Push subrepo #{subdir}\"" or raise "Command failed"
+      run_command "git add -f -- #{config.file_name}"
+      run_command "git commit -q -m \"Push subrepo #{subdir}\""
 
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})." unless quiet
     end
@@ -155,9 +155,9 @@ module Subrepo
           puts "Subrepo '#{subdir}' is up to date." unless quiet
           return
         end
-        system "git rm -r \"#{subdir}\"" or raise "Command failed"
+        run_command "git rm -r \"#{subdir}\""
       end
-      system "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\"" or raise "Command failed"
+      run_command "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\""
 
       config_name = config.file_name
       config.create(remote, branch, method)
@@ -172,6 +172,10 @@ module Subrepo
                             parents: [repo.head.target], update_ref: "HEAD")
 
       puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'." unless quiet
+    end
+
+    def run_command(command)
+      Commands.run_command(command)
     end
   end
 end

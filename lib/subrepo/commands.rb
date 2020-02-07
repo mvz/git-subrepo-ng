@@ -101,20 +101,19 @@ module Subrepo
         " -X subtree=#{subdir}"
 
       rebased_head = `git rev-parse HEAD`.chomp
-      system "git checkout -q #{current_branch}" or raise "Command failed"
-      system "git merge #{rebased_head} --no-ff --no-edit -q" or
-        raise "Command failed"
+      run_command "git checkout -q #{current_branch}"
+      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
 
       if squash
-        system "git reset --soft #{last_local_commit}" or raise "Command failed"
-        system "git commit -q -m WIP" or raise "Command failed"
+        run_command "git reset --soft #{last_local_commit}"
+        run_command "git commit -q -m WIP"
         config.parent = last_config_commit
       else
         config.parent = rebased_head
       end
 
       config.commit = last_fetched_commit
-      system "git add \"#{config_name}\"" or raise "Command failed"
+      run_command "git add \"#{config_name}\""
 
       message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
@@ -122,9 +121,9 @@ module Subrepo
 
       command = "git commit -q -m \"#{message}\" --amend" 
       if edit
-        system "#{command} --edit" or raise "Command failed"
+        run_command "#{command} --edit"
       else
-        system command or raise "Command failed"
+        run_command command
       end
     end
 
@@ -215,14 +214,14 @@ module Subrepo
             target_diff = target_parent_tree.diff rewritten_tree
             target_patch = target_diff.patch
             if rewritten_patch != target_patch
-              system "git checkout -q #{first_target_parent.oid}" or raise "Command failed"
+              run_command "git checkout -q #{first_target_parent.oid}"
               patch = Tempfile.new("subrepo-patch")
               patch.write rewritten_patch
               patch.close
-              system "git apply --3way #{patch.path}" or raise "Command failed"
+              run_command "git apply --3way #{patch.path}"
               patch.unlink
               target_tree = `git write-tree`.chomp
-              system "git reset -q --hard" or raise "Command failed"
+              run_command "git reset -q --hard"
             end
           end
         end
@@ -266,7 +265,7 @@ module Subrepo
       run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      system "git update-ref #{refs_subrepo_fetch} #{new_commit}" or raise "Command failed"
+      run_command "git update-ref #{refs_subrepo_fetch} #{new_commit}"
       new_commit
     end
 
