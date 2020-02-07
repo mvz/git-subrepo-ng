@@ -68,14 +68,14 @@ end
 
 When("I create a branch with some commits in the main project") do
   cd @main_repo do
-    `git checkout -b unrelated-branch`
+    `git checkout -q -b unrelated-branch`
     write_file "another_main_file", "stuff"
     `git add -A`
     `git commit -am "Working"`
     write_file "yet_another", "more stuff"
     `git add -A`
     `git commit -am "More working"`
-    `git checkout master`
+    `git checkout -q master`
   end
 end
 
