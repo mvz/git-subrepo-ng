@@ -64,7 +64,7 @@ module Subrepo
       end
     end
 
-    def command_merge(subdir, squash:, message: nil)
+    def command_merge(subdir, squash:, message: nil, edit: false)
       subdir or raise "No subdir provided"
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config = Config.new(subdir)
@@ -123,6 +123,10 @@ module Subrepo
 
         system "git add \"#{config_name}\"" or raise "Command failed"
         system "git commit -q --amend --no-edit" or raise "Command failed"
+      end
+
+      if edit
+        system "git commit -q --amend --edit" or raise "Command failed"
       end
     end
 

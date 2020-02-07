@@ -138,7 +138,8 @@ module Subrepo
 
     def run_pull_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .pull(args.shift, **options.slice(:squash, :remote, :branch, :message, :update))
+        .pull(args.shift,
+              **options.slice(:squash, :remote, :branch, :message, :edit, :update))
     end
 
     def run_clean_command(global_options, options, args)
