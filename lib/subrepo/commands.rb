@@ -102,31 +102,29 @@ module Subrepo
 
       rebased_head = `git rev-parse HEAD`.chomp
       system "git checkout -q #{current_branch}" or raise "Command failed"
+      system "git merge #{rebased_head} --no-ff --no-edit -q" or
+        raise "Command failed"
+
+      if squash
+        system "git reset --soft #{last_local_commit}" or raise "Command failed"
+        system "git commit -q -m WIP" or raise "Command failed"
+        config.parent = last_config_commit
+      else
+        config.parent = rebased_head
+      end
+
+      config.commit = last_fetched_commit
+      system "git add \"#{config_name}\"" or raise "Command failed"
+
       message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
         "merged:   \\\"#{last_fetched_commit}\\\""
 
-      system "git merge #{rebased_head} --no-ff --no-edit" \
-        " -q -m \"#{message}\"" or raise "Command failed"
-
-      if squash
-        system "git reset --soft #{last_local_commit}" or raise "Command failed"
-
-        config.parent = last_config_commit
-        config.commit = last_fetched_commit
-
-        system "git add \"#{config_name}\"" or raise "Command failed"
-        system "git commit -q -m \"#{message}\"" or raise "Command failed"
-      else
-        config.parent = rebased_head
-        config.commit = last_fetched_commit
-
-        system "git add \"#{config_name}\"" or raise "Command failed"
-        system "git commit -q --amend --no-edit" or raise "Command failed"
-      end
-
+      command = "git commit -q -m \"#{message}\" --amend" 
       if edit
-        system "git commit -q --amend --edit" or raise "Command failed"
+        system "#{command} --edit" or raise "Command failed"
+      else
+        system command or raise "Command failed"
       end
     end
 
