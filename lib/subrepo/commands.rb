@@ -95,13 +95,10 @@ module Subrepo
         raise "Last merged commit #{last_merged_commit} not found in fetched commits"
       end
 
-      command = "git rebase" \
+      run_command "git rebase" \
         " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
         " --rebase-merges" \
         " -X subtree=#{subdir}"
-
-      _out, _err, status = Open3.capture3 command
-      status == 0 or raise "Command failed"
 
       rebased_head = `git rev-parse HEAD`.chomp
       system "git checkout -q #{current_branch}" or raise "Command failed"
@@ -266,13 +263,16 @@ module Subrepo
       if remote_commit.empty?
         return false
       end
-      command = "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
-      _out, _err, status = Open3.capture3 command
-      status == 0 or raise "Command failed"
+      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       system "git update-ref #{refs_subrepo_fetch} #{new_commit}" or raise "Command failed"
       new_commit
+    end
+
+    def run_command(command)
+      _out, _err, status = Open3.capture3 command
+      status == 0 or raise "Command failed"
     end
   end
 end
