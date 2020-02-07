@@ -98,31 +98,31 @@ module Subrepo
         " --rebase-merges" \
         " -X subtree=#{subdir}"
 
-      system command, exception: true
+      system command or raise "Command failed"
 
       rebased_head = `git rev-parse HEAD`.chomp
-      system "git checkout -q #{current_branch}", exception: true
+      system "git checkout -q #{current_branch}" or raise "Command failed"
       message =
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
         "merged:   \\\"#{last_fetched_commit}\\\""
 
       system "git merge #{rebased_head} --no-ff --no-edit" \
-        " -q -m \"#{message}\"", exception: true
+        " -q -m \"#{message}\"" or raise "Command failed"
 
       if squash
-        system "git reset --soft #{last_local_commit}", exception: true
+        system "git reset --soft #{last_local_commit}" or raise "Command failed"
 
         config.parent = last_config_commit
         config.commit = last_fetched_commit
 
-        system "git add \"#{config_name}\"", exception: true
-        system "git commit -q -m \"#{message}\"", exception: true
+        system "git add \"#{config_name}\"" or raise "Command failed"
+        system "git commit -q -m \"#{message}\"" or raise "Command failed"
       else
         config.parent = rebased_head
         config.commit = last_fetched_commit
 
-        system "git add \"#{config_name}\"", exception: true
-        system "git commit -q --amend --no-edit", exception: true
+        system "git add \"#{config_name}\"" or raise "Command failed"
+        system "git commit -q --amend --no-edit" or raise "Command failed"
       end
     end
 
@@ -171,22 +171,22 @@ module Subrepo
 
       repo.branches.create split_branch_name, last_commit
       if force
-        system "git push --force \"#{remote}\" #{split_branch_name}:#{branch}", exception: true
+        system "git push --force \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
       else
-        system "git push \"#{remote}\" #{split_branch_name}:#{branch}", exception: true
+        system "git push \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
       end
       pushed_commit = last_commit
 
-      system "git checkout -q #{current_branch_name}", exception: true
-      system "git reset -q --hard", exception: true
-      system "git branch -q -D #{split_branch_name}", exception: true
+      system "git checkout -q #{current_branch_name}" or raise "Command failed"
+      system "git reset -q --hard" or raise "Command failed"
+      system "git branch -q -D #{split_branch_name}" or raise "Command failed"
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
-      system "git add -f -- #{config.file_name}", exception: true
-      system "git commit -q -m \"Push subrepo #{subdir}\"", exception: true
+      system "git add -f -- #{config.file_name}" or raise "Command failed"
+      system "git commit -q -m \"Push subrepo #{subdir}\"" or raise "Command failed"
 
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
     end
@@ -299,14 +299,14 @@ module Subrepo
             target_diff = target_parent_tree.diff rewritten_tree
             target_patch = target_diff.patch
             if rewritten_patch != target_patch
-              system "git checkout -q #{first_target_parent.oid}", exception: true
+              system "git checkout -q #{first_target_parent.oid}" or raise "Command failed"
               patch = Tempfile.new("subrepo-patch")
               patch.write rewritten_patch
               patch.close
-              system "git apply --3way #{patch.path}", exception: true
+              system "git apply --3way #{patch.path}" or raise "Command failed"
               patch.unlink
               target_tree = `git write-tree`.chomp
-              system "git reset -q --hard", exception: true
+              system "git reset -q --hard" or raise "Command failed"
             end
           end
         end
@@ -347,10 +347,10 @@ module Subrepo
       if remote_commit.empty?
         return false
       end
-      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\"", exception: true
+      system "git fetch -q --no-tags \"#{remote}\" \"#{branch}\"" or raise "Command failed"
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      system "git update-ref #{refs_subrepo_fetch} #{new_commit}", exception: true
+      system "git update-ref #{refs_subrepo_fetch} #{new_commit}" or raise "Command failed"
       new_commit
     end
   end

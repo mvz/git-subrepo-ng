@@ -1,7 +1,15 @@
----
-sudo: false
 language: ruby
-cache: bundler
+
+dist: bionic
+
+cache:
+  bundler: true
+
 rvm:
-  - 2.6.5
-before_install: gem install bundler -v 2.0.2
+  - 2.5
+  - 2.6
+  - 2.7
+
+branches:
+  only:
+    - master
