@@ -31,13 +31,13 @@ clone-foo-and-bar
 
 {
   like "$(catch git subrepo clone --foo)" \
-    "error: unknown option \`foo" \
+    "error: Unknown option --foo" \
     "Error OK: unknown command option"
 }
 
 {
   is "$(catch git subrepo main 1 2 3)" \
-    "error: 'main' is not a command. See 'git subrepo help'." \
+    "error: Unknown command 'main'" \
     "Error OK: unknown command"
 }
 
@@ -49,7 +49,7 @@ clone-foo-and-bar
 
 {
   is "$(catch git subrepo clone --all)" \
-    "error: Invalid option '--all' for 'clone'." \
+    "error: Unknown option --all" \
     "Error OK: Invalid option '--all' for 'clone'"
 }
 
