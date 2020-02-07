@@ -64,7 +64,7 @@ module Subrepo
       end
     end
 
-    def command_merge(subdir, squash:)
+    def command_merge(subdir, squash:, message: nil)
       subdir or raise "No subdir provided"
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config = Config.new(subdir)
@@ -102,7 +102,7 @@ module Subrepo
 
       rebased_head = `git rev-parse HEAD`.chomp
       system "git checkout -q #{current_branch}" or raise "Command failed"
-      message =
+      message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
         "merged:   \\\"#{last_fetched_commit}\\\""
 

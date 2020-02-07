@@ -70,8 +70,9 @@ module Subrepo
       arg :dir
       command :pull do |cmd|
         cmd.switch :squash, default_value: true
-        cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.flag [:message, :m], arg_name: "message"
+        cmd.flag [:remote, :r], arg_name: "url"
         cmd.switch [:update, :u], default_value: false
         cmd.action(&method(:run_pull_command))
       end
@@ -136,7 +137,7 @@ module Subrepo
 
     def run_pull_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .pull(args.shift, **options.slice(:squash, :remote, :branch, :update))
+        .pull(args.shift, **options.slice(:squash, :remote, :branch, :message, :update))
     end
 
     def run_clean_command(global_options, options, args)
