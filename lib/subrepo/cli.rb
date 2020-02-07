@@ -36,9 +36,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
-        cmd.action do |_, options, args|
-          command_init args.shift, **options.slice(:remote, :branch, :method)
-        end
+        cmd.action(&method(:run_init_command))
       end
     end
 
@@ -129,6 +127,11 @@ module Subrepo
       command :clean do |cmd|
         cmd.action(&method(:run_clean_command))
       end
+    end
+
+    def run_init_command(global_options, options, args)
+      Runner.new(**global_options.slice(:quiet))
+        .init(args[0], **options.slice(:remote, :branch, :method))
     end
 
     def run_clone_command(global_options, options, args)

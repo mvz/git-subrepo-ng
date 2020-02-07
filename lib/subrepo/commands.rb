@@ -194,36 +194,7 @@ module Subrepo
     end
 
     def command_init(subdir, remote: nil, branch: nil, method: nil)
-      branch ||= "master"
-      remote ||= "none"
-      method ||= "merge"
-      subdir or raise "No subdir provided"
-
-      repo = Rugged::Repository.new(".")
-
-      File.exist? subdir or raise "The subdir '#{subdir} does not exist."
-      config = Config.new(subdir)
-      config_name = config.file_name
-      File.exist? config_name and
-        raise "The subdir '#{subdir}' is already a subrepo."
-      last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
-      last_subdir_commit.empty? and
-        raise "The subdir '#{subdir}' is not part of this repo."
-
-      config.create(remote, branch, method)
-
-      index = repo.index
-      index.add config_name
-      index.write
-      Rugged::Commit.create(repo, tree: index.write_tree,
-                            message: "Initialize subrepo #{subdir}",
-                            parents: [repo.head.target], update_ref: "HEAD")
-
-      if remote == "none"
-        puts "Subrepo created from '#{subdir}' (with no remote)."
-      else
-        puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
-      end
+      Runner.new.init(subdir, remote: remote, branch: branch, method: method)
     end
 
     def command_clone(remote, subdir=nil, branch: nil, method: nil)
