@@ -133,64 +133,7 @@ module Subrepo
     end
 
     def command_push(subdir, remote: nil, branch: nil, force: false)
-      subdir or raise "No subdir provided"
-
-      repo = Rugged::Repository.new(".")
-
-      config = Config.new(subdir)
-
-      remote ||= config.remote
-      branch ||= config.branch
-      last_merged_commit = config.commit
-      last_pushed_commit = config.parent
-
-      fetched = perform_fetch(subdir, remote, branch, last_merged_commit)
-
-      if fetched && !force
-        refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-        last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
-        last_fetched_commit == last_merged_commit or
-          raise "There are new changes upstream, you need to pull first."
-      end
-
-      split_branch_name = "subrepo-#{subdir}"
-      if repo.branches.exist? split_branch_name
-        raise "It seems #{split_branch_name} already exists. Remove it first"
-      end
-
-      current_branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
-
-      last_commit = map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
-
-      unless last_commit
-        if fetched
-          puts "Subrepo '#{subdir}' has no new commits to push."
-        else
-          warn "Nothing mapped"
-        end
-        return
-      end
-
-      repo.branches.create split_branch_name, last_commit
-      if force
-        system "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
-      else
-        system "git push -q \"#{remote}\" #{split_branch_name}:#{branch}" or raise "Command failed"
-      end
-      pushed_commit = last_commit
-
-      system "git checkout -q #{current_branch_name}" or raise "Command failed"
-      system "git reset -q --hard" or raise "Command failed"
-      system "git branch -q -D #{split_branch_name}" or raise "Command failed"
-      parent_commit = `git rev-parse HEAD`.chomp
-
-      config.remote = remote
-      config.commit = pushed_commit
-      config.parent = parent_commit
-      system "git add -f -- #{config.file_name}" or raise "Command failed"
-      system "git commit -q -m \"Push subrepo #{subdir}\"" or raise "Command failed"
-
-      puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
+      Runner.new.push(subdir, remote: remote, branch: branch, force: force)
     end
 
     def command_init(subdir, remote: nil, branch: nil, method: nil)
