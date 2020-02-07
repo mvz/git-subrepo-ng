@@ -73,6 +73,7 @@ module Subrepo
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:message, :m], arg_name: "message"
         cmd.flag [:remote, :r], arg_name: "url"
+        cmd.switch [:edit, :e], default_value: false
         cmd.switch [:update, :u], default_value: false
         cmd.action(&method(:run_pull_command))
       end
