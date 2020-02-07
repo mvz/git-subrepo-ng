@@ -19,7 +19,7 @@ test-exists \
 export XYZ=1
 is "$(
   cd $OWNER/foo
-  git subrepo --force clone ../../../$UPSTREAM/bar
+  git subrepo clone --force ../../../$UPSTREAM/bar
 )" \
   "Subrepo 'bar' is up to date." \
   "No reclone if same commit"

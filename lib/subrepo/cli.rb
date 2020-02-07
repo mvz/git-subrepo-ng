@@ -49,6 +49,7 @@ module Subrepo
       command :clone do |cmd|
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
+        cmd.switch :force, default_value: false
         cmd.action(&method(:run_clone_command))
       end
     end
