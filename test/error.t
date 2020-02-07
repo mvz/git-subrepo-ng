@@ -19,7 +19,7 @@ clone-foo-and-bar
       git subrepo --quiet branch foo
       catch git subrepo branch foo
     )" \
-    "git-subrepo: Branch 'subrepo/foo' already exists. Use '--force' to override." \
+    "error: Branch 'subrepo/foo' already exists. Use '--force' to override." \
     "Error OK: can't create a branch that exists"
 
   (
@@ -37,19 +37,19 @@ clone-foo-and-bar
 
 {
   is "$(catch git subrepo main 1 2 3)" \
-    "git-subrepo: 'main' is not a command. See 'git subrepo help'." \
+    "error: 'main' is not a command. See 'git subrepo help'." \
     "Error OK: unknown command"
 }
 
 {
   is "$(catch git subrepo pull --update)" \
-    "git-subrepo: Can't use '--update' without '--branch' or '--remote'." \
+    "error: Can't use '--update' without '--branch' or '--remote'." \
     "Error OK: --update requires --branch or --remote options"
 }
 
 {
   is "$(catch git subrepo clone --all)" \
-    "git-subrepo: Invalid option '--all' for 'clone'." \
+    "error: Invalid option '--all' for 'clone'." \
     "Error OK: Invalid option '--all' for 'clone'"
 }
 
@@ -58,7 +58,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo pull /home/user/bar/foo
     )" \
-    "git-subrepo: The subdir '.*/home/user/bar/foo' should not be absolute path." \
+    "error: The subdir '.*/home/user/bar/foo' should not be absolute path." \
     "Error OK: check subdir is not absolute path"
 }
 
@@ -69,7 +69,7 @@ clone-foo-and-bar
         cd $OWNER/bar
         catch git subrepo $cmd
       )" \
-      "git-subrepo: Command '$cmd' requires arg 'subdir'." \
+      "error: Command '$cmd' requires arg 'subdir'." \
       "Error OK: check that '$cmd' requires subdir"
   done
 }
@@ -79,7 +79,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo clone foo bar baz quux
     )" \
-    "git-subrepo: Unknown argument(s) 'baz quux' for 'clone' command." \
+    "error: Unknown argument(s) 'baz quux' for 'clone' command." \
     "Error OK: extra arguments for clone"
 }
 
@@ -88,7 +88,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo clone .git
     )" \
-    "git-subrepo: Can't determine subdir from '.git'." \
+    "error: Can't determine subdir from '.git'." \
     "Error OK: check error in subdir guess"
 }
 
@@ -97,7 +97,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo pull lala
     )" \
-    "git-subrepo: No 'lala/.gitrepo' file." \
+    "error: No 'lala/.gitrepo' file." \
     "Error OK: check for valid subrepo subdir"
 }
 
@@ -107,7 +107,7 @@ clone-foo-and-bar
       git checkout --quiet $(git rev-parse master)
       catch git subrepo status
     )" \
-    "git-subrepo: Must be on a branch to run this command." \
+    "error: Must be on a branch to run this command." \
     "Error OK: check repo is on a branch"
   (
     cd $OWNER/bar
@@ -120,7 +120,7 @@ clone-foo-and-bar
       cd .git
       catch git subrepo status
     )" \
-    "git-subrepo: Can't 'subrepo status' outside a working tree." \
+    "error: Can't 'subrepo status' outside a working tree." \
     "Error OK: check inside working tree"
 }
 
@@ -131,7 +131,7 @@ clone-foo-and-bar
       git add me
       catch git subrepo clone ../../../$UPSTREAM/foo
     )" \
-    "git-subrepo: Can't clone subrepo. Working tree has changes." \
+    "error: Can't clone subrepo. Working tree has changes." \
     "Error OK: check no working tree changes"
   (
     cd $OWNER/bar
@@ -144,7 +144,7 @@ clone-foo-and-bar
       cd lib
       catch git subrepo status
     )" \
-    "git-subrepo: Need to run subrepo command from top level directory of the repo." \
+    "error: Need to run subrepo command from top level directory of the repo." \
     "Error OK: check cwd is at top level"
 }
 
@@ -153,7 +153,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo clone dummy bard
     )" \
-    "git-subrepo: The subdir 'bard' exists and is not empty." \
+    "error: The subdir 'bard' exists and is not empty." \
     "Error OK: non-empty clone subdir target"
 }
 
@@ -162,7 +162,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo clone dummy-repo
     )" \
-    "git-subrepo: Command failed: 'git ls-remote dummy-repo'." \
+    "error: Command failed: 'git ls-remote dummy-repo'." \
     "Error OK: clone non-repo"
 }
 
