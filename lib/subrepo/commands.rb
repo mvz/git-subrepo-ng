@@ -33,8 +33,8 @@ module Subrepo
     end
 
     def command_config(subdir, option:, value:, force: false)
-      subdir or raise "No subdir provided"
-      option or raise "No option name provided"
+      subdir or raise "Command 'config' requires arg 'subdir'."
+      option or raise "Command 'config' requires arg 'option'."
 
       config = Config.new(subdir)
       if value
@@ -51,7 +51,7 @@ module Subrepo
     end
 
     def command_fetch(subdir, remote: nil)
-      subdir or raise "No subdir provided"
+      subdir or raise "Command 'fetch' requires arg 'subdir'."
 
       config = Config.new(subdir)
       remote ||= config.remote
@@ -67,7 +67,7 @@ module Subrepo
     end
 
     def command_merge(subdir, squash:, message: nil, edit: false)
-      subdir or raise "No subdir provided"
+      subdir or raise "Command 'merge' requires arg 'subdir'."
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config = Config.new(subdir)
       branch = config.branch

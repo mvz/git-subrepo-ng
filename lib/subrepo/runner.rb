@@ -16,7 +16,7 @@ module Subrepo
       branch ||= "master"
       remote ||= "none"
       method ||= "merge"
-      subdir or raise "No subdir provided"
+      subdir or raise "Command 'init' requires arg 'subdir'."
 
       repo = Rugged::Repository.new(".")
 
@@ -47,7 +47,7 @@ module Subrepo
     end
 
     def pull(subdir, squash:, remote: nil, branch: nil, message: nil, edit: false, update: false)
-      subdir or raise "No subdir provided"
+      subdir or raise "Command 'pull' requires arg 'subdir'."
       config = Config.new(subdir)
       remote ||= config.remote
       branch ||= config.branch
@@ -65,7 +65,7 @@ module Subrepo
     end
 
     def push(subdir, remote: nil, branch: nil, force: false)
-      subdir or raise "No subdir provided"
+      subdir or raise "Command 'push' requires arg 'subdir'."
 
       repo = Rugged::Repository.new(".")
 
@@ -126,7 +126,7 @@ module Subrepo
     end
 
     def clone(remote, subdir = nil, branch: nil, method: nil, force: false)
-      remote or raise "No remote provided"
+      remote or raise "Command 'clone' requires arg 'remote'."
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
       method ||= "merge"
