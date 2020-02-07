@@ -119,7 +119,7 @@ module Subrepo
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
         "merged:   \\\"#{last_fetched_commit}\\\""
 
-      command = "git commit -q -m \"#{message}\" --amend" 
+      command = "git commit -q -m \"#{message}\" --amend"
       if edit
         run_command "#{command} --edit"
       else
@@ -139,7 +139,7 @@ module Subrepo
       Runner.new.init(subdir, remote: remote, branch: branch, method: method)
     end
 
-    def command_clone(remote, subdir=nil, branch: nil, method: nil)
+    def command_clone(remote, subdir = nil, branch: nil, method: nil)
       Runner.new.clone(remote, subdir, branch: branch, method: method)
     end
 
@@ -259,9 +259,8 @@ module Subrepo
 
     def perform_fetch(subdir, remote, branch, _last_merged_commit)
       remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
-      if remote_commit.empty?
-        return false
-      end
+      return false if remote_commit.empty?
+
       run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
       new_commit = `git rev-parse FETCH_HEAD`.chomp
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"

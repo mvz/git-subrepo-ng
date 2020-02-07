@@ -53,9 +53,7 @@ module Subrepo
       branch ||= config.branch
       last_merged_commit = config.commit
 
-      if update
-        config.branch = branch
-      end
+      config.branch = branch if update
 
       last_fetched_commit = Commands.perform_fetch(subdir, remote, branch, last_merged_commit)
       if last_fetched_commit == last_merged_commit
@@ -127,7 +125,7 @@ module Subrepo
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})." unless quiet
     end
 
-    def clone(remote, subdir=nil, branch: nil, method: nil, force: false)
+    def clone(remote, subdir = nil, branch: nil, method: nil, force: false)
       remote or raise "No remote provided"
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
