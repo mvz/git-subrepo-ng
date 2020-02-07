@@ -12,12 +12,16 @@ module Subrepo
       @quiet = quiet
     end
 
-    def pull(subdir, squash:, remote: nil)
+    def pull(subdir, squash:, remote: nil, branch: nil, update: false)
       subdir or raise "No subdir provided"
       config = Config.new(subdir)
       remote ||= config.remote
-      branch = config.branch
+      branch ||= config.branch
       last_merged_commit = config.commit
+
+      if update
+        config.branch = branch
+      end
 
       last_fetched_commit = Commands.perform_fetch(subdir, remote, branch, last_merged_commit)
       if last_fetched_commit == last_merged_commit

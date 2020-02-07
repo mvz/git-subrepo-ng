@@ -71,6 +71,8 @@ module Subrepo
       command :pull do |cmd|
         cmd.switch :squash, default_value: true
         cmd.flag [:remote, :r], arg_name: "url"
+        cmd.flag [:branch, :b], arg_name: "branch"
+        cmd.switch [:update, :u], default_value: false
         cmd.action(&method(:run_pull_command))
       end
     end
@@ -134,7 +136,7 @@ module Subrepo
 
     def run_pull_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .pull(args.shift, **options.slice(:squash, :remote))
+        .pull(args.shift, **options.slice(:squash, :remote, :branch, :update))
     end
 
     def run_clean_command(global_options, options, args)

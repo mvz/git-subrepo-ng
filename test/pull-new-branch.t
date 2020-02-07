@@ -25,7 +25,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field branch master
   test-gitrepo-field commit "$bar_head_commit"
   test-gitrepo-field parent "$foo_pull_commit"
-  test-gitrepo-field cmdver "$(git subrepo --version)"
+  test-gitrepo-field cmdver "$VERSION"
 }
 
 (
@@ -41,7 +41,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field branch branch1
   test-gitrepo-field commit "$bar_head_commit"
   test-gitrepo-field parent "$foo_pull_commit"
-  test-gitrepo-field cmdver "$(git subrepo --version)"
+  test-gitrepo-field cmdver "$VERSION"
 }
 
 {
