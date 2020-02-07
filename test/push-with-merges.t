@@ -21,10 +21,10 @@ clone-foo-and-bar
   # Make a series of commits:
   git branch flub
   git branch flab
-  git co flub
+  git checkout flub
   add-new-files bar/FooBar
   modify-files bar/FooBar
-  git co flab
+  git checkout flab
   add-new-files ./FooBar
   modify-files ./FooBar
   git checkout master
