@@ -17,12 +17,26 @@ namespace :compat do
 
   task :regression do
     test_names = %w(
-      clone clone-annotated-tag config
-      fetch gitignore init
-      issue29 issue95
-      pull pull-message pull-new-branch pull-twice
-      push push-after-init push-force push-new-branch push-no-changes push-with-merges
-      reclone status
+      clone
+      clone-annotated-tag
+      config
+      fetch
+      gitignore
+      init
+      issue29
+      issue95
+      pull
+      pull-message
+      pull-new-branch
+      pull-twice
+      push
+      push-after-init
+      push-force
+      push-new-branch
+      push-no-changes
+      push-with-merges
+      reclone
+      status
     )
     test_list = test_names.map { |it| "test/#{it}.t" }.join(" ")
 
