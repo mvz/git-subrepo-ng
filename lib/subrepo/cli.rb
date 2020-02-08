@@ -18,15 +18,21 @@ module Subrepo
 
       switch :quiet
 
-      setup_init_command
+      sort_help :manually
+
       setup_clone_command
-      setup_fetch_command
-      setup_merge_command
+      setup_init_command
       setup_pull_command
       setup_push_command
+
+      setup_branch_command
+      setup_fetch_command
+
       setup_status_command
-      setup_config_command
       setup_clean_command
+      setup_config_command
+
+      setup_merge_command
     end
 
     def setup_init_command
@@ -49,6 +55,14 @@ module Subrepo
         cmd.flag [:method, :M]
         cmd.switch :force, default_value: false
         cmd.action(&method(:run_clone_command))
+      end
+    end
+
+    def setup_branch_command
+      desc "Create a branch containing the local subrepo commits"
+      arg :dir
+      command :branch do |cmd|
+        cmd.action(&method(:run_branch_command))
       end
     end
 
@@ -129,6 +143,11 @@ module Subrepo
     def run_init_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
         .init(args[0], **options.slice(:remote, :branch, :method))
+    end
+
+    def run_branch_command(global_options, _options, args)
+      Runner.new(**global_options.slice(:quiet))
+        .branch(args[0])
     end
 
     def run_clone_command(global_options, options, args)

@@ -37,16 +37,17 @@ module Subrepo
       Rugged::Commit.create(repo, tree: index.write_tree,
                             message: "Initialize subrepo #{subdir}",
                             parents: [repo.head.target], update_ref: "HEAD")
-      unless quiet
-        if remote == "none"
-          puts "Subrepo created from '#{subdir}' (with no remote)."
-        else
-          puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
-        end
+      return if quiet
+
+      if remote == "none"
+        puts "Subrepo created from '#{subdir}' (with no remote)."
+      else
+        puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
       end
     end
 
-    def pull(subdir, squash:, remote: nil, branch: nil, message: nil, edit: false, update: false)
+    def pull(subdir, squash:, remote: nil, branch: nil, message: nil,
+             edit: false, update: false)
       subdir or raise "Command 'pull' requires arg 'subdir'."
       config = Config.new(subdir)
       remote ||= config.remote
@@ -55,7 +56,8 @@ module Subrepo
 
       config.branch = branch if update
 
-      last_fetched_commit = Commands.perform_fetch(subdir, remote, branch, last_merged_commit)
+      last_fetched_commit = Commands.perform_fetch(subdir, remote, branch,
+                                                   last_merged_commit)
       if last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date." unless quiet
       else
@@ -85,14 +87,10 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      split_branch_name = "subrepo-#{subdir}"
-      if repo.branches.exist? split_branch_name
-        raise "It seems #{split_branch_name} already exists. Remove it first"
-      end
-
-      current_branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
-
-      last_commit = Commands.map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
+      split_branch_name = make_split_branch_name(subdir)
+      last_commit = make_local_commits_branch(subdir, split_branch_name,
+                                              last_pushed_commit: last_pushed_commit,
+                                              last_merged_commit: last_merged_commit)
 
       unless last_commit
         if fetched
@@ -103,7 +101,6 @@ module Subrepo
         return
       end
 
-      repo.branches.create split_branch_name, last_commit
       if force
         run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
       else
@@ -111,9 +108,6 @@ module Subrepo
       end
       pushed_commit = last_commit
 
-      run_command "git checkout -q #{current_branch_name}"
-      run_command "git reset -q --hard"
-      run_command "git branch -q -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.remote = remote
@@ -123,6 +117,24 @@ module Subrepo
       run_command "git commit -q -m \"Push subrepo #{subdir}\""
 
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})." unless quiet
+    end
+
+    def branch(subdir)
+      subdir or raise "Command 'branch' requires arg 'subdir'."
+
+      config = Config.new(subdir)
+      last_merged_commit = config.commit
+      last_pushed_commit = config.parent
+
+      split_branch_name = make_split_branch_name(subdir)
+      make_local_commits_branch(subdir, split_branch_name,
+                                last_pushed_commit: last_pushed_commit,
+                                last_merged_commit: last_merged_commit)
+
+      return if quiet
+
+      puts "Created branch '#{split_branch_name}'" \
+        " and worktree '.git/tmp/subrepo/#{subdir}'."
     end
 
     def clone(remote, subdir = nil, branch: nil, method: nil, force: false)
@@ -170,6 +182,43 @@ module Subrepo
                             parents: [repo.head.target], update_ref: "HEAD")
 
       puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'." unless quiet
+    end
+
+    private
+
+    def make_local_commits_branch(subdir, split_branch_name,
+                                  last_pushed_commit:, last_merged_commit:)
+      last_merged_commit = nil if last_merged_commit == ""
+
+      unless repo.branches.exist? split_branch_name
+        branch_commit = last_merged_commit || repo.head.target_id
+        repo.branches.create split_branch_name, branch_commit
+      end
+
+      worktree_name = ".git/tmp/subrepo/#{subdir}"
+      worktrees = `git worktree list`
+
+      unless worktrees.include? worktree_name
+        run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
+      end
+
+      Dir.chdir worktree_name do
+        mapped_commit = Commands.map_commits(repo, subdir, last_pushed_commit,
+                                             last_merged_commit)
+        return unless mapped_commit
+
+        run_command "git checkout #{split_branch_name}"
+        run_command "git reset --hard #{mapped_commit}"
+        mapped_commit
+      end
+    end
+
+    def make_split_branch_name(subdir)
+      "subrepo/#{subdir}"
+    end
+
+    def repo
+      @repo ||= Rugged::Repository.new(".")
     end
 
     def run_command(command)
