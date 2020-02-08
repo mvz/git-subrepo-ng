@@ -18,15 +18,21 @@ module Subrepo
 
       switch :quiet
 
-      setup_init_command
+      sort_help :manually
+
       setup_clone_command
-      setup_fetch_command
-      setup_merge_command
+      setup_init_command
       setup_pull_command
       setup_push_command
+
+      setup_fetch_command
+
       setup_status_command
-      setup_config_command
       setup_clean_command
+      setup_config_command
+
+      setup_merge_command
+
     end
 
     def setup_init_command
