@@ -37,16 +37,17 @@ module Subrepo
       Rugged::Commit.create(repo, tree: index.write_tree,
                             message: "Initialize subrepo #{subdir}",
                             parents: [repo.head.target], update_ref: "HEAD")
-      unless quiet
-        if remote == "none"
-          puts "Subrepo created from '#{subdir}' (with no remote)."
-        else
-          puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
-        end
+      return if quiet
+
+      if remote == "none"
+        puts "Subrepo created from '#{subdir}' (with no remote)."
+      else
+        puts "Subrepo created from '#{subdir}' with remote '#{remote}' (#{branch})."
       end
     end
 
-    def pull(subdir, squash:, remote: nil, branch: nil, message: nil, edit: false, update: false)
+    def pull(subdir, squash:, remote: nil, branch: nil, message: nil,
+             edit: false, update: false)
       subdir or raise "Command 'pull' requires arg 'subdir'."
       config = Config.new(subdir)
       remote ||= config.remote
@@ -55,7 +56,8 @@ module Subrepo
 
       config.branch = branch if update
 
-      last_fetched_commit = Commands.perform_fetch(subdir, remote, branch, last_merged_commit)
+      last_fetched_commit = Commands.perform_fetch(subdir, remote, branch,
+                                                   last_merged_commit)
       if last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date." unless quiet
       else
@@ -87,8 +89,8 @@ module Subrepo
 
       split_branch_name = make_split_branch_name(subdir)
       last_commit = make_local_commits_branch(subdir, split_branch_name,
-                                                    last_pushed_commit: last_pushed_commit,
-                                                    last_merged_commit: last_merged_commit)
+                                              last_pushed_commit: last_pushed_commit,
+                                              last_merged_commit: last_merged_commit)
 
       unless last_commit
         if fetched
@@ -125,13 +127,14 @@ module Subrepo
       last_pushed_commit = config.parent
 
       split_branch_name = make_split_branch_name(subdir)
-      last_commit = make_local_commits_branch(subdir, split_branch_name,
-                                              last_pushed_commit: last_pushed_commit,
-                                              last_merged_commit: last_merged_commit)
+      make_local_commits_branch(subdir, split_branch_name,
+                                last_pushed_commit: last_pushed_commit,
+                                last_merged_commit: last_merged_commit)
 
-      unless quiet
-        puts "Created branch '#{split_branch_name}' and worktree '.git/tmp/subrepo/#{subdir}'."
-      end
+      return if quiet
+
+      puts "Created branch '#{split_branch_name}'" \
+        " and worktree '.git/tmp/subrepo/#{subdir}'."
     end
 
     def clone(remote, subdir = nil, branch: nil, method: nil, force: false)
@@ -203,6 +206,7 @@ module Subrepo
         mapped_commit = Commands.map_commits(repo, subdir, last_pushed_commit,
                                              last_merged_commit)
         return unless mapped_commit
+
         run_command "git checkout #{split_branch_name}"
         run_command "git reset --hard #{mapped_commit}"
         mapped_commit

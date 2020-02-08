@@ -33,7 +33,6 @@ module Subrepo
       setup_config_command
 
       setup_merge_command
-
     end
 
     def setup_init_command
@@ -146,7 +145,7 @@ module Subrepo
         .init(args[0], **options.slice(:remote, :branch, :method))
     end
 
-    def run_branch_command(global_options, options, args)
+    def run_branch_command(global_options, _options, args)
       Runner.new(**global_options.slice(:quiet))
         .branch(args[0])
     end
