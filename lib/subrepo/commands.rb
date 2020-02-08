@@ -144,8 +144,6 @@ module Subrepo
     end
 
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
-      last_merged_commit = nil if last_merged_commit == ""
-
       # Walk all commits that haven't been pushed yet
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id

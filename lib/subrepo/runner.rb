@@ -111,7 +111,6 @@ module Subrepo
       end
       pushed_commit = last_commit
 
-      run_command "git branch -q -D #{split_branch_name}"
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.remote = remote
@@ -191,19 +190,28 @@ module Subrepo
 
     def make_local_commits_branch(subdir, split_branch_name,
                                   last_pushed_commit:, last_merged_commit:)
-      if repo.branches.exist? split_branch_name
-        raise "It seems #{split_branch_name} already exists. Remove it first"
+      last_merged_commit = nil if last_merged_commit == ""
+
+      unless repo.branches.exist? split_branch_name
+        branch_commit = last_merged_commit || repo.head.target_id
+        repo.branches.create split_branch_name, branch_commit
       end
 
-      last_commit = Commands.map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
+      worktree_name = ".git/tmp/subrepo/#{subdir}"
+      worktrees = `git worktree list`
 
-      unless last_commit
-        return
+      unless worktrees.include? worktree_name
+        run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
       end
 
-      repo.branches.create split_branch_name, last_commit
-
-      last_commit
+      Dir.chdir worktree_name do
+        mapped_commit = Commands.map_commits(repo, subdir, last_pushed_commit,
+                                             last_merged_commit)
+        return unless mapped_commit
+        run_command "git checkout #{split_branch_name}"
+        run_command "git reset --hard #{mapped_commit}"
+        mapped_commit
+      end
     end
 
     def make_split_branch_name(subdir)
