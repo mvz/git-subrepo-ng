@@ -119,22 +119,6 @@ module Subrepo
       end
     end
 
-    def command_pull(subdir, squash:, remote: nil)
-      Runner.new.run_pull(subdir, squash: squash, remote: remote)
-    end
-
-    def command_push(subdir, remote: nil, branch: nil, force: false)
-      Runner.new.run_push(subdir, remote: remote, branch: branch, force: force)
-    end
-
-    def command_init(subdir, remote: nil, branch: nil, method: nil)
-      Runner.new.run_init(subdir, remote: remote, branch: branch, method: method)
-    end
-
-    def command_clone(remote, subdir = nil, branch: nil, method: nil)
-      Runner.new.run_clone(remote, subdir, branch: branch, method: method)
-    end
-
     def map_commits(repo, subdir, last_pushed_commit, last_merged_commit)
       # Walk all commits that haven't been pushed yet
       walker = Rugged::Walker.new(repo)
