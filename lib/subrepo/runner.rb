@@ -2,6 +2,7 @@
 
 require "fileutils"
 require "subrepo/config"
+require "subrepo/sub_repository"
 
 module Subrepo
   # Command runner
@@ -121,7 +122,7 @@ module Subrepo
 
     def run_branch(subdir, all: false)
       if all
-        MainRepository.new.subrepos.each { |subrepo| run_branch subrepo }
+        main_repository.subrepos.each { |subrepo| run_branch subrepo }
         return
       end
 
@@ -208,8 +209,8 @@ module Subrepo
       end
 
       Dir.chdir worktree_name do
-        mapped_commit = Commands.map_commits(repo, subdir, last_pushed_commit,
-                                             last_merged_commit)
+        subrepo = SubRepository.new(main_repository, subdir)
+        mapped_commit = subrepo.map_commits(last_pushed_commit, last_merged_commit)
         return unless mapped_commit
 
         run_command "git checkout #{split_branch_name}"
@@ -222,8 +223,12 @@ module Subrepo
       "subrepo/#{subdir}"
     end
 
+    def main_repository
+      @main_repository ||= MainRepository.new
+    end
+
     def repo
-      @repo ||= Rugged::Repository.new(".")
+      @repo ||= main_repository.repo
     end
 
     def run_command(command)
