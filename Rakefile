@@ -18,6 +18,7 @@ namespace :compat do
   task :regression do
     test_names = %w(
       branch
+      branch-all
       clone
       clone-annotated-tag
       config

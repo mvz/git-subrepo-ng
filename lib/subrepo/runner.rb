@@ -119,7 +119,12 @@ module Subrepo
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})." unless quiet
     end
 
-    def branch(subdir)
+    def branch(subdir, all: false)
+      if all
+        MainRepository.new.subrepos.each { |subrepo| branch subrepo }
+        return
+      end
+
       subdir or raise "Command 'branch' requires arg 'subdir'."
 
       config = Config.new(subdir)
