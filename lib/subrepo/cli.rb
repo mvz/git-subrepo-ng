@@ -148,8 +148,12 @@ module Subrepo
     end
 
     def run_branch_command(global_options, options, args)
-      make_runner(global_options)
-        .run_branch(args[0], **options.slice(:all))
+      runner = make_runner(global_options)
+      if options[:all]
+        runner.run_branch_all
+      else
+        runner.run_branch(args[0])
+      end
     end
 
     def run_clone_command(global_options, options, args)
