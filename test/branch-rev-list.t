@@ -27,10 +27,10 @@ subrepo-clone-bar-into-foo
 
 test-exists "$OWNER/foo/bar/file1" "$OWNER/foo/bar/file2" "$OWNER/foo/bar/file3" "$OWNER/foo/bar/file4" "$OWNER/foo/bar/file5"
 
-# -F is needed for branch to fetch new information
+# --fetch is needed for branch to fetch new information
 is "$(
   cd $OWNER/foo
-  git subrepo -F branch bar
+  git subrepo branch --fetch bar
 )" \
   "Created branch 'subrepo/bar' and worktree '.git/tmp/subrepo/bar'." \
   "subrepo branch command output is correct"
