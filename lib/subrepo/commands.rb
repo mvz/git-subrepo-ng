@@ -20,7 +20,7 @@ module Subrepo
 
       puts "#{subrepos.count} subrepos:"
       subrepos.each do |it|
-        puts "Git subrepo '#{it.chop}':"
+        puts "Git subrepo '#{it}':"
       end
     end
 

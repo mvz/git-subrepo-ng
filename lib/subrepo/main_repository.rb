@@ -21,7 +21,7 @@ module Subrepo
         end
         subrepos << path
       end
-      subrepos
+      subrepos.map { |it| it.chop }
     end
   end
 end
