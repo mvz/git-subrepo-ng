@@ -37,6 +37,7 @@ namespace :compat do
       push-with-merges
       reclone
       status
+      submodule
     )
     test_list = test_names.map { |it| "test/#{it}.t" }.join(" ")
 
