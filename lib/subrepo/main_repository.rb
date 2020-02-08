@@ -3,6 +3,7 @@
 require "rugged"
 
 module Subrepo
+  # Main repository, possibly containing subrepo's
   class MainRepository
     attr_reader :repo
 
@@ -21,7 +22,7 @@ module Subrepo
         end
         subrepos << path
       end
-      subrepos.map { |it| it.chop }
+      subrepos.map(&:chop)
     end
   end
 end
