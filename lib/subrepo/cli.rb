@@ -4,6 +4,7 @@ require "gli"
 require "subrepo/commands"
 require "subrepo/version"
 require "subrepo/runner"
+require "subrepo/dispatcher"
 
 module Subrepo
   # Command line interface for the subrepo commands
@@ -42,7 +43,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
-        cmd.action(&method(:run_init_command))
+        setup_action(cmd, :run_init_command)
       end
     end
 
@@ -54,7 +55,7 @@ module Subrepo
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
         cmd.switch :force, default_value: false
-        cmd.action(&method(:run_clone_command))
+        setup_action(cmd, :run_clone_command)
       end
     end
 
@@ -64,7 +65,7 @@ module Subrepo
       command :branch do |cmd|
         cmd.switch :all, default_value: false
         cmd.switch :fetch, default_value: false
-        cmd.action(&method(:run_branch_command))
+        setup_action(cmd, :run_branch_command)
       end
     end
 
@@ -89,7 +90,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.switch [:edit, :e], default_value: false
         cmd.switch [:update, :u], default_value: false
-        cmd.action(&method(:run_pull_command))
+        setup_action(cmd, :run_pull_command)
       end
     end
 
@@ -100,7 +101,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.switch :force, default_value: false
-        cmd.action(&method(:run_push_command))
+        setup_action(cmd, :run_push_command)
       end
     end
 
@@ -138,47 +139,14 @@ module Subrepo
       desc "Clean subrepo stuff"
       arg :dir
       command :clean do |cmd|
-        cmd.action(&method(:run_clean_command))
+        setup_action(cmd, :run_clean_command)
       end
     end
 
-    def run_init_command(global_options, options, args)
-      make_runner(global_options)
-        .run_init(args[0], **options.slice(:remote, :branch, :method))
-    end
-
-    def run_branch_command(global_options, options, args)
-      runner = make_runner(global_options)
-      if options[:all]
-        runner.run_branch_all
-      else
-        runner.run_branch(args[0])
+    def setup_action(cmd, runner_method)
+      cmd.action do |global_options, options, args|
+        Dispatcher.new(global_options, options, args).send runner_method
       end
-    end
-
-    def run_clone_command(global_options, options, args)
-      make_runner(global_options)
-        .run_clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))
-    end
-
-    def run_pull_command(global_options, options, args)
-      make_runner(global_options)
-        .run_pull(args.shift,
-                  **options.slice(:squash, :remote, :branch, :message, :edit, :update))
-    end
-
-    def run_push_command(global_options, options, args)
-      make_runner(global_options)
-        .run_push(args.shift,
-                  **options.slice(:remote, :branch, :force))
-    end
-
-    def run_clean_command(global_options, options, args)
-      # Nothing yet
-    end
-
-    def make_runner(global_options)
-      Runner.new(**global_options.slice(:quiet))
     end
   end
 end
