@@ -19,6 +19,8 @@ namespace :compat do
     test_names = %w(
       branch
       branch-all
+      branch-rev-list
+      branch-rev-list-one-path
       clone
       clone-annotated-tag
       config

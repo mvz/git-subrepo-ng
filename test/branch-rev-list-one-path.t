@@ -35,8 +35,8 @@ is $(
   cd $OWNER/foo
   git rev-list subrepo/bar | wc -l
 ) \
-  6 \
-  "We have only created commits for one of the paths"
+  8 \
+  "We have created commits for both paths"
 
 done_testing
 
