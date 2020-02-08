@@ -85,8 +85,6 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      current_branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
-
       split_branch_name = make_split_branch_name(subdir)
       last_commit = make_local_commits_branch(subdir, split_branch_name,
                                                     last_pushed_commit: last_pushed_commit,
@@ -100,9 +98,6 @@ module Subrepo
         end
         return
       end
-
-      run_command "git checkout -q #{current_branch_name}"
-      run_command "git reset -q --hard"
 
       if force
         run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
