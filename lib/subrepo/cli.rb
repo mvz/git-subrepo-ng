@@ -144,29 +144,29 @@ module Subrepo
 
     def run_init_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .init(args[0], **options.slice(:remote, :branch, :method))
+        .run_init(args[0], **options.slice(:remote, :branch, :method))
     end
 
     def run_branch_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .branch(args[0], **options.slice(:all))
+        .run_branch(args[0], **options.slice(:all))
     end
 
     def run_clone_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))
+        .run_clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))
     end
 
     def run_pull_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .pull(args.shift,
-              **options.slice(:squash, :remote, :branch, :message, :edit, :update))
+        .run_pull(args.shift,
+                  **options.slice(:squash, :remote, :branch, :message, :edit, :update))
     end
 
     def run_push_command(global_options, options, args)
       Runner.new(**global_options.slice(:quiet))
-        .push(args.shift,
-              **options.slice(:remote, :branch, :force))
+        .run_push(args.shift,
+                  **options.slice(:remote, :branch, :force))
     end
 
     def run_clean_command(global_options, options, args)

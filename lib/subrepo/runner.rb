@@ -12,7 +12,7 @@ module Subrepo
       @quiet = quiet
     end
 
-    def init(subdir, remote: nil, branch: nil, method: nil)
+    def run_init(subdir, remote: nil, branch: nil, method: nil)
       branch ||= "master"
       remote ||= "none"
       method ||= "merge"
@@ -46,8 +46,8 @@ module Subrepo
       end
     end
 
-    def pull(subdir, squash:, remote: nil, branch: nil, message: nil,
-             edit: false, update: false)
+    def run_pull(subdir, squash:, remote: nil, branch: nil, message: nil,
+                 edit: false, update: false)
       subdir or raise "Command 'pull' requires arg 'subdir'."
       config = Config.new(subdir)
       remote ||= config.remote
@@ -66,7 +66,7 @@ module Subrepo
       end
     end
 
-    def push(subdir, remote: nil, branch: nil, force: false)
+    def run_push(subdir, remote: nil, branch: nil, force: false)
       subdir or raise "Command 'push' requires arg 'subdir'."
 
       repo = Rugged::Repository.new(".")
@@ -119,9 +119,9 @@ module Subrepo
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})." unless quiet
     end
 
-    def branch(subdir, all: false)
+    def run_branch(subdir, all: false)
       if all
-        MainRepository.new.subrepos.each { |subrepo| branch subrepo }
+        MainRepository.new.subrepos.each { |subrepo| run_branch subrepo }
         return
       end
 
@@ -142,7 +142,7 @@ module Subrepo
         " and worktree '.git/tmp/subrepo/#{subdir}'."
     end
 
-    def clone(remote, subdir = nil, branch: nil, method: nil, force: false)
+    def run_clone(remote, subdir = nil, branch: nil, method: nil, force: false)
       remote or raise "Command 'clone' requires arg 'remote'."
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
