@@ -191,9 +191,7 @@ module Subrepo
 
         if first_target_parent
           rewritten_patch = diffs.first.patch
-          target_parent_tree = first_target_parent.tree
-          target_diff = target_parent_tree.diff rewritten_tree
-          target_patch = target_diff.patch
+          target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
           if rewritten_patch != target_patch
             run_command "git checkout -q #{first_target_parent.oid}"
             patch = Tempfile.new("subrepo-patch")
@@ -234,6 +232,11 @@ module Subrepo
 
       rewritten_tree_sha = builder.write
       repo.lookup rewritten_tree_sha
+    end
+
+    def calculate_patch(rewritten_tree, target_parent_tree)
+      target_diff = target_parent_tree.diff rewritten_tree
+      target_diff.patch
     end
 
     def perform_fetch(subdir, remote, branch, _last_merged_commit)
