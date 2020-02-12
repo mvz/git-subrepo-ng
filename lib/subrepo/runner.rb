@@ -11,6 +11,8 @@ require "subrepo/sub_repository"
 module Subrepo
   # Command runner
   class Runner
+    include Commands
+
     attr_reader :quiet
 
     def initialize(quiet: true)
@@ -347,10 +349,6 @@ module Subrepo
 
     def repo
       @repo ||= main_repository.repo
-    end
-
-    def run_command(command)
-      Commands.run_command(command)
     end
   end
 end

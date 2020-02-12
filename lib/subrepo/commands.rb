@@ -3,7 +3,7 @@
 require "open3"
 
 module Subrepo
-  # Entry point for each of the subrepo commands
+  # Provides interface to running external commands
   module Commands
     module_function
 

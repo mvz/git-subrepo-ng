@@ -6,6 +6,7 @@ require "tempfile"
 module Subrepo
   # SubRepository, represents a subrepo
   class SubRepository
+    include Commands
     attr_reader :main_repository, :subdir
 
     def initialize(main_repository, subdir)
@@ -137,10 +138,6 @@ module Subrepo
 
     def repo
       @repo ||= main_repository.repo
-    end
-
-    def run_command(command)
-      Commands.run_command(command)
     end
   end
 end
