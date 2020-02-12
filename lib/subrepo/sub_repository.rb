@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "rugged"
+require "tempfile"
+
 module Subrepo
   # SubRepository, represents a subrepo
   class SubRepository

@@ -23,6 +23,22 @@ module Subrepo
       end
     end
 
+    def run_status_command
+      runner.run_status(recursive: options[:all_recursive])
+    end
+
+    def run_config_command
+      runner.run_config(args[0], option: args[1], value: args[2])
+    end
+
+    def run_fetch_command
+      runner.run_fetch(args[0], remote: options[:remote])
+    end
+
+    def run_merge_command
+      runner.run_merge(args.shift, squash: true)
+    end
+
     def run_clone_command
       runner
         .run_clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))

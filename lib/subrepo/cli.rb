@@ -74,9 +74,7 @@ module Subrepo
       arg :dir
       command :fetch do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
-        cmd.action do |_, options, args|
-          command_fetch(args.shift, remote: options[:remote])
-        end
+        setup_action(cmd, :run_fetch_command)
       end
     end
 
@@ -109,9 +107,7 @@ module Subrepo
       desc "Squash-merge latest fetched commits into a subrepo"
       arg :dir
       command :merge do |cmd|
-        cmd.action do |_, _options, args|
-          command_merge(args.shift, squash: true)
-        end
+        setup_action(cmd, :run_merge_command)
       end
     end
 
@@ -120,18 +116,14 @@ module Subrepo
       command :status do |cmd|
         cmd.switch :all, default_value: false
         cmd.switch :all_recursive, default_value: false
-        cmd.action do |_, options, _args|
-          command_status(recursive: options[:all_recursive])
-        end
+        setup_action(cmd, :run_status_command)
       end
     end
 
     def setup_config_command
       desc "Config"
       command :config do |cmd|
-        cmd.action do |_, _options, args|
-          command_config(args[0], option: args[1], value: args[2])
-        end
+        setup_action(cmd, :run_config_command)
       end
     end
 
