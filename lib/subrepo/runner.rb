@@ -69,8 +69,6 @@ module Subrepo
       branch = config.branch
       last_merged_commit = config.commit
 
-      repo = Rugged::Repository.new(".")
-
       last_local_commit = repo.head.target.oid
       config_name = config.file_name
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
@@ -129,8 +127,6 @@ module Subrepo
       method ||= "merge"
       subdir or raise "Command 'init' requires arg 'subdir'."
 
-      repo = Rugged::Repository.new(".")
-
       File.exist? subdir or raise "The subdir '#{subdir} does not exist."
       config = Config.new(subdir)
       config_name = config.file_name
@@ -179,8 +175,6 @@ module Subrepo
 
     def run_push(subdir, remote: nil, branch: nil, force: false)
       subdir or raise "Command 'push' requires arg 'subdir'."
-
-      repo = Rugged::Repository.new(".")
 
       config = Config.new(subdir)
 
@@ -258,7 +252,6 @@ module Subrepo
       branch ||= "master"
       method ||= "merge"
 
-      repo = Rugged::Repository.new(".")
       raise "You can't clone into an empty repository" if repo.empty?
 
       unless force
