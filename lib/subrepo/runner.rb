@@ -54,7 +54,8 @@ module Subrepo
       branch = config.branch
       last_merged_commit = config.commit
 
-      last_fetched_commit = perform_fetch(subdir, remote, branch, last_merged_commit)
+      subrepo = sub_repository(subdir)
+      last_fetched_commit = subrepo.perform_fetch(remote, branch)
       if last_fetched_commit == last_merged_commit
         puts "No change"
       else
@@ -163,8 +164,8 @@ module Subrepo
 
       config.branch = branch if update
 
-      last_fetched_commit = perform_fetch(subdir, remote, branch,
-                                          last_merged_commit)
+      subrepo = sub_repository(subdir)
+      last_fetched_commit = subrepo.perform_fetch(remote, branch)
       if last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date." unless quiet
       else
@@ -183,11 +184,10 @@ module Subrepo
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
 
-      fetched = perform_fetch(subdir, remote, branch, last_merged_commit)
+      subrepo = sub_repository(subdir)
+      last_fetched_commit = subrepo.perform_fetch(remote, branch)
 
-      if fetched && !force
-        refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-        last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
+      if last_fetched_commit && !force
         last_fetched_commit == last_merged_commit or
           raise "There are new changes upstream, you need to pull first."
       end
@@ -198,7 +198,7 @@ module Subrepo
                                               last_merged_commit: last_merged_commit)
 
       unless last_commit
-        if fetched
+        if last_fetched_commit
           puts "Subrepo '#{subdir}' has no new commits to push." unless quiet
         else
           warn "Nothing mapped"
@@ -260,8 +260,8 @@ module Subrepo
           raise "The subdir '#{subdir}' is already part of this repo."
       end
 
-      perform_fetch(subdir, remote, branch, nil) or
-        raise "Unable to fetch from #{remote}"
+      subrepo = sub_repository(subdir)
+      subrepo.perform_fetch(remote, branch) or raise "Unable to fetch from #{remote}"
 
       refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
       last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
@@ -293,17 +293,6 @@ module Subrepo
     end
 
     private
-
-    def perform_fetch(subdir, remote, branch, _last_merged_commit)
-      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
-      return false if remote_commit.empty?
-
-      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
-      new_commit = `git rev-parse FETCH_HEAD`.chomp
-      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      run_command "git update-ref #{refs_subrepo_fetch} #{new_commit}"
-      new_commit
-    end
 
     def make_local_commits_branch(subdir, split_branch_name,
                                   last_pushed_commit:, last_merged_commit:)

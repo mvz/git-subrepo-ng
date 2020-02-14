@@ -36,6 +36,21 @@ module Subrepo
       last_commit
     end
 
+    def perform_fetch(remote, branch)
+      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
+      return false if remote_commit.empty?
+
+      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
+      new_commit = `git rev-parse FETCH_HEAD`.chomp
+
+      run_command "git update-ref #{fetch_ref} #{new_commit}"
+      new_commit
+    end
+
+    def fetch_ref
+      "refs/subrepo/#{subdir}/fetch"
+    end
+
     private
 
     def map_commit(last_merged_commit, commit, commit_map)
