@@ -55,6 +55,31 @@ module Subrepo
       "subrepo/#{subdir}"
     end
 
+    def make_local_commits_branch(last_pushed_commit:, last_merged_commit:)
+      last_merged_commit = nil if last_merged_commit == ""
+
+      unless repo.branches.exist? split_branch_name
+        branch_commit = last_merged_commit || repo.head.target_id
+        repo.branches.create split_branch_name, branch_commit
+      end
+
+      worktree_name = ".git/tmp/subrepo/#{subdir}"
+      worktrees = `git worktree list`
+
+      unless worktrees.include? worktree_name
+        run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
+      end
+
+      Dir.chdir worktree_name do
+        mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
+        return unless mapped_commit
+
+        run_command "git checkout #{split_branch_name}"
+        run_command "git reset --hard #{mapped_commit}"
+        mapped_commit
+      end
+    end
+
     private
 
     def map_commit(last_merged_commit, commit, commit_map)

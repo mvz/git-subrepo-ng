@@ -192,10 +192,9 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      split_branch_name = subrepo.split_branch_name
-      last_commit = make_local_commits_branch(subdir, split_branch_name,
-                                              last_pushed_commit: last_pushed_commit,
-                                              last_merged_commit: last_merged_commit)
+      last_commit = subrepo
+        .make_local_commits_branch(last_pushed_commit: last_pushed_commit,
+                                   last_merged_commit: last_merged_commit)
 
       unless last_commit
         if last_fetched_commit
@@ -206,6 +205,7 @@ module Subrepo
         return
       end
 
+      split_branch_name = subrepo.split_branch_name
       if force
         run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
       else
@@ -236,14 +236,12 @@ module Subrepo
       last_pushed_commit = config.parent
 
       subrepo = sub_repository(subdir)
-      split_branch_name = subrepo.split_branch_name
-      make_local_commits_branch(subdir, split_branch_name,
-                                last_pushed_commit: last_pushed_commit,
-                                last_merged_commit: last_merged_commit)
+      subrepo.make_local_commits_branch(last_pushed_commit: last_pushed_commit,
+                                        last_merged_commit: last_merged_commit)
 
       return if quiet
 
-      puts "Created branch '#{split_branch_name}'" \
+      puts "Created branch '#{subrepo.split_branch_name}'" \
         " and worktree '.git/tmp/subrepo/#{subdir}'."
     end
 
@@ -294,34 +292,6 @@ module Subrepo
     end
 
     private
-
-    def make_local_commits_branch(subdir, split_branch_name,
-                                  last_pushed_commit:, last_merged_commit:)
-      last_merged_commit = nil if last_merged_commit == ""
-
-      unless repo.branches.exist? split_branch_name
-        branch_commit = last_merged_commit || repo.head.target_id
-        repo.branches.create split_branch_name, branch_commit
-      end
-
-      worktree_name = ".git/tmp/subrepo/#{subdir}"
-      worktrees = `git worktree list`
-
-      unless worktrees.include? worktree_name
-        run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
-      end
-
-      subrepo = sub_repository(subdir)
-
-      Dir.chdir worktree_name do
-        mapped_commit = subrepo.map_commits(last_pushed_commit, last_merged_commit)
-        return unless mapped_commit
-
-        run_command "git checkout #{split_branch_name}"
-        run_command "git reset --hard #{mapped_commit}"
-        mapped_commit
-      end
-    end
 
     def main_repository
       @main_repository ||= MainRepository.new
