@@ -267,17 +267,19 @@ module Subrepo
       end
       run_command "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\""
 
+      parent_commit = repo.head.target
+
       config_name = config.file_name
       config.create(remote, branch, method)
       config.commit = last_fetched_commit
-      config.parent = repo.head.target.oid
+      config.parent = parent_commit.oid
 
       index = repo.index
       index.add config_name
       index.write
       Rugged::Commit.create(repo, tree: index.write_tree,
                             message: "Clone remote #{remote} into #{subdir}",
-                            parents: [repo.head.target], update_ref: "HEAD")
+                            parents: [parent_commit], update_ref: "HEAD")
 
       puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'."
     end
