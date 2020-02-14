@@ -47,8 +47,8 @@ module Subrepo
       new_commit
     end
 
-    def fetch_ref
-      "refs/subrepo/#{subdir}/fetch"
+    def last_fetched_commit
+      repo.ref(fetch_ref).target_id
     end
 
     def split_branch_name
@@ -81,6 +81,10 @@ module Subrepo
     end
 
     private
+
+    def fetch_ref
+      "refs/subrepo/#{subdir}/fetch"
+    end
 
     def map_commit(last_merged_commit, commit, commit_map)
       parents = commit.parents

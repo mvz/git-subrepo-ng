@@ -74,8 +74,8 @@ module Subrepo
       config_name = config.file_name
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
-      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      last_fetched_commit = `git rev-parse #{refs_subrepo_fetch}`.chomp
+      subrepo = sub_repository(subdir)
+      last_fetched_commit = subrepo.last_fetched_commit
 
       if last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date."
@@ -261,9 +261,7 @@ module Subrepo
 
       subrepo = sub_repository(subdir)
       subrepo.perform_fetch(remote, branch) or raise "Unable to fetch from #{remote}"
-
-      refs_subrepo_fetch = "refs/subrepo/#{subdir}/fetch"
-      last_fetched_commit = repo.ref(refs_subrepo_fetch).target_id
+      last_fetched_commit = subrepo.last_fetched_commit
 
       config = Config.new(subdir)
 
