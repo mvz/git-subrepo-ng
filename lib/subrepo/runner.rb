@@ -6,6 +6,7 @@ require "rugged"
 require "subrepo/config"
 require "subrepo/commands"
 require "subrepo/main_repository"
+require "subrepo/null_output"
 require "subrepo/sub_repository"
 
 module Subrepo
@@ -13,10 +14,10 @@ module Subrepo
   class Runner
     include Commands
 
-    attr_reader :quiet
+    attr_reader :output
 
-    def initialize(quiet: true)
-      @quiet = quiet
+    def initialize(output: NullOutput.new)
+      @output = output
     end
 
     def run_status(recursive: false)
@@ -284,7 +285,7 @@ module Subrepo
     private
 
     def puts(*args)
-      super unless quiet
+      output.puts(*args)
     end
 
     def main_repository
