@@ -93,15 +93,35 @@ module Subrepo
     end
 
     def map_commit(last_merged_commit, commit, commit_map)
+      target_parents = calculate_target_parents(commit, commit_map, last_merged_commit)
+      target_tree = calculate_target_tree(commit, target_parents, commit_map) or return
+
+      # Commit has multiple mapped parents or is non-empty: We should
+      # create it in the target branch too.
+      options = {}
+      options[:tree] = target_tree
+      options[:author] = commit.author
+      options[:parents] = target_parents
+      options[:message] = commit.message
+
+      new_commit_sha = Rugged::Commit.create(repo, options)
+      commit_map[commit.oid] = new_commit_sha
+      new_commit_sha
+    end
+
+    def calculate_target_parents(commit, commit_map, last_merged_commit)
       parents = commit.parents
 
       # Map parent commits
-      parent_shas = parents.map(&:oid)
-      target_parent_shas = parent_shas.map do |sha|
+      target_parent_shas = parents.map do |parent|
         # TODO: Improve upon last_merged_commit as best guess
-        commit_map.fetch sha, last_merged_commit
+        commit_map.fetch parent.oid, last_merged_commit
       end.uniq.compact
-      target_parents = target_parent_shas.map { |sha| repo.lookup sha }
+      target_parent_shas.map { |sha| repo.lookup sha }
+    end
+
+    def calculate_target_tree(commit, target_parents, commit_map)
+      parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
       target_tree = rewritten_tree
@@ -155,18 +175,7 @@ module Subrepo
           end
         end
       end
-
-      # Commit has multiple mapped parents or is non-empty: We should
-      # create it in the target branch too.
-      options = {}
-      options[:tree] = target_tree
-      options[:author] = commit.author
-      options[:parents] = target_parents
-      options[:message] = commit.message
-
-      new_commit_sha = Rugged::Commit.create(repo, options)
-      commit_map[commit.oid] = new_commit_sha
-      new_commit_sha
+      target_tree
     end
 
     def calculate_subtree(commit)
