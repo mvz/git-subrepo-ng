@@ -21,6 +21,7 @@ namespace :compat do
       branch-all
       branch-rev-list
       branch-rev-list-one-path
+      clean
       clone
       clone-annotated-tag
       config

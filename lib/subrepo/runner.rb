@@ -284,6 +284,14 @@ module Subrepo
       puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'."
     end
 
+    def run_clean(subdir, force: false)
+      subdir or raise "Command 'clean' requires arg 'subdir'."
+      subrepo = sub_repository(subdir)
+      subrepo.remove_local_commits_branch
+      subrepo.remove_fetch_ref if force
+      puts "Removed branch '#{subrepo.split_branch_name}'."
+    end
+
     private
 
     def puts(*args)

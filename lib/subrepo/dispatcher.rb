@@ -57,7 +57,7 @@ module Subrepo
     end
 
     def run_clean_command
-      # Nothing yet
+      runner.run_clean(args[0], **options.slice(:force))
     end
 
     private

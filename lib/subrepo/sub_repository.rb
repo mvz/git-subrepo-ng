@@ -2,6 +2,7 @@
 
 require "rugged"
 require "tempfile"
+require "fileutils"
 
 module Subrepo
   # SubRepository, represents a subrepo
@@ -40,15 +41,11 @@ module Subrepo
 
       unless repo.branches.exist? split_branch_name
         branch_commit = last_merged_commit || repo.head.target_id
+
         repo.branches.create split_branch_name, branch_commit
       end
 
-      worktree_name = ".git/tmp/subrepo/#{subdir}"
-      worktrees = `git worktree list`
-
-      unless worktrees.include? worktree_name
-        run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
-      end
+      create_worktree_if_needed
 
       Dir.chdir worktree_name do
         mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
@@ -60,6 +57,15 @@ module Subrepo
       end
     end
 
+    def remove_local_commits_branch
+      remove_worktree_if_needed
+      repo.branches.delete split_branch_name if repo.branches.exist? split_branch_name
+    end
+
+    def remove_fetch_ref
+      repo.references.delete fetch_ref
+    end
+
     def config
       @config ||= Config.new(subdir)
     end
@@ -67,7 +73,29 @@ module Subrepo
     private
 
     def fetch_ref
-      "refs/subrepo/#{subdir}/fetch"
+      @fetch_ref ||= "refs/subrepo/#{subdir}/fetch"
+    end
+
+    def worktree_name
+      @worktree_name ||= ".git/tmp/subrepo/#{subdir}"
+    end
+
+    def create_worktree_if_needed
+      return if worktree_exists?
+
+      run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
+    end
+
+    def remove_worktree_if_needed
+      return if !worktree_exists?
+
+      FileUtils.remove_entry_secure worktree_name
+      run_command "git worktree prune"
+    end
+
+    def worktree_exists?
+      worktrees = `git worktree list`
+      worktrees.include? worktree_name
     end
 
     # Map all commits that haven't been pushed yet
