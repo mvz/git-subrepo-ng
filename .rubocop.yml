@@ -46,6 +46,10 @@ Lint/AssignmentInCondition:
 Style/AndOr:
   EnforcedStyle: conditionals
 
+# if ! is sometimes clearer than unless
+Style/NegatedIf:
+  Enabled: false
+
 # Prefer actual numerics
 Style/NumericPredicate:
   EnforcedStyle: comparison

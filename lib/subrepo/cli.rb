@@ -131,6 +131,7 @@ module Subrepo
       desc "Clean subrepo stuff"
       arg :dir
       command :clean do |cmd|
+        cmd.switch :force, default_value: false
         setup_action(cmd, :run_clean_command)
       end
     end
