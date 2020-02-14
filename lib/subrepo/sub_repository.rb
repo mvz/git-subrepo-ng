@@ -80,6 +80,10 @@ module Subrepo
       end
     end
 
+    def config
+      @config ||= Config.new(subdir)
+    end
+
     private
 
     def fetch_ref
