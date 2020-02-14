@@ -187,7 +187,6 @@ module Subrepo
       remote ||= config.remote
       branch ||= config.branch
       last_merged_commit = config.commit
-      last_pushed_commit = config.parent
 
       last_fetched_commit = subrepo.perform_fetch(remote, branch)
 
@@ -196,9 +195,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      last_commit = subrepo
-        .make_local_commits_branch(last_pushed_commit: last_pushed_commit,
-                                   last_merged_commit: last_merged_commit)
+      last_commit = subrepo.make_local_commits_branch
 
       unless last_commit
         if last_fetched_commit
@@ -236,12 +233,7 @@ module Subrepo
       subdir or raise "Command 'branch' requires arg 'subdir'."
 
       subrepo = sub_repository(subdir)
-      config = subrepo.config
-      last_merged_commit = config.commit
-      last_pushed_commit = config.parent
-
-      subrepo.make_local_commits_branch(last_pushed_commit: last_pushed_commit,
-                                        last_merged_commit: last_merged_commit)
+      subrepo.make_local_commits_branch
 
       return if quiet
 

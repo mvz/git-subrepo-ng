@@ -14,28 +14,6 @@ module Subrepo
       @subdir = subdir
     end
 
-    # Map all commits that haven't been pushed yet
-    def map_commits(last_pushed_commit, last_merged_commit)
-      walker = Rugged::Walker.new(repo)
-      walker.push repo.head.target_id
-      if last_pushed_commit
-        walker.hide last_pushed_commit
-        commit_map = { last_pushed_commit => last_merged_commit }
-      else
-        commit_map = {}
-      end
-
-      commits = walker.to_a
-
-      last_commit = nil
-
-      commits.reverse_each do |commit|
-        mapped_commit = map_commit(last_merged_commit, commit, commit_map)
-        last_commit = mapped_commit if mapped_commit
-      end
-      last_commit
-    end
-
     def perform_fetch(remote, branch)
       remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
       return false if remote_commit.empty?
@@ -55,7 +33,9 @@ module Subrepo
       "subrepo/#{subdir}"
     end
 
-    def make_local_commits_branch(last_pushed_commit:, last_merged_commit:)
+    def make_local_commits_branch
+      last_merged_commit = config.commit
+      last_pushed_commit = config.parent
       last_merged_commit = nil if last_merged_commit == ""
 
       unless repo.branches.exist? split_branch_name
@@ -88,6 +68,28 @@ module Subrepo
 
     def fetch_ref
       "refs/subrepo/#{subdir}/fetch"
+    end
+
+    # Map all commits that haven't been pushed yet
+    def map_commits(last_pushed_commit, last_merged_commit)
+      walker = Rugged::Walker.new(repo)
+      walker.push repo.head.target_id
+      if last_pushed_commit
+        walker.hide last_pushed_commit
+        commit_map = { last_pushed_commit => last_merged_commit }
+      else
+        commit_map = {}
+      end
+
+      commits = walker.to_a
+
+      last_commit = nil
+
+      commits.reverse_each do |commit|
+        mapped_commit = map_commit(last_merged_commit, commit, commit_map)
+        last_commit = mapped_commit if mapped_commit
+      end
+      last_commit
     end
 
     def map_commit(last_merged_commit, commit, commit_map)
