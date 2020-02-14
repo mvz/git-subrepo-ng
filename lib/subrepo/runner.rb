@@ -148,8 +148,6 @@ module Subrepo
       Rugged::Commit.create(repo, tree: index.write_tree,
                             message: "Initialize subrepo #{subdir}",
                             parents: [repo.head.target], update_ref: "HEAD")
-      return if quiet
-
       if remote == "none"
         puts "Subrepo created from '#{subdir}' (with no remote)."
       else
@@ -171,10 +169,10 @@ module Subrepo
 
       last_fetched_commit = subrepo.perform_fetch(remote, branch)
       if last_fetched_commit == last_merged_commit
-        puts "Subrepo '#{subdir}' is up to date." unless quiet
+        puts "Subrepo '#{subdir}' is up to date."
       else
         run_merge(subdir, squash: squash, message: message, edit: edit)
-        puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)." unless quiet
+        puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)."
       end
     end
 
@@ -199,7 +197,7 @@ module Subrepo
 
       unless last_commit
         if last_fetched_commit
-          puts "Subrepo '#{subdir}' has no new commits to push." unless quiet
+          puts "Subrepo '#{subdir}' has no new commits to push."
         else
           warn "Nothing mapped"
         end
@@ -222,7 +220,7 @@ module Subrepo
       run_command "git add -f -- #{config.file_name}"
       run_command "git commit -q -m \"Push subrepo #{subdir}\""
 
-      puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})." unless quiet
+      puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
     end
 
     def run_branch_all
@@ -234,8 +232,6 @@ module Subrepo
 
       subrepo = sub_repository(subdir)
       subrepo.make_local_commits_branch
-
-      return if quiet
 
       puts "Created branch '#{subrepo.split_branch_name}'" \
         " and worktree '.git/tmp/subrepo/#{subdir}'."
@@ -263,7 +259,7 @@ module Subrepo
 
       if force
         if config.commit == last_fetched_commit
-          puts "Subrepo '#{subdir}' is up to date." unless quiet
+          puts "Subrepo '#{subdir}' is up to date."
           return
         end
         run_command "git rm -r \"#{subdir}\""
@@ -282,10 +278,14 @@ module Subrepo
                             message: "Clone remote #{remote} into #{subdir}",
                             parents: [repo.head.target], update_ref: "HEAD")
 
-      puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'." unless quiet
+      puts "Subrepo '#{remote}' (#{branch}) cloned into '#{subdir}'."
     end
 
     private
+
+    def puts(*args)
+      super unless quiet
+    end
 
     def main_repository
       @main_repository ||= MainRepository.new
