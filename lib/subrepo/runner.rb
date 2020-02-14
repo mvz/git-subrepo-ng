@@ -192,7 +192,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      split_branch_name = make_split_branch_name(subdir)
+      split_branch_name = subrepo.split_branch_name
       last_commit = make_local_commits_branch(subdir, split_branch_name,
                                               last_pushed_commit: last_pushed_commit,
                                               last_merged_commit: last_merged_commit)
@@ -235,7 +235,8 @@ module Subrepo
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
 
-      split_branch_name = make_split_branch_name(subdir)
+      subrepo = sub_repository(subdir)
+      split_branch_name = subrepo.split_branch_name
       make_local_commits_branch(subdir, split_branch_name,
                                 last_pushed_commit: last_pushed_commit,
                                 last_merged_commit: last_merged_commit)
@@ -320,10 +321,6 @@ module Subrepo
         run_command "git reset --hard #{mapped_commit}"
         mapped_commit
       end
-    end
-
-    def make_split_branch_name(subdir)
-      "subrepo/#{subdir}"
     end
 
     def main_repository

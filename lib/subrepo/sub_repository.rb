@@ -51,6 +51,10 @@ module Subrepo
       "refs/subrepo/#{subdir}/fetch"
     end
 
+    def split_branch_name
+      "subrepo/#{subdir}"
+    end
+
     private
 
     def map_commit(last_merged_commit, commit, commit_map)
