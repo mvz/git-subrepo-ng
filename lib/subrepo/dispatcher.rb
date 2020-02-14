@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "subrepo/runner"
+require "subrepo/null_output"
 
 module Subrepo
   # Dispatch commands from the CLI to the Runner
@@ -64,7 +65,15 @@ module Subrepo
     attr_reader :global_options, :options, :args
 
     def runner
-      @runner ||= Runner.new(**global_options.slice(:quiet))
+      @runner ||=
+        begin
+          out = if global_options[:quiet]
+                  NullOutput.new
+                else
+                  $stdout
+                end
+          Runner.new(output: out)
+        end
     end
   end
 end

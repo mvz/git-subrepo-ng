@@ -14,6 +14,62 @@ module Subrepo
       @subdir = subdir
     end
 
+    def perform_fetch(remote, branch)
+      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
+      return false if remote_commit.empty?
+
+      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
+      new_commit = `git rev-parse FETCH_HEAD`.chomp
+
+      run_command "git update-ref #{fetch_ref} #{new_commit}"
+      new_commit
+    end
+
+    def last_fetched_commit
+      repo.ref(fetch_ref).target_id
+    end
+
+    def split_branch_name
+      "subrepo/#{subdir}"
+    end
+
+    def make_local_commits_branch
+      last_merged_commit = config.commit
+      last_pushed_commit = config.parent
+      last_merged_commit = nil if last_merged_commit == ""
+
+      unless repo.branches.exist? split_branch_name
+        branch_commit = last_merged_commit || repo.head.target_id
+        repo.branches.create split_branch_name, branch_commit
+      end
+
+      worktree_name = ".git/tmp/subrepo/#{subdir}"
+      worktrees = `git worktree list`
+
+      unless worktrees.include? worktree_name
+        run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
+      end
+
+      Dir.chdir worktree_name do
+        mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
+        return unless mapped_commit
+
+        run_command "git checkout #{split_branch_name}"
+        run_command "git reset --hard #{mapped_commit}"
+        mapped_commit
+      end
+    end
+
+    def config
+      @config ||= Config.new(subdir)
+    end
+
+    private
+
+    def fetch_ref
+      "refs/subrepo/#{subdir}/fetch"
+    end
+
     # Map all commits that haven't been pushed yet
     def map_commits(last_pushed_commit, last_merged_commit)
       walker = Rugged::Walker.new(repo)
@@ -36,18 +92,36 @@ module Subrepo
       last_commit
     end
 
-    private
-
     def map_commit(last_merged_commit, commit, commit_map)
+      target_parents = calculate_target_parents(commit, commit_map, last_merged_commit)
+      target_tree = calculate_target_tree(commit, target_parents, commit_map) or return
+
+      # Commit has multiple mapped parents or is non-empty: We should
+      # create it in the target branch too.
+      options = {}
+      options[:tree] = target_tree
+      options[:author] = commit.author
+      options[:parents] = target_parents
+      options[:message] = commit.message
+
+      new_commit_sha = Rugged::Commit.create(repo, options)
+      commit_map[commit.oid] = new_commit_sha
+      new_commit_sha
+    end
+
+    def calculate_target_parents(commit, commit_map, last_merged_commit)
       parents = commit.parents
 
       # Map parent commits
-      parent_shas = parents.map(&:oid)
-      target_parent_shas = parent_shas.map do |sha|
+      target_parent_shas = parents.map do |parent|
         # TODO: Improve upon last_merged_commit as best guess
-        commit_map.fetch sha, last_merged_commit
+        commit_map.fetch parent.oid, last_merged_commit
       end.uniq.compact
-      target_parents = target_parent_shas.map { |sha| repo.lookup sha }
+      target_parent_shas.map { |sha| repo.lookup sha }
+    end
+
+    def calculate_target_tree(commit, target_parents, commit_map)
+      parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
       target_tree = rewritten_tree
@@ -101,18 +175,7 @@ module Subrepo
           end
         end
       end
-
-      # Commit has multiple mapped parents or is non-empty: We should
-      # create it in the target branch too.
-      options = {}
-      options[:tree] = target_tree
-      options[:author] = commit.author
-      options[:parents] = target_parents
-      options[:message] = commit.message
-
-      new_commit_sha = Rugged::Commit.create(repo, options)
-      commit_map[commit.oid] = new_commit_sha
-      new_commit_sha
+      target_tree
     end
 
     def calculate_subtree(commit)
