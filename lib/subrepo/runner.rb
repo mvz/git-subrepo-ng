@@ -321,8 +321,9 @@ module Subrepo
         run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
       end
 
+      subrepo = sub_repository(subdir)
+
       Dir.chdir worktree_name do
-        subrepo = SubRepository.new(main_repository, subdir)
         mapped_commit = subrepo.map_commits(last_pushed_commit, last_merged_commit)
         return unless mapped_commit
 
@@ -338,6 +339,10 @@ module Subrepo
 
     def main_repository
       @main_repository ||= MainRepository.new
+    end
+
+    def sub_repository(subdir)
+      SubRepository.new(main_repository, subdir)
     end
 
     def repo
