@@ -31,7 +31,11 @@ module Subrepo
     end
 
     def split_branch_name
-      "subrepo/#{subdir}"
+      @split_branch_name ||= "subrepo/#{subref}"
+    end
+
+    def fetch_ref
+      @fetch_ref ||= "refs/subrepo/#{subref}/fetch"
     end
 
     def make_local_commits_branch
@@ -72,8 +76,18 @@ module Subrepo
 
     private
 
-    def fetch_ref
-      @fetch_ref ||= "refs/subrepo/#{subdir}/fetch"
+    def subref
+      @subref ||= subdir
+        .gsub(%r{(^|/)\.}, "\\1%2e") # dot at start or after /
+        .gsub(%r{\.lock($|/)}, "%2elock\\1") # .lock at end or before /
+        .gsub(/\.\./, "%2e%2e") # pairs of consecutive dots
+        .gsub(/%2e\./, "%2e%2e") # odd numbers of dots
+        .gsub(/[\000-\037\177]/) { |ch| hexify ch } # ascii control characters
+        .gsub(/[ ~^:?*\[\n\\]/) { |ch| hexify ch } # other forbidden characters
+        .gsub(%r{//+}, "/") # consecutive slashes
+        .gsub(%r{(^/|/$)}, "") # slashes at start or end
+        .gsub(%r{\.$}, "%2e") # dot at end
+        .gsub(/@{/, "%40{") # sequence @{
     end
 
     def worktree_name
@@ -229,6 +243,10 @@ module Subrepo
 
     def repo
       @repo ||= main_repository.repo
+    end
+
+    def hexify(char)
+      "%%%02x" % char.ord
     end
   end
 end
