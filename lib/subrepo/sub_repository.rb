@@ -222,12 +222,14 @@ module Subrepo
 
     def calculate_subtree(commit)
       # Calculate part of the tree that is in the subrepo
-      subtree_oid = commit.tree[subdir]&.fetch(:oid)
+      dir_parts = subdir.split(%r{/+})
+      subtree = dir_parts.inject(commit.tree) do |tree, part|
+        subtree_oid = tree[part]&.fetch(:oid)
+        repo.lookup subtree_oid if subtree_oid
+      end
+
       builder = Rugged::Tree::Builder.new(repo)
-
-      if subtree_oid
-        subtree = repo.lookup subtree_oid
-
+      if subtree
         # Filter out .gitrepo
         subtree.reject { |it| it[:name] == ".gitrepo" }.each { |it| builder << it }
       end
