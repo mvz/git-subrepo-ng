@@ -58,6 +58,16 @@ RSpec.describe Subrepo::SubRepository do
       subrepo = described_class.new(main, "foo.bar.")
       expect(subrepo.split_branch_name).to eq "subrepo/foo.bar%2e"
     end
+
+    it "replaces single @" do
+      subrepo = described_class.new(main, "@")
+      expect(subrepo.split_branch_name).to eq "subrepo/%40"
+    end
+
+    it "does not replace other case of @" do
+      subrepo = described_class.new(main, "foo@")
+      expect(subrepo.split_branch_name).to eq "subrepo/foo@"
+    end
   end
 
   describe "#fetch_ref" do

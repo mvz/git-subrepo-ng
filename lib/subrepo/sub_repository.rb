@@ -88,10 +88,11 @@ module Subrepo
         .gsub(%r{(^/|/$)}, "") # slashes at start or end
         .gsub(%r{\.$}, "%2e") # dot at end
         .gsub(/@{/, "%40{") # sequence @{
+        .sub(/^@$/, "%40") # single @
     end
 
     def worktree_name
-      @worktree_name ||= ".git/tmp/subrepo/#{subdir}"
+      @worktree_name ||= ".git/tmp/#{split_branch_name}"
     end
 
     def create_worktree_if_needed
