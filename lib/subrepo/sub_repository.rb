@@ -31,7 +31,11 @@ module Subrepo
     end
 
     def split_branch_name
-      "subrepo/#{subdir}"
+      @split_branch_name ||= "subrepo/#{subref}"
+    end
+
+    def fetch_ref
+      @fetch_ref ||= "refs/subrepo/#{subref}/fetch"
     end
 
     def make_local_commits_branch
@@ -72,12 +76,23 @@ module Subrepo
 
     private
 
-    def fetch_ref
-      @fetch_ref ||= "refs/subrepo/#{subdir}/fetch"
+    def subref
+      @subref ||= subdir
+        .gsub(%r{(^|/)\.}, "\\1%2e") # dot at start or after /
+        .gsub(%r{\.lock($|/)}, "%2elock\\1") # .lock at end or before /
+        .gsub(/\.\./, "%2e%2e") # pairs of consecutive dots
+        .gsub(/%2e\./, "%2e%2e") # odd numbers of dots
+        .gsub(/[\000-\037\177]/) { |ch| hexify ch } # ascii control characters
+        .gsub(/[ ~^:?*\[\n\\]/) { |ch| hexify ch } # other forbidden characters
+        .gsub(%r{//+}, "/") # consecutive slashes
+        .gsub(%r{(^/|/$)}, "") # slashes at start or end
+        .gsub(%r{\.$}, "%2e") # dot at end
+        .gsub(/@{/, "%40{") # sequence @{
+        .sub(/^@$/, "%40") # single @
     end
 
     def worktree_name
-      @worktree_name ||= ".git/tmp/subrepo/#{subdir}"
+      @worktree_name ||= ".git/tmp/#{split_branch_name}"
     end
 
     def create_worktree_if_needed
@@ -208,12 +223,14 @@ module Subrepo
 
     def calculate_subtree(commit)
       # Calculate part of the tree that is in the subrepo
-      subtree_oid = commit.tree[subdir]&.fetch(:oid)
+      dir_parts = subdir.split(%r{/+})
+      subtree = dir_parts.inject(commit.tree) do |tree, part|
+        subtree_oid = tree[part]&.fetch(:oid)
+        repo.lookup subtree_oid if subtree_oid
+      end
+
       builder = Rugged::Tree::Builder.new(repo)
-
-      if subtree_oid
-        subtree = repo.lookup subtree_oid
-
+      if subtree
         # Filter out .gitrepo
         subtree.reject { |it| it[:name] == ".gitrepo" }.each { |it| builder << it }
       end
@@ -229,6 +246,10 @@ module Subrepo
 
     def repo
       @repo ||= main_repository.repo
+    end
+
+    def hexify(char)
+      "%%%02x" % char.ord
     end
   end
 end

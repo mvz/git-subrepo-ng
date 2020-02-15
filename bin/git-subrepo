@@ -2,8 +2,7 @@
 # frozen_string_literal: true
 
 require "gli"
-require "subrepo/cli"
-require "subrepo/version"
+require "subrepo"
 
 app = Subrepo::CLI.new
 app.setup

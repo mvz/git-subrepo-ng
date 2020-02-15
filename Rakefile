@@ -25,6 +25,7 @@ namespace :compat do
       clone
       clone-annotated-tag
       config
+      encode
       fetch
       gitignore
       init

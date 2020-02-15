@@ -95,7 +95,7 @@ module Subrepo
       run_command "git rebase" \
         " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
         " --rebase-merges" \
-        " -X subtree=#{subdir}"
+        " -X subtree=\"#{subdir}\""
 
       rebased_head = `git rev-parse HEAD`.chomp
       run_command "git checkout -q #{current_branch}"
@@ -110,7 +110,7 @@ module Subrepo
       end
 
       config.commit = last_fetched_commit
-      run_command "git add \"#{config_name}\""
+      run_command "git add -- \"#{config_name}\""
 
       message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
@@ -218,7 +218,7 @@ module Subrepo
       config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
-      run_command "git add -f -- #{config.file_name}"
+      run_command "git add -f -- \"#{config.file_name}\""
       run_command "git commit -q -m \"Push subrepo #{subdir}\""
 
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
