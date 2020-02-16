@@ -31,6 +31,7 @@ namespace :compat do
       init
       issue29
       issue95
+      issue96
       pull
       pull-message
       pull-new-branch
