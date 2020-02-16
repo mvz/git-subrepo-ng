@@ -33,6 +33,7 @@ namespace :compat do
       issue95
       issue96
       pull
+      pull-all
       pull-message
       pull-new-branch
       pull-twice
