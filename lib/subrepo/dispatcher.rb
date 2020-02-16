@@ -46,9 +46,13 @@ module Subrepo
     end
 
     def run_pull_command
-      runner
-        .run_pull(args.shift,
-                  **options.slice(:squash, :remote, :branch, :message, :edit, :update))
+      if options[:all]
+        runner.run_pull_all(**options.slice(:squash))
+      else
+        runner
+          .run_pull(args.shift,
+                    **options.slice(:squash, :remote, :branch, :message, :edit, :update))
+      end
     end
 
     def run_push_command

@@ -156,6 +156,10 @@ module Subrepo
       end
     end
 
+    def run_pull_all(squash:)
+      main_repository.subrepos.each { |subdir| run_pull(subdir, squash: squash) }
+    end
+
     def run_pull(subdir, squash:, remote: nil, branch: nil, message: nil,
                  edit: false, update: false)
       subdir or raise "Command 'pull' requires arg 'subdir'."
