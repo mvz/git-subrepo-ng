@@ -41,6 +41,7 @@ namespace :compat do
       issue96
       pull
       pull-all
+      pull-merge
       pull-message
       pull-new-branch
       pull-twice
