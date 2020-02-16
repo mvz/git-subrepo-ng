@@ -8,6 +8,9 @@ module Repo
     create_directory proj
     cd proj do
       repo = Rugged::Repository.init_at(".")
+      config = repo.config
+      config["user.name"] = "Foo Bar"
+      config["user.email"] = "foo@bar.net"
       write_file "README", "Hi!"
       index = repo.index
       index.add "README"
