@@ -38,7 +38,7 @@ module Subrepo
       @fetch_ref ||= "refs/subrepo/#{subref}/fetch"
     end
 
-    def make_local_commits_branch
+    def make_local_commits_branch(squash: false)
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
       last_merged_commit = nil if last_merged_commit == ""
@@ -57,6 +57,11 @@ module Subrepo
 
         run_command "git checkout #{split_branch_name}"
         run_command "git reset --hard #{mapped_commit}"
+        if squash
+          run_command "git reset --soft #{last_merged_commit}"
+          run_command "git commit --reuse-message=#{mapped_commit}"
+          mapped_commit = repo.branches[split_branch_name].target.oid
+        end
         mapped_commit
       end
     end

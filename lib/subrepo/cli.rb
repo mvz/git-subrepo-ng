@@ -100,6 +100,7 @@ module Subrepo
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.switch :force, default_value: false
+        cmd.switch :squash, default_value: false
         # FIXME: Make update actually do something
         cmd.switch [:update, :u], default_value: false
         setup_action(cmd, :run_push_command)
