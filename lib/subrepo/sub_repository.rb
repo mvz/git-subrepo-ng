@@ -86,7 +86,7 @@ module Subrepo
         .gsub(/[ ~^:?*\[\n\\]/) { |ch| hexify ch } # other forbidden characters
         .gsub(%r{//+}, "/") # consecutive slashes
         .gsub(%r{(^/|/$)}, "") # slashes at start or end
-        .gsub(%r{\.$}, "%2e") # dot at end
+        .gsub(/\.$/, "%2e") # dot at end
         .gsub(/@{/, "%40{") # sequence @{
         .sub(/^@$/, "%40") # single @
     end
@@ -230,10 +230,8 @@ module Subrepo
       end
 
       builder = Rugged::Tree::Builder.new(repo)
-      if subtree
-        # Filter out .gitrepo
-        subtree.reject { |it| it[:name] == ".gitrepo" }.each { |it| builder << it }
-      end
+      # Filter out .gitrepo
+      subtree&.reject { |it| it[:name] == ".gitrepo" }&.each { |it| builder << it }
 
       rewritten_tree_sha = builder.write
       repo.lookup rewritten_tree_sha
