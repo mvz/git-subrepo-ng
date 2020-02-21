@@ -37,6 +37,7 @@ namespace :compat do
       pull-message
       pull-new-branch
       pull-twice
+      pull-worktree
       push
       push-after-init
       push-force
