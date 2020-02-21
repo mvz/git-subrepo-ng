@@ -198,7 +198,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      last_commit = subrepo.make_local_commits_branch
+      last_commit = subrepo.make_local_commits_branch(squash: squash)
 
       unless last_commit
         if last_fetched_commit
