@@ -34,7 +34,7 @@ Layout/MultilineOperationIndentation:
 Layout/SpaceBeforeBlockBraces:
   EnforcedStyleForEmptyBraces: space
 
-# This cop gives bad advice
+# Assume the programmer knows how bracketed block syntax works
 Lint/AmbiguousBlockAssociation:
   Enabled: false
 
@@ -45,6 +45,19 @@ Lint/AssignmentInCondition:
 # Allow and/or for control flow only
 Style/AndOr:
   EnforcedStyle: conditionals
+
+# Require at least two dependent lines before suggesting a guard clause
+Style/GuardClause:
+  MinBodyLength: 2
+
+Style/HashEachMethods:
+  Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
 
 # if ! is sometimes clearer than unless
 Style/NegatedIf:
@@ -57,6 +70,7 @@ Style/NumericPredicate:
 # Use older RuboCop default
 Style/PercentLiteralDelimiters:
   PreferredDelimiters:
+    '%W': ()
     '%w': ()
 
 # Allow explicit return with multiple return values
