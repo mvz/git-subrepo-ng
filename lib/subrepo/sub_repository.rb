@@ -247,7 +247,7 @@ module Subrepo
     end
 
     def hexify(char)
-      "%%%02x" % char.ord
+      format("%%%<ord>02x", ord: char.ord)
     end
   end
 end
