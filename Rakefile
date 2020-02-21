@@ -22,7 +22,6 @@ namespace :compat do
     #   pull-merge
     #   pull-ours
     #   pull-theirs
-    #   push-squash
     #
     test_names = %w(
       branch
@@ -51,6 +50,7 @@ namespace :compat do
       push-force
       push-new-branch
       push-no-changes
+      push-squash
       push-with-merges
       reclone
       status
