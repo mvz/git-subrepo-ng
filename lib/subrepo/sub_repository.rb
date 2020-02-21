@@ -59,8 +59,7 @@ module Subrepo
         run_command "git reset --hard #{mapped_commit}"
         if squash
           run_command "git reset --soft #{last_merged_commit}"
-          # TODO: Make meaningful commit message
-          run_command "git commit -m Foo"
+          run_command "git commit --reuse-message=#{mapped_commit}"
           mapped_commit = repo.branches[split_branch_name].target.oid
         end
         mapped_commit
