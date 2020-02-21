@@ -181,7 +181,7 @@ module Subrepo
       end
     end
 
-    def run_push(subdir, remote: nil, branch: nil, force: false)
+    def run_push(subdir, remote: nil, branch: nil, force: false, squash: false)
       subdir or raise "Command 'push' requires arg 'subdir'."
 
       subrepo = sub_repository(subdir)
