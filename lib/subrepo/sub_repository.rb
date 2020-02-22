@@ -66,6 +66,60 @@ module Subrepo
       end
     end
 
+    def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)
+      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+      config_name = config.file_name
+
+      branch = config.branch
+      last_merged_commit = config.commit
+      last_local_commit = repo.head.target.oid
+      last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
+
+      if last_fetched_commit == last_merged_commit
+        puts "Subrepo '#{subdir}' is up to date."
+        return
+      end
+
+      # Check validity of last_merged_commit
+      walker = Rugged::Walker.new(repo)
+      walker.push last_fetched_commit
+      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
+      unless found
+        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
+      end
+
+      run_command "git rebase" \
+        " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
+        " --rebase-merges" \
+        " -X subtree=\"#{subdir}\""
+
+      rebased_head = `git rev-parse HEAD`.chomp
+      run_command "git checkout -q #{current_branch}"
+      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
+
+      if squash
+        run_command "git reset --soft #{last_local_commit}"
+        run_command "git commit -q -m WIP"
+        config.parent = last_config_commit
+      else
+        config.parent = rebased_head
+      end
+
+      config.commit = last_fetched_commit
+      run_command "git add -- \"#{config_name}\""
+
+      message ||=
+        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
+        "merged:   \\\"#{last_fetched_commit}\\\""
+
+      command = "git commit -q -m \"#{message}\" --amend"
+      if edit
+        run_command "#{command} --edit"
+      else
+        run_command command
+      end
+    end
+
     def remove_local_commits_branch
       remove_worktree_if_needed
       repo.branches.delete split_branch_name if repo.branches.exist? split_branch_name
