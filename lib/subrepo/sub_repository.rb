@@ -75,11 +75,6 @@ module Subrepo
       last_local_commit = repo.head.target.oid
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
-      if last_fetched_commit == last_merged_commit
-        puts "Subrepo '#{subdir}' is up to date."
-        return
-      end
-
       # Check validity of last_merged_commit
       walker = Rugged::Walker.new(repo)
       walker.push last_fetched_commit
