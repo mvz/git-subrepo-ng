@@ -146,7 +146,7 @@ module Subrepo
     end
 
     def worktree_name
-      @worktree_name ||= ".git/tmp/#{split_branch_name}"
+      @worktree_name ||= File.join(repo.path, "tmp/#{split_branch_name}")
     end
 
     def create_worktree_if_needed
