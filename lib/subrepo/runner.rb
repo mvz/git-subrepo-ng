@@ -198,7 +198,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      last_commit = subrepo.make_local_commits_branch(squash: squash)
+      last_commit = subrepo.make_subrepo_branch_for_local_commits(squash: squash)
 
       unless last_commit
         if last_fetched_commit
@@ -236,7 +236,7 @@ module Subrepo
       subdir or raise "Command 'branch' requires arg 'subdir'."
 
       subrepo = sub_repository(subdir)
-      subrepo.make_local_commits_branch
+      subrepo.make_subrepo_branch_for_local_commits
 
       puts "Created branch '#{subrepo.split_branch_name}'" \
         " and worktree '.git/tmp/subrepo/#{subdir}'."

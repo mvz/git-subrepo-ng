@@ -38,7 +38,7 @@ module Subrepo
       @fetch_ref ||= "refs/subrepo/#{subref}/fetch"
     end
 
-    def make_local_commits_branch(squash: false)
+    def make_subrepo_branch_for_local_commits(squash: false)
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
       last_merged_commit = nil if last_merged_commit == ""
