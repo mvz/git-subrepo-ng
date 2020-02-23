@@ -27,11 +27,15 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field "parent" "$foo_pull_commit"
 }
 
+(
+  cd $OWNER/foo
+  git subrepo pull bar
+) &> /dev/null || die
+
 foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD)"
 
 (
   cd $OWNER/foo
-  git subrepo pull bar
   modify-files-ex bar/Bar2
   git push
 ) &> /dev/null || die
