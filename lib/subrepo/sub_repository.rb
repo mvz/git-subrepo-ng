@@ -245,7 +245,8 @@ module Subrepo
     def tree_in_subrepo(main_tree)
       subdir_parts.inject(main_tree) do |tree, part|
         subtree_oid = tree[part]&.fetch(:oid)
-        repo.lookup subtree_oid if subtree_oid
+        return unless subtree_oid
+        repo.lookup subtree_oid
       end
     end
 
