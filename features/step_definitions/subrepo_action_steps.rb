@@ -107,6 +107,18 @@ rescue StandardError => e
   @error = e.message
 end
 
+When "I create a subrepo branch and worktree" do
+  cd @main_repo do
+    run_subrepo_command :branch, @subrepo
+  end
+end
+
+When "I clean the subrepo" do
+  cd @main_repo do
+    run_subrepo_command :clean, @subrepo
+  end
+end
+
 Then "the subrepo command output should match:" do |string|
   expect(cli_output.string).to match string
 end
