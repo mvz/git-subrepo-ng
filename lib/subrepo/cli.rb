@@ -120,6 +120,9 @@ module Subrepo
       desc "commit"
       arg :dir
       command :commit do |cmd|
+        cmd.flag [:message, :m], arg_name: "message"
+        cmd.switch :squash, default_value: true
+        cmd.switch [:edit, :e], default_value: false
         setup_action(cmd, :run_commit_command)
       end
     end

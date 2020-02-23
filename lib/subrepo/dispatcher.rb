@@ -41,7 +41,7 @@ module Subrepo
     end
 
     def run_commit_command
-      # Nothing yet
+      runner.run_commit(args.shift, **options.slice(:squash, :message, :edit))
     end
 
     def run_clone_command

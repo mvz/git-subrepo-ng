@@ -80,6 +80,15 @@ module Subrepo
                                                    edit: edit)
     end
 
+    def run_commit(subdir, squash:, message:, edit:)
+      subdir or raise "Command 'commit' requires arg 'subdir'."
+      subrepo = sub_repository(subdir)
+
+      subrepo.commit_subrepo_commits(squash: squash,
+                                     message: message,
+                                     edit: edit)
+    end
+
     def run_init(subdir, remote: nil, branch: nil, method: nil)
       branch ||= "master"
       remote ||= "none"
