@@ -218,7 +218,7 @@ module Subrepo
             patch.close
             run_command "git apply --3way #{patch.path}"
             patch.unlink
-            target_tree = `git write-tree`.chomp
+            target_tree = repo.lookup `git write-tree`.chomp
             run_command "git reset -q --hard"
           end
         end
