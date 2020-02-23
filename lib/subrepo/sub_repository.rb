@@ -227,13 +227,7 @@ module Subrepo
     end
 
     def calculate_subtree(commit)
-      # Calculate part of the tree that is in the subrepo
-      dir_parts = subdir.split(%r{/+})
-      subtree = dir_parts.inject(commit.tree) do |tree, part|
-        subtree_oid = tree[part]&.fetch(:oid)
-        repo.lookup subtree_oid if subtree_oid
-      end
-
+      subtree = tree_in_subrepo(commit.tree)
       builder = Rugged::Tree::Builder.new(repo)
       # Filter out .gitrepo
       subtree&.reject { |it| it[:name] == ".gitrepo" }&.each { |it| builder << it }
@@ -245,6 +239,18 @@ module Subrepo
     def calculate_patch(rewritten_tree, target_parent_tree)
       target_diff = target_parent_tree.diff rewritten_tree
       target_diff.patch
+    end
+
+    # Calculate part of tree that is in the subrepo
+    def tree_in_subrepo(main_tree)
+      subdir_parts.inject(main_tree) do |tree, part|
+        subtree_oid = tree[part]&.fetch(:oid)
+        repo.lookup subtree_oid if subtree_oid
+      end
+    end
+
+    def subdir_parts
+      @subdir_parts ||= subdir.split(%r{/+})
     end
 
     def repo
