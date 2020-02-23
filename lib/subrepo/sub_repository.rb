@@ -66,17 +66,20 @@ module Subrepo
     def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)
       validate_last_merged_commit_present_in_fetched_commits
 
-      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
-      config_name = config.file_name
-
-      branch = config.branch
-      last_local_commit = repo.head.target
-      last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
-
       mapped_commit = map_commits(config.parent) || last_merged_commit
       run_command_in_worktree "git checkout #{split_branch_name}"
       run_command_in_worktree "git reset --hard #{mapped_commit}"
       run_command_in_worktree "git merge #{last_fetched_commit} --no-ff --no-edit -q"
+
+      commit_subrepo_commits(squash: squash, message: message, edit: edit)
+    end
+
+    def commit_subrepo_commits(squash:, message:, edit:)
+      branch = config.branch
+      config_name = config.file_name
+      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+      last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
+      last_local_commit = repo.head.target
 
       split_branch = repo.branches[split_branch_name]
       split_branch_commit = split_branch.target
@@ -97,7 +100,7 @@ module Subrepo
       else
         walker = Rugged::Walker.new(repo)
         walker.push split_branch_commit.oid
-        walker.hide mapped_commit
+        walker.hide split_branch_commit.parents.first.oid
 
         inverse_map = commit_map.invert
 
