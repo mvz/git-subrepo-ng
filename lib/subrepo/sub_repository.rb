@@ -124,7 +124,7 @@ module Subrepo
       walker.push repo.head.target_id
       if last_pushed_commit
         walker.hide last_pushed_commit
-        commit_map = full_commit_map(repo, subdir)
+        commit_map = full_commit_map
       else
         commit_map = {}
       end
@@ -239,28 +239,28 @@ module Subrepo
       subtree[".gitrepo"] if subtree
     end
 
-    def full_commit_map(repo, subdir)
+    def full_commit_map
       commit_map = {}
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
-      walker.to_a.reverse.each do |commit|
+      walker.to_a.reverse_each do |commit|
         parent = commit.parents[0] or next
-        current = config_file_in_tree(commit.tree)
-        next unless current
-        previous = config_file_in_tree(parent.tree)
-        if !previous || (current[:oid] != previous[:oid])
-          tmp = Tempfile.new("config")
-          tmp.write repo.lookup(current[:oid]).text
-          tmp.close
-          config = Rugged::Config.new(tmp.path)
+        current = config_file_in_tree(commit.tree) or next
 
-          last_pushed_commit = config["subrepo.parent"] or next
-          last_merged_commit = config["subrepo.commit"]
-          commit_map[last_pushed_commit] = last_merged_commit
-          # FIXME: Only valid current commit contains no other changes in
-          # subrepo.
-          commit_map[commit.oid] = last_merged_commit
-        end
+        previous = config_file_in_tree(parent.tree)
+        next if previous && current[:oid] == previous[:oid]
+
+        tmp = Tempfile.new("config")
+        tmp.write repo.lookup(current[:oid]).text
+        tmp.close
+        config = Rugged::Config.new(tmp.path)
+
+        last_pushed_commit = config["subrepo.parent"] or next
+        last_merged_commit = config["subrepo.commit"]
+        commit_map[last_pushed_commit] = last_merged_commit
+        # FIXME: Only valid if current commit contains no other changes in
+        # subrepo.
+        commit_map[commit.oid] = last_merged_commit
       end
       commit_map
     end
@@ -285,6 +285,7 @@ module Subrepo
       subdir_parts.inject(main_tree) do |tree, part|
         subtree_oid = tree[part]&.fetch(:oid)
         return unless subtree_oid
+
         repo.lookup subtree_oid
       end
     end
