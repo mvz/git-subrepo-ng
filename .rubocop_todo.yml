@@ -7,7 +7,7 @@
 # versions of RuboCop, may require this file to be generated again.
 
 Metrics/AbcSize:
-  Max: 38
+  Max: 39
 
 # Configuration parameters: CountComments, ExcludedMethods.
 # ExcludedMethods: refine
