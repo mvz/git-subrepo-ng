@@ -283,9 +283,7 @@ module Subrepo
     # Calculate part of tree that is in the subrepo
     def tree_in_subrepo(main_tree)
       subdir_parts.inject(main_tree) do |tree, part|
-        subtree_oid = tree[part]&.fetch(:oid)
-        return unless subtree_oid
-
+        subtree_oid = tree[part]&.fetch(:oid) or break
         repo.lookup subtree_oid
       end
     end
