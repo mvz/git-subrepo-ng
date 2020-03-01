@@ -128,10 +128,13 @@ the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
-Copyright &copy; 2019 [Matijs van Zuijlen](http://www.matijs.net)
+Copyright &copy; 2019-2020 [Matijs van Zuijlen](http://www.matijs.net)
 
 This is free software, distributed under the terms of the GNU General Public
 License, version 3.0 or later. See the file COPYING for more information.
+
+The test suite in `test/` is based on the test suite of git-subrepo, which is
+licensed under the MIT License and copyright &copy 2013-2020 Ingy döt Net.
 
 ## Code of Conduct
 
