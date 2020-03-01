@@ -38,7 +38,7 @@ module Subrepo
       @fetch_ref ||= "refs/subrepo/#{subref}/fetch"
     end
 
-    def make_local_commits_branch(squash: false)
+    def make_subrepo_branch_for_local_commits(squash: false)
       last_merged_commit = config.commit
       last_pushed_commit = config.parent
       last_merged_commit = nil if last_merged_commit == ""
@@ -63,6 +63,55 @@ module Subrepo
           mapped_commit = repo.branches[split_branch_name].target.oid
         end
         mapped_commit
+      end
+    end
+
+    def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)
+      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+      config_name = config.file_name
+
+      branch = config.branch
+      last_merged_commit = config.commit
+      last_local_commit = repo.head.target.oid
+      last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
+
+      # Check validity of last_merged_commit
+      walker = Rugged::Walker.new(repo)
+      walker.push last_fetched_commit
+      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
+      unless found
+        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
+      end
+
+      run_command "git rebase" \
+        " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
+        " --rebase-merges" \
+        " -X subtree=\"#{subdir}\""
+
+      rebased_head = `git rev-parse HEAD`.chomp
+      run_command "git checkout -q #{current_branch}"
+      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
+
+      if squash
+        run_command "git reset --soft #{last_local_commit}"
+        run_command "git commit -q -m WIP"
+        config.parent = last_config_commit
+      else
+        config.parent = rebased_head
+      end
+
+      config.commit = last_fetched_commit
+      run_command "git add -- \"#{config_name}\""
+
+      message ||=
+        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
+        "merged:   \\\"#{last_fetched_commit}\\\""
+
+      command = "git commit -q -m \"#{message}\" --amend"
+      if edit
+        run_command "#{command} --edit"
+      else
+        run_command command
       end
     end
 
@@ -97,7 +146,7 @@ module Subrepo
     end
 
     def worktree_name
-      @worktree_name ||= ".git/tmp/#{split_branch_name}"
+      @worktree_name ||= File.join(repo.path, "tmp/#{split_branch_name}")
     end
 
     def create_worktree_if_needed

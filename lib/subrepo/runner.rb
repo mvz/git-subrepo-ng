@@ -67,61 +67,17 @@ module Subrepo
 
     def run_merge(subdir, squash:, message: nil, edit: false)
       subdir or raise "Command 'merge' requires arg 'subdir'."
-      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
-
       subrepo = sub_repository(subdir)
-      config = subrepo.config
-      config_name = config.file_name
 
-      branch = config.branch
-      last_merged_commit = config.commit
-      last_local_commit = repo.head.target.oid
-      last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
-      last_fetched_commit = subrepo.last_fetched_commit
-
-      if last_fetched_commit == last_merged_commit
+      last_merged_commit = subrepo.config.commit
+      if subrepo.last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date."
         return
       end
 
-      # Check validity of last_merged_commit
-      walker = Rugged::Walker.new(repo)
-      walker.push last_fetched_commit
-      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
-      unless found
-        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
-      end
-
-      run_command "git rebase" \
-        " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
-        " --rebase-merges" \
-        " -X subtree=\"#{subdir}\""
-
-      rebased_head = `git rev-parse HEAD`.chomp
-      run_command "git checkout -q #{current_branch}"
-      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
-
-      if squash
-        run_command "git reset --soft #{last_local_commit}"
-        run_command "git commit -q -m WIP"
-        config.parent = last_config_commit
-      else
-        config.parent = rebased_head
-      end
-
-      config.commit = last_fetched_commit
-      run_command "git add -- \"#{config_name}\""
-
-      message ||=
-        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
-        "merged:   \\\"#{last_fetched_commit}\\\""
-
-      command = "git commit -q -m \"#{message}\" --amend"
-      if edit
-        run_command "#{command} --edit"
-      else
-        run_command command
-      end
+      subrepo.merge_subrepo_commits_into_main_repo(squash: squash,
+                                                   message: message,
+                                                   edit: edit)
     end
 
     def run_init(subdir, remote: nil, branch: nil, method: nil)
@@ -198,7 +154,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      last_commit = subrepo.make_local_commits_branch(squash: squash)
+      last_commit = subrepo.make_subrepo_branch_for_local_commits(squash: squash)
 
       unless last_commit
         if last_fetched_commit
@@ -236,7 +192,7 @@ module Subrepo
       subdir or raise "Command 'branch' requires arg 'subdir'."
 
       subrepo = sub_repository(subdir)
-      subrepo.make_local_commits_branch
+      subrepo.make_subrepo_branch_for_local_commits
 
       puts "Created branch '#{subrepo.split_branch_name}'" \
         " and worktree '.git/tmp/subrepo/#{subdir}'."
