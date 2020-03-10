@@ -51,19 +51,17 @@ module Subrepo
 
       create_worktree_if_needed
 
-      Dir.chdir worktree_name do
-        mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
-        return unless mapped_commit
+      mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
+      return unless mapped_commit
 
-        run_command "git checkout #{split_branch_name}"
-        run_command "git reset --hard #{mapped_commit}"
-        if squash
-          run_command "git reset --soft #{last_merged_commit}"
-          run_command "git commit --reuse-message=#{mapped_commit}"
-          mapped_commit = repo.branches[split_branch_name].target.oid
-        end
-        mapped_commit
+      run_command_in_worktree "git checkout #{split_branch_name}"
+      run_command_in_worktree "git reset --hard #{mapped_commit}"
+      if squash
+        run_command_in_worktree "git reset --soft #{last_merged_commit}"
+        run_command_in_worktree "git commit --reuse-message=#{mapped_commit}"
+        mapped_commit = repo.branches[split_branch_name].target.oid
       end
+      mapped_commit
     end
 
     def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)
@@ -269,14 +267,11 @@ module Subrepo
           rewritten_patch = diffs.first.patch
           target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
           if rewritten_patch != target_patch
-            run_command "git checkout -q #{first_target_parent.oid}"
-            patch = Tempfile.new("subrepo-patch")
-            patch.write rewritten_patch
-            patch.close
-            run_command "git apply --3way #{patch.path}"
-            patch.unlink
-            target_tree = repo.lookup `git write-tree`.chomp
-            run_command "git reset -q --hard"
+            worktree_repo = Rugged::Repository.new(worktree_name)
+            index = worktree_repo.index
+            index.read_tree(first_target_parent.tree)
+            worktree_repo.apply diffs.first, location: :index
+            target_tree = worktree_repo.lookup index.write_tree(worktree_repo)
           end
         end
       end
@@ -347,6 +342,12 @@ module Subrepo
 
     def hexify(char)
       format("%%%<ord>02x", ord: char.ord)
+    end
+
+    def run_command_in_worktree(command)
+      Dir.chdir worktree_name do
+        run_command command
+      end
     end
   end
 end
