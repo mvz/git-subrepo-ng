@@ -23,6 +23,13 @@ Feature: Pushing after pulling
       * Add stuff in subdir bar
       * Initial commit
       """
+    And the commit map should equal:
+      """
+      Subrepo-merge bar/master into master -> Add another_file in remote baz
+      Add another_file in remote baz -> Add another_file in remote baz
+      Push subrepo bar -> Add stuff in subdir bar
+      Initialize subrepo bar -> Add stuff in subdir bar
+      """
 
   Scenario: Pushing older commits after pulling
     Given I have a git project with a subrepo with a remote

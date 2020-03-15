@@ -118,3 +118,16 @@ Then "the subrepo configuration should contain the latest commit and parent" do
   expect(config.commit).to eq remote_repo.head.target.oid
   expect(config.parent).to eq repo.head.target.parents.last.oid
 end
+
+Then "the commit map should equal:" do |string|
+  cd @main_repo do
+    main = Subrepo::MainRepository.new
+    sub = Subrepo::SubRepository.new(main, @subrepo)
+    commit_map = sub.send :full_commit_map
+    repo = main.repo
+    result = commit_map.map do |from, to|
+      "#{repo.lookup(from).summary} -> #{repo.lookup(to).summary}"
+    end
+    expect(result.reverse.join("\n")).to eq string
+  end
+end
