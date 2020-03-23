@@ -110,8 +110,12 @@ Then "the commit map should equal:" do |string|
     sub = Subrepo::SubRepository.new(main, @subrepo)
     commit_map = sub.send :full_commit_map
     repo = main.repo
-    result = commit_map.map do |from, to|
-      "#{repo.lookup(from).summary} -> #{repo.lookup(to).summary}"
+    named_map = commit_map.map do |from, to|
+      [repo.lookup(from).summary, repo.lookup(to).summary]
+    end
+    width = named_map.map(&:first).map(&:length).max
+    result = named_map.map do |from, to|
+      format "%-*s -> %s", width, from, to
     end
     expect(result.reverse.join("\n")).to eq string
   end

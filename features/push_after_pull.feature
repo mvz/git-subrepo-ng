@@ -31,9 +31,9 @@ Feature: Pushing after pulling
     And the commit map should equal:
       """
       Subrepo-merge bar/master into master -> Add another_file in remote baz
-      Add another_file in remote baz -> Add another_file in remote baz
-      Push subrepo bar -> Add bar/a_file in repo foo
-      Initialize subrepo bar -> Add bar/a_file in repo foo
+      Add another_file in remote baz       -> Add another_file in remote baz
+      Push subrepo bar                     -> Add bar/a_file in repo foo
+      Initialize subrepo bar               -> Add bar/a_file in repo foo
       """
 
   Scenario: Pushing older commits after pulling
