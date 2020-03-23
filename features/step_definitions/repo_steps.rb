@@ -5,10 +5,6 @@ Given "I have an existing git project named {string}" do |proj|
   @main_repo = proj
 end
 
-Given "I have a subdirectory {string} with commits" do |subdir|
-  subdir_with_commits_in_project(@main_repo, subdir: subdir)
-end
-
 Given "I have committed a new file {string} in subdirectory {string}" do |file, subdir|
   subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
 end
@@ -16,25 +12,6 @@ end
 Given "I have an empty remote named {string}" do |remote|
   empty_remote(remote)
   @remote = remote
-end
-
-Given "I have a git project {string} with subrepo {string} with remote {string}" \
-  do |proj, subdir, remote|
-  initialize_project proj
-  subdir_with_commits_in_project(proj, subdir: subdir)
-  empty_remote(remote)
-  @main_repo = proj
-  @subrepo = subdir
-  @remote = remote
-end
-
-Given "I have a git project with a subrepo with a remote" do
-  @main_repo = "foo"
-  @subrepo = "bar"
-  @remote = "baz"
-  initialize_project @main_repo
-  subdir_with_commits_in_project(@main_repo, subdir: @subrepo)
-  empty_remote(@remote)
 end
 
 Given "I have a remote named {string} with some commits" do |remote|
