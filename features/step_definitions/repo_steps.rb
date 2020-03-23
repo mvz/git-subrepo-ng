@@ -9,6 +9,10 @@ Given "I have a subdirectory {string} with commits" do |subdir|
   subdir_with_commits_in_project(@main_repo, subdir: subdir)
 end
 
+Given "I have committed a new file {string} in subdirectory {string}" do |file, subdir|
+  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
+end
+
 Given "I have an empty remote named {string}" do |remote|
   empty_remote(remote)
   @remote = remote
@@ -83,6 +87,10 @@ When "I merge in the main project branch" do
   cd @main_repo do
     `git merge unrelated-branch`
   end
+end
+
+When "I commit a new file {string} in subdirectory {string}" do |file, subdir|
+  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
 end
 
 Then "the subrepo and the remote should have the same contents" do
