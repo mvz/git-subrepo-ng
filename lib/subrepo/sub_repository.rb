@@ -294,11 +294,7 @@ module Subrepo
         previous = config_file_in_tree(parent.tree)
         next if previous && current[:oid] == previous[:oid]
 
-        tmp = Tempfile.new("config")
-        tmp.write repo.lookup(current[:oid]).text
-        tmp.close
-        config = Rugged::Config.new(tmp.path)
-
+        config = config_from_blob_oid current[:oid]
         last_pushed_commit = config["subrepo.parent"] or next
         last_merged_commit = config["subrepo.commit"]
         commit_map[last_pushed_commit] = last_merged_commit
@@ -307,6 +303,13 @@ module Subrepo
         commit_map[commit.oid] = last_merged_commit
       end
       commit_map
+    end
+
+    def config_from_blob_oid(oid)
+      tmp = Tempfile.new("config")
+      tmp.write repo.lookup(oid).text
+      tmp.close
+      Rugged::Config.new(tmp.path)
     end
 
     def calculate_subtree(commit)
