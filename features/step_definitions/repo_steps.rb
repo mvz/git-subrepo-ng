@@ -70,6 +70,10 @@ When "I commit a new file {string} in subdirectory {string}" do |file, subdir|
   subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
 end
 
+When "I commit a new file {string} in the subrepo" do |file|
+  subdir_with_commits_in_project(@main_repo, subdir: @subrepo, file: file)
+end
+
 Then "the subrepo and the remote should have the same contents" do
   repo = Rugged::Repository.new expand_path(@remote)
   tree = repo.head.target.tree

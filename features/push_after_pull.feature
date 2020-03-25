@@ -113,7 +113,7 @@ Feature: Pushing after pulling
 
   Scenario: Pushing older commits after pulling with squashing
     When I add a new commit to the remote
-    And I add a new commit to the subrepo
+    And I commit a new file "other_file" in the subrepo
     And I pull the subrepo with squashing
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
@@ -121,7 +121,7 @@ Feature: Pushing after pulling
       """
       * Push subrepo bar
       * Subrepo-merge bar/master into master
-      * Add more stuff in subrepo bar
+      * Add bar/other_file in repo foo
       * Push subrepo bar
       * Initialize subrepo bar
       * Add bar/a_file in repo foo
@@ -129,7 +129,7 @@ Feature: Pushing after pulling
       """
     And the remote's log should equal:
       """
-      * Add more stuff in subrepo bar
+      * Add bar/other_file in repo foo
       * Add another_file in remote baz
       * Add bar/a_file in repo foo
       """
