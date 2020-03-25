@@ -3,7 +3,7 @@ Feature: Initializing a directory as a new subrepo
   Scenario: Initializing an existing directory as a new subrepo
     Given I have an empty remote named "barbar"
     And I have an existing git project named "foo"
-    And I have a subdirectory "bar" with commits
+    And I have committed a new file "a_file" in subdirectory "bar"
     When I init the subrepo "bar" with remote "../barbar" and branch "master"
     Then the file "foo/bar/.gitrepo" should contain:
       """

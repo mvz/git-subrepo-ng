@@ -64,21 +64,32 @@ test-commit-count "$OWNER/foo" HEAD 9
 ) &> /dev/null || die
 
 {
-  subrepoCommit="$(
+  pullCommit="$(
     cd $OWNER/bar
     git log HEAD -1 --pretty='format:%an %ae %cn %ce'
   )"
 
+  is "$pullCommit" \
+    "PushUser push@push PushUser push@push" \
+    "Pull commit has PushUser as both author and committer"
+}
+
+{
+  subrepoCommit="$(
+    cd $OWNER/bar
+    git log HEAD^ -1 --pretty='format:%an %ae %cn %ce'
+  )"
+
   is "$subrepoCommit" \
     "FooUser foo@foo PushUser push@push" \
-    "Subrepo commits FooUser as author but PushUser as committer"
+    "Subrepo commit has FooUser as author but PushUser as committer"
 }
 
 # Check that all commits were created in main repo
 test-commit-count "$OWNER/foo" HEAD 11
 
 # Check that all commits arrived in subrepo
-test-commit-count "$OWNER/bar" HEAD 7
+test-commit-count "$OWNER/bar" HEAD 8
 
 # Check full log in main repo
 {
@@ -117,13 +128,17 @@ test-commit-count "$OWNER/bar" HEAD 7
   )"
 
   expectedBarLog=\
-"* modified file: bar/FooBar
-*   Merge branch with subrepo changes
+"*   Subrepo-merge bar/master into master
 |\  
+| * add new file: bargy
+* | modified file: bar/FooBar
+* |   Merge branch with subrepo changes
+|\ \  
+| |/  
+|/|   
 | * modified file: bar/FooBar
 | * add new file: bar/FooBar
 |/  
-* add new file: bargy
 * bard/Bard
 * Bar"
 

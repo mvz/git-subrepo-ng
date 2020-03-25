@@ -1,39 +1,39 @@
 Feature: Pushing a subrepo
 
+  Background:
+    Given I have an existing git project named "foo"
+    And I have committed a new file "a_file" in subdirectory "bar"
+    And I have an empty remote named "barbar"
+    And I have initialized the subrepo "bar" with that remote
+
   Scenario: Pushing a freshly initialized subrepo
-    Given I have an empty remote named "barbar"
-    And I have an existing git project named "foo"
-    And I have a subdirectory "bar" with commits
-    When I init the subrepo "bar" with remote "../barbar" and branch "master"
-    And I push the subrepo "bar"
+    When I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      * Add stuff in subdir bar
+      * Add bar/a_file in repo foo
       """
 
   Scenario: Pushing again to an existing subrepo
-    Given I have a git project "foo" with subrepo "bar" with remote "baz"
-    And I have initialized and pushed the subrepo
-    When I add a new commit to the subrepo
-    And I push the subrepo "bar"
+    When I push the subrepo "bar"
+    And I commit a new file "other_file" in subdirectory "bar"
+    And I push the subrepo "bar" again
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      * Add more stuff in subrepo bar
-      * Add stuff in subdir bar
+      * Add bar/other_file in repo foo
+      * Add bar/a_file in repo foo
       """
 
   Scenario: Pushing with unrelated merge commits
-    Given I have a git project "foo" with subrepo "bar" with remote "baz"
-    And I have initialized and pushed the subrepo
+    Given I have pushed the subrepo "bar"
     When I create a branch with some commits in the main project
-    And I add a new commit to the subrepo
+    And I commit a new file "other_file" in subdirectory "bar"
     And I merge in the main project branch
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
       """
-      * Add more stuff in subrepo bar
-      * Add stuff in subdir bar
+      * Add bar/other_file in repo foo
+      * Add bar/a_file in repo foo
       """

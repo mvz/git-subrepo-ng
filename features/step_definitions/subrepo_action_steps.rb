@@ -1,9 +1,15 @@
 # frozen_string_literal: true
 
-Given "I have initialized and pushed the subrepo" do
+Given "I have initialized the subrepo {string} with that remote" do |subrepo|
   cd @main_repo do
+    @subrepo = subrepo
     Subrepo::Runner.new.run_init @subrepo, remote: "../#{@remote}", branch: "master"
-    Subrepo::Runner.new.run_push @subrepo
+  end
+end
+
+Given "I have pushed the subrepo {string}" do |subrepo|
+  cd @main_repo do
+    Subrepo::Runner.new.run_push subrepo
   end
 end
 
@@ -15,7 +21,7 @@ When "I init the subrepo {string} with remote {string} and branch {string}" \
   end
 end
 
-When "I push the subrepo {string}" do |subrepo|
+When "I push the subrepo {string}( again)" do |subrepo|
   cd @main_repo do
     Subrepo::Runner.new.run_push subrepo
   end

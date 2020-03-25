@@ -75,8 +75,7 @@ clone-foo-and-bar
     "Main repo has the correct log"
 }
 
-# Test log in remote. This is different from the result with
-# git-subrepo.
+# Test log in remote.
 {
   barLog="$(
     cd $OWNER/bar
@@ -84,10 +83,13 @@ clone-foo-and-bar
   )"
 
   expectedBarLog=\
-"* modified file: bar/FooBar
-* modified file: bar/FooBar
-* add new file: bar/FooBar
-* add new file: bargy
+"*   Subrepo-merge bar/master into master
+|\  
+| * add new file: bargy
+* | modified file: bar/FooBar
+* | modified file: bar/FooBar
+* | add new file: bar/FooBar
+|/  
 * bard/Bard
 * Bar"
 
@@ -97,18 +99,29 @@ clone-foo-and-bar
 }
 
 {
-  subrepoCommit="$(
+  pullCommit="$(
     cd $OWNER/bar
     git log HEAD -1 --pretty='format:%an %ae %cn %ce'
   )"
 
+  is "$pullCommit" \
+    "PushUser push@push PushUser push@push" \
+    "Pull commit has PushUser as both author and committer"
+}
+
+{
+  subrepoCommit="$(
+    cd $OWNER/bar
+    git log HEAD^ -1 --pretty='format:%an %ae %cn %ce'
+  )"
+
   is "$subrepoCommit" \
     "FooUser foo@foo PushUser push@push" \
-    "Subrepo commits has FooUser as author but PushUser as committer"
+    "Subrepo commit has FooUser as author but PushUser as committer"
 }
 
 # Check that all commits arrived in subrepo
-test-commit-count "$OWNER/bar" HEAD 6
+test-commit-count "$OWNER/bar" HEAD 7
 
 # Test foo/bar/.gitrepo file contents:
 gitrepo=$OWNER/foo/bar/.gitrepo

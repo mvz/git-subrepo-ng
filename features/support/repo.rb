@@ -20,17 +20,17 @@ module Repo
     end
   end
 
-  def subdir_with_commits_in_project(proj, subdir:)
+  def subdir_with_commits_in_project(proj, subdir:, file: "a_file")
     cd proj do
       repo = Rugged::Repository.new(".")
       create_directory subdir
-      write_file "#{subdir}/a_file", "stuff"
+      write_file "#{subdir}/#{file}", "stuff"
       index = repo.index
-      index.add "#{subdir}/a_file"
+      index.add "#{subdir}/#{file}"
       index.write
       Rugged::Commit.create(repo,
                             tree: index.write_tree,
-                            message: "Add stuff in subdir #{subdir}",
+                            message: "Add #{subdir}/#{file} in repo #{proj}",
                             parents: [repo.head.target],
                             update_ref: "HEAD")
     end

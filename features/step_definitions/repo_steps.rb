@@ -5,32 +5,13 @@ Given "I have an existing git project named {string}" do |proj|
   @main_repo = proj
 end
 
-Given "I have a subdirectory {string} with commits" do |subdir|
-  subdir_with_commits_in_project(@main_repo, subdir: subdir)
+Given "I have committed a new file {string} in subdirectory {string}" do |file, subdir|
+  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
 end
 
 Given "I have an empty remote named {string}" do |remote|
   empty_remote(remote)
   @remote = remote
-end
-
-Given "I have a git project {string} with subrepo {string} with remote {string}" \
-  do |proj, subdir, remote|
-  initialize_project proj
-  subdir_with_commits_in_project(proj, subdir: subdir)
-  empty_remote(remote)
-  @main_repo = proj
-  @subrepo = subdir
-  @remote = remote
-end
-
-Given "I have a git project with a subrepo with a remote" do
-  @main_repo = "foo"
-  @subrepo = "bar"
-  @remote = "baz"
-  initialize_project @main_repo
-  subdir_with_commits_in_project(@main_repo, subdir: @subrepo)
-  empty_remote(@remote)
 end
 
 Given "I have a remote named {string} with some commits" do |remote|
@@ -85,6 +66,14 @@ When "I merge in the main project branch" do
   end
 end
 
+When "I commit a new file {string} in subdirectory {string}" do |file, subdir|
+  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
+end
+
+When "I commit a new file {string} in the subrepo" do |file|
+  subdir_with_commits_in_project(@main_repo, subdir: @subrepo, file: file)
+end
+
 Then "the subrepo and the remote should have the same contents" do
   repo = Rugged::Repository.new expand_path(@remote)
   tree = repo.head.target.tree
@@ -117,4 +106,21 @@ Then "the subrepo configuration should contain the latest commit and parent" do
   config = Subrepo::Config.new(subrepo)
   expect(config.commit).to eq remote_repo.head.target.oid
   expect(config.parent).to eq repo.head.target.parents.last.oid
+end
+
+Then "the commit map should equal:" do |string|
+  cd @main_repo do
+    main = Subrepo::MainRepository.new
+    sub = Subrepo::SubRepository.new(main, @subrepo)
+    commit_map = sub.send :full_commit_map
+    repo = main.repo
+    named_map = commit_map.map do |from, to|
+      [repo.lookup(from).summary, repo.lookup(to).summary]
+    end
+    width = named_map.map(&:first).map(&:length).max
+    result = named_map.map do |from, to|
+      format "%-*s -> %s", width, from, to
+    end
+    expect(result.reverse.join("\n")).to eq string
+  end
 end
