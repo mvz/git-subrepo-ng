@@ -65,6 +65,8 @@ module Subrepo
     end
 
     def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)
+      validate_last_merged_commit_present_in_fetched_commits
+
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config_name = config.file_name
 
@@ -72,14 +74,6 @@ module Subrepo
       last_merged_commit = config.commit
       last_local_commit = repo.head.target.oid
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
-
-      # Check validity of last_merged_commit
-      walker = Rugged::Walker.new(repo)
-      walker.push last_fetched_commit
-      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
-      unless found
-        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
-      end
 
       run_command "git rebase" \
         " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
@@ -110,6 +104,16 @@ module Subrepo
         run_command "#{command} --edit"
       else
         run_command command
+      end
+    end
+
+    def validate_last_merged_commit_present_in_fetched_commits
+      last_merged_commit = config.commit
+      walker = Rugged::Walker.new(repo)
+      walker.push last_fetched_commit
+      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
+      unless found
+        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
       end
     end
 
