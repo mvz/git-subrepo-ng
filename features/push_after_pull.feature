@@ -133,6 +133,14 @@ Feature: Pushing after pulling
       * Add another_file in remote baz
       * Add bar/a_file in repo foo
       """
+    And the commit map should equal:
+      """
+      Push subrepo bar                     -> Add bar/other_file in repo foo
+      Subrepo-merge bar/master into master -> Add bar/other_file in repo foo
+      Push subrepo bar                     -> Add another_file in remote baz
+      Initialize subrepo bar               -> Add bar/a_file in repo foo
+      Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
+      """
 
   Scenario: Pushing newer commits after pulling with squashing
     When I add a new commit to the remote
