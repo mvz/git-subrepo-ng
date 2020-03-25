@@ -30,6 +30,15 @@ module Subrepo
       @last_fetched_commit ||= repo.ref(fetch_ref).target_id
     end
 
+    def last_merged_commit
+      @last_merged_commit ||=
+        begin
+          commit = config.commit
+          commit = nil if commit == ""
+          commit
+        end
+    end
+
     def split_branch_name
       @split_branch_name ||= "subrepo/#{subref}"
     end
@@ -39,19 +48,9 @@ module Subrepo
     end
 
     def make_subrepo_branch_for_local_commits(squash: false)
-      last_merged_commit = config.commit
       last_pushed_commit = config.parent
-      last_merged_commit = nil if last_merged_commit == ""
 
-      unless repo.branches.exist? split_branch_name
-        branch_commit = last_merged_commit || repo.head.target_id
-
-        repo.branches.create split_branch_name, branch_commit
-      end
-
-      create_worktree_if_needed
-
-      mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
+      mapped_commit = map_commits(last_pushed_commit)
       return unless mapped_commit
 
       run_command_in_worktree "git checkout #{split_branch_name}"
@@ -71,7 +70,6 @@ module Subrepo
       config_name = config.file_name
 
       branch = config.branch
-      last_merged_commit = config.commit
       last_local_commit = repo.head.target.oid
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
@@ -108,12 +106,19 @@ module Subrepo
     end
 
     def validate_last_merged_commit_present_in_fetched_commits
-      last_merged_commit = config.commit
       walker = Rugged::Walker.new(repo)
       walker.push last_fetched_commit
       found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
       unless found
         raise "Last merged commit #{last_merged_commit} not found in fetched commits"
+      end
+    end
+
+    def create_split_branch_if_needed
+      unless repo.branches.exist? split_branch_name
+        branch_commit = last_merged_commit || repo.head.target_id
+
+        repo.branches.create split_branch_name, branch_commit
       end
     end
 
@@ -170,7 +175,10 @@ module Subrepo
     end
 
     # Map all commits that haven't been pushed yet
-    def map_commits(last_pushed_commit, last_merged_commit)
+    def map_commits(last_pushed_commit)
+      create_split_branch_if_needed
+      create_worktree_if_needed
+
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
       if last_pushed_commit
@@ -185,15 +193,15 @@ module Subrepo
       last_commit = nil
 
       commits.reverse_each do |commit|
-        mapped_commit = map_commit(last_merged_commit, commit, commit_map)
+        mapped_commit = map_commit(commit, commit_map)
         last_commit = mapped_commit if mapped_commit
       end
 
       last_commit
     end
 
-    def map_commit(last_merged_commit, commit, commit_map)
-      target_parents = calculate_target_parents(commit, commit_map, last_merged_commit)
+    def map_commit(commit, commit_map)
+      target_parents = calculate_target_parents(commit, commit_map)
       target_tree = calculate_target_tree(commit, target_parents, commit_map) or return
 
       # Check if there were relevant changes
@@ -216,7 +224,7 @@ module Subrepo
       new_commit_sha
     end
 
-    def calculate_target_parents(commit, commit_map, last_merged_commit)
+    def calculate_target_parents(commit, commit_map)
       parents = commit.parents
 
       # Map parent commits
