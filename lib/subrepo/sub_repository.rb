@@ -27,7 +27,7 @@ module Subrepo
     end
 
     def last_fetched_commit
-      repo.ref(fetch_ref).target_id
+      @last_fetched_commit ||= repo.ref(fetch_ref).target_id
     end
 
     def split_branch_name
