@@ -129,15 +129,18 @@ Feature: Pushing after pulling
       """
     And the remote's log should equal:
       """
-      * Add bar/other_file in repo foo
-      * Add another_file in remote baz
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      * | Add bar/other_file in repo foo
+      |/  
       * Add bar/a_file in repo foo
       """
     And the commit map should equal:
       """
-      Push subrepo bar                     -> Add bar/other_file in repo foo
-      Subrepo-merge bar/master into master -> Add bar/other_file in repo foo
-      Push subrepo bar                     -> Add another_file in remote baz
+      Push subrepo bar                     -> Subrepo-merge bar/master into master
+      Subrepo-merge bar/master into master -> Subrepo-merge bar/master into master
+      Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
       """

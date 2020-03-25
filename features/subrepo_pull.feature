@@ -28,7 +28,7 @@ Feature: Pulling a subrepo
     And the commit map should equal:
       """
       Subrepo-merge bar/master into master -> Add another_file in remote baz
-      Push subrepo bar                     -> Add another_file in remote baz
+      Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
       """
@@ -54,7 +54,7 @@ Feature: Pulling a subrepo
     And the commit map should equal:
       """
       Subrepo-merge bar/master into master -> Add another_file in remote baz
-      Push subrepo bar                     -> Add another_file in remote baz
+      Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
       """

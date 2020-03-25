@@ -220,6 +220,12 @@ module Subrepo
         # TODO: Improve upon last_merged_commit as best guess
         commit_map.fetch parent.oid, last_merged_commit
       end.uniq.compact
+      if commit_map[commit.oid]
+        mapped_oid = commit_map[commit.oid]
+        unless target_parent_shas.include? mapped_oid
+          target_parent_shas << mapped_oid
+        end
+      end
       target_parent_shas.map { |sha| repo.lookup sha }
     end
 
@@ -259,7 +265,7 @@ module Subrepo
         if diffs.first.none? ||
             target_parents.one? && diffs.any?(&:none?) ||
             target_parents.one? && rewritten_tree.oid == first_target_parent.tree.oid
-          commit_map[commit.oid] = first_target_parent.oid
+          commit_map[commit.oid] ||= first_target_parent.oid
           return
         end
 
@@ -298,6 +304,7 @@ module Subrepo
         last_pushed_commit_oid = config["subrepo.parent"] or next
         last_merged_commit_oid = config["subrepo.commit"]
 
+        remote_commit_tree = repo.lookup(last_merged_commit_oid).tree
 
         previous_mapped_oids = commit_map.keys
         sub_walker = Rugged::Walker.new(repo)
@@ -305,13 +312,17 @@ module Subrepo
         previous_mapped_oids.each { |oid| sub_walker.hide oid }
         sub_walker.to_a.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
-          remote_commit_tree = repo.lookup(last_merged_commit_oid).tree
           if sub_commit_tree.oid == remote_commit_tree.oid
             commit_map[sub_commit.oid] = last_merged_commit_oid
           end
         end
 
-        commit_map[last_pushed_commit_oid] = last_merged_commit_oid
+        last_pushed_commit = repo.lookup last_pushed_commit_oid
+        last_pushed_commit_tree = calculate_subtree(last_pushed_commit)
+        if last_pushed_commit_tree.oid == remote_commit_tree.oid
+          commit_map[last_pushed_commit_oid] = last_merged_commit_oid
+        end
+
         # FIXME: Only valid if current commit contains no other changes in
         # subrepo.
         commit_map[commit.oid] = last_merged_commit_oid
