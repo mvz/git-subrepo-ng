@@ -70,23 +70,41 @@ module Subrepo
       config_name = config.file_name
 
       branch = config.branch
-      last_local_commit = repo.head.target.oid
+      last_local_commit = repo.head.target
+      last_local_commit_oid = last_local_commit.oid
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
-      run_command "git rebase" \
-        " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
-        " --rebase-merges" \
-        " -X subtree=\"#{subdir}\""
-
-      rebased_head = `git rev-parse HEAD`.chomp
-      run_command "git checkout -q #{current_branch}"
-      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
-
       if squash
-        run_command "git reset --soft #{last_local_commit}"
-        run_command "git commit -q -m WIP"
+        mapped_commit = map_commits(config.parent)
+        run_command_in_worktree "git checkout #{split_branch_name}"
+        run_command_in_worktree "git reset --hard #{mapped_commit}"
+        run_command_in_worktree "git merge #{last_fetched_commit} --no-ff --no-edit -q"
+
+        split_branch = repo.branches[split_branch_name]
+        split_branch_commit = split_branch.target
+        subtree = split_branch_commit.tree
+        base_tree = last_local_commit.tree
+        new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
+
+        options = {}
+        options[:tree] = new_tree
+        options[:parents] = [last_local_commit]
+        options[:message] = "WIP"
+        new_commit_sha = Rugged::Commit.create(repo, options)
+
+        run_command "git checkout -q #{current_branch}"
+        run_command "git reset --hard #{new_commit_sha}"
         config.parent = last_config_commit
       else
+        run_command "git rebase" \
+          " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
+          " --rebase-merges" \
+          " -X subtree=\"#{subdir}\""
+
+        rebased_head = `git rev-parse HEAD`.chomp
+        run_command "git checkout -q #{current_branch}"
+        run_command "git merge #{rebased_head} --no-ff --no-edit -q"
+
         config.parent = rebased_head
       end
 
@@ -367,6 +385,36 @@ module Subrepo
       subdir_parts.inject(main_tree) do |tree, part|
         subtree_oid = tree[part]&.fetch(:oid) or break
         repo.lookup subtree_oid
+      end
+    end
+
+    def graft_subrepo_tree(path_parts, base_tree, subrepo_tree)
+      if path_parts.empty?
+        builder = Rugged::Tree::Builder.new(repo)
+        subrepo_tree.each do |item|
+          builder << item
+        end
+        config_item = base_tree[".gitrepo"]
+        builder << config_item if config_item
+        builder.write
+      else
+        part = path_parts.first
+
+        items = base_tree.map do |item|
+          if item[:name] == part
+            subtree_oid = item[:oid]
+            subtree = repo.lookup subtree_oid
+            grafted_tree = graft_subrepo_tree(path_parts[1..-1], subtree, subrepo_tree)
+            item.merge(oid: grafted_tree)
+          else
+            item
+          end
+        end
+
+        builder = Rugged::Tree::Builder.new(repo)
+        items.each { |item| builder << item }
+
+        builder.write
       end
     end
 
