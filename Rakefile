@@ -19,7 +19,6 @@ namespace :compat do
     # TODO: Add the following tests
     #
     #   error
-    #   pull-merge
     #   pull-ours
     #   pull-theirs
     #
