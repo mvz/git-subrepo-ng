@@ -91,7 +91,7 @@ is "$(cat $OWNER/foo/bar/Bar2)" \
 {
   foo_new_commit_message="$(cd $OWNER/foo; git log --format=%B -n 1)"
   like "$foo_new_commit_message" \
-      "git subrepo push bar" \
+      "Push subrepo bar" \
       "subrepo push should not have merge message"
 }
 
