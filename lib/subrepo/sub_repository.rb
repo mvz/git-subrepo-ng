@@ -71,7 +71,6 @@ module Subrepo
 
       branch = config.branch
       last_local_commit = repo.head.target
-      last_local_commit_oid = last_local_commit.oid
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
       if squash
@@ -133,11 +132,10 @@ module Subrepo
     end
 
     def create_split_branch_if_needed
-      unless repo.branches.exist? split_branch_name
-        branch_commit = last_merged_commit || repo.head.target_id
+      return if repo.branches.exist? split_branch_name
 
-        repo.branches.create split_branch_name, branch_commit
-      end
+      branch_commit = last_merged_commit || repo.head.target_id
+      repo.branches.create split_branch_name, branch_commit
     end
 
     def remove_local_commits_branch
@@ -199,9 +197,7 @@ module Subrepo
 
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
-      if last_pushed_commit
-        walker.hide last_pushed_commit
-      end
+      walker.hide last_pushed_commit if last_pushed_commit
 
       commits = walker.to_a
 
@@ -335,10 +331,10 @@ module Subrepo
 
         remote_commit_tree = repo.lookup(last_merged_commit_oid).tree
 
-        previous_mapped_oids = commit_map.keys
         sub_walker = Rugged::Walker.new(repo)
         sub_walker.push last_pushed_commit_oid
-        previous_mapped_oids.each { |oid| sub_walker.hide oid }
+        commit_map.each_key { |oid| sub_walker.hide oid }
+
         sub_walker.to_a.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           if sub_commit_tree.oid == remote_commit_tree.oid
@@ -390,33 +386,23 @@ module Subrepo
     end
 
     def graft_subrepo_tree(path_parts, base_tree, subrepo_tree)
-      if path_parts.empty?
-        builder = Rugged::Tree::Builder.new(repo)
-        subrepo_tree.each do |item|
-          builder << item
-        end
+      part, *rest = *path_parts
+
+      builder = Rugged::Tree::Builder.new(repo)
+
+      if part.nil?
+        items = subrepo_tree.to_a
         config_item = base_tree[".gitrepo"]
-        builder << config_item if config_item
-        builder.write
+        items << config_item if config_item
       else
-        part = path_parts.first
-
-        items = base_tree.map do |item|
-          if item[:name] == part
-            subtree_oid = item[:oid]
-            subtree = repo.lookup subtree_oid
-            grafted_tree = graft_subrepo_tree(path_parts[1..-1], subtree, subrepo_tree)
-            item.merge(oid: grafted_tree)
-          else
-            item
-          end
-        end
-
-        builder = Rugged::Tree::Builder.new(repo)
-        items.each { |item| builder << item }
-
-        builder.write
+        items = base_tree.to_a
+        sub_item = items.find { |it| it[:name] == part }
+        subtree = repo.lookup sub_item[:oid]
+        sub_item[:oid] = graft_subrepo_tree(rest, subtree, subrepo_tree)
       end
+
+      items.each { |it| builder << it }
+      builder.write
     end
 
     def subdir_parts
