@@ -91,8 +91,7 @@ module Subrepo
         options[:message] = "WIP"
         new_commit_sha = Rugged::Commit.create(repo, options)
 
-        run_command "git checkout -q #{current_branch}"
-        run_command "git reset --hard #{new_commit_sha}"
+        run_command "git merge --ff-only #{new_commit_sha}"
         config.parent = last_config_commit
       else
         run_command "git rebase" \
