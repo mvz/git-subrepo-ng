@@ -67,7 +67,7 @@ is "$(cat $OWNER/foo/bar/Bar2)" \
 {
   foo_new_commit_message="$(cd $OWNER/foo; git log --format=%B -n 1)"
   like "$foo_new_commit_message" \
-      "git subrepo commit \(merge\) bar" \
+      "Subrepo-merge bar/master into master" \
       "subrepo pull should have merge message"
 }
 
