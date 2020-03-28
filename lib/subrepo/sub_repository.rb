@@ -73,14 +73,15 @@ module Subrepo
       last_local_commit = repo.head.target
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
-      if squash
-        mapped_commit = map_commits(config.parent)
-        run_command_in_worktree "git checkout #{split_branch_name}"
-        run_command_in_worktree "git reset --hard #{mapped_commit}"
-        run_command_in_worktree "git merge #{last_fetched_commit} --no-ff --no-edit -q"
+      mapped_commit = map_commits(config.parent) || last_merged_commit
+      run_command_in_worktree "git checkout #{split_branch_name}"
+      run_command_in_worktree "git reset --hard #{mapped_commit}"
+      run_command_in_worktree "git merge #{last_fetched_commit} --no-ff --no-edit -q"
 
-        split_branch = repo.branches[split_branch_name]
-        split_branch_commit = split_branch.target
+      split_branch = repo.branches[split_branch_name]
+      split_branch_commit = split_branch.target
+
+      if squash
         subtree = split_branch_commit.tree
         base_tree = last_local_commit.tree
         new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
@@ -94,14 +95,37 @@ module Subrepo
         run_command "git merge --ff-only #{new_commit_sha}"
         config.parent = last_config_commit
       else
-        run_command "git rebase" \
-          " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
-          " --rebase-merges" \
-          " -X subtree=\"#{subdir}\""
+        walker = Rugged::Walker.new(repo)
+        walker.push split_branch_commit.oid
+        walker.hide mapped_commit
 
-        rebased_head = `git rev-parse HEAD`.chomp
-        run_command "git checkout -q #{current_branch}"
-        run_command "git merge #{rebased_head} --no-ff --no-edit -q"
+        inverse_map = commit_map.invert
+
+        walker.to_a.reverse_each do |commit|
+          parent_oids = commit.parents.map(&:oid)
+          main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
+
+          # Pick the first parent to provide the main tree. This is an
+          # arbitrary choice!
+          main_parent = repo.lookup main_repo_parent_oids.first
+
+          subtree = commit.tree
+          base_tree = main_parent.tree
+          new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
+
+          options = {}
+          options[:tree] = new_tree
+          options[:parents] = main_repo_parent_oids
+          options[:author] = commit.author
+          options[:committer] = commit.committer
+          options[:message] = commit.message
+          new_commit_oid = Rugged::Commit.create(repo, options)
+          inverse_map[commit.oid] = new_commit_oid
+        end
+
+        rebased_head = inverse_map[last_fetched_commit]
+        mapped_merge_commit = inverse_map[split_branch_commit.oid]
+        run_command "git merge --ff-only #{mapped_merge_commit}"
 
         config.parent = rebased_head
       end
