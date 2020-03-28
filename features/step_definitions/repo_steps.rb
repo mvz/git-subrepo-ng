@@ -119,7 +119,7 @@ Then "the commit map should equal:" do |string|
     end
     width = named_map.map(&:first).map(&:length).max
     result = named_map.map do |from, to|
-      format "%-*s -> %s", width, from, to
+      "#{from.ljust(width)} -> #{to}"
     end
     expect(result.reverse.join("\n")).to eq string
   end
