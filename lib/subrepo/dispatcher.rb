@@ -40,6 +40,10 @@ module Subrepo
       runner.run_merge(args.shift, squash: true)
     end
 
+    def run_commit_command
+      runner.run_commit(args.shift, **options.slice(:squash, :message, :edit))
+    end
+
     def run_clone_command
       runner
         .run_clone(args[0], args[1], **options.slice(:subdir, :branch, :method, :force))

@@ -34,6 +34,7 @@ module Subrepo
       setup_config_command
 
       setup_merge_command
+      setup_commit_command
     end
 
     def setup_init_command
@@ -112,6 +113,17 @@ module Subrepo
       arg :dir
       command :merge do |cmd|
         setup_action(cmd, :run_merge_command)
+      end
+    end
+
+    def setup_commit_command
+      desc "commit"
+      arg :dir
+      command :commit do |cmd|
+        cmd.flag [:message, :m], arg_name: "message"
+        cmd.switch :squash, default_value: true
+        cmd.switch [:edit, :e], default_value: false
+        setup_action(cmd, :run_commit_command)
       end
     end
 
