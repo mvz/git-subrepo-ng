@@ -27,7 +27,16 @@ module Subrepo
     end
 
     def last_fetched_commit
-      repo.ref(fetch_ref).target_id
+      @last_fetched_commit ||= repo.ref(fetch_ref).target_id
+    end
+
+    def last_merged_commit
+      @last_merged_commit ||=
+        begin
+          commit = config.commit
+          commit = nil if commit == ""
+          commit
+        end
     end
 
     def split_branch_name
@@ -39,19 +48,9 @@ module Subrepo
     end
 
     def make_subrepo_branch_for_local_commits(squash: false)
-      last_merged_commit = config.commit
       last_pushed_commit = config.parent
-      last_merged_commit = nil if last_merged_commit == ""
 
-      unless repo.branches.exist? split_branch_name
-        branch_commit = last_merged_commit || repo.head.target_id
-
-        repo.branches.create split_branch_name, branch_commit
-      end
-
-      create_worktree_if_needed
-
-      mapped_commit = map_commits(last_pushed_commit, last_merged_commit)
+      mapped_commit = map_commits(last_pushed_commit)
       return unless mapped_commit
 
       run_command_in_worktree "git checkout #{split_branch_name}"
@@ -65,36 +64,69 @@ module Subrepo
     end
 
     def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)
+      validate_last_merged_commit_present_in_fetched_commits
+
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       config_name = config.file_name
 
       branch = config.branch
-      last_merged_commit = config.commit
-      last_local_commit = repo.head.target.oid
+      last_local_commit = repo.head.target
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
 
-      # Check validity of last_merged_commit
-      walker = Rugged::Walker.new(repo)
-      walker.push last_fetched_commit
-      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
-      unless found
-        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
-      end
+      mapped_commit = map_commits(config.parent) || last_merged_commit
+      run_command_in_worktree "git checkout #{split_branch_name}"
+      run_command_in_worktree "git reset --hard #{mapped_commit}"
+      run_command_in_worktree "git merge #{last_fetched_commit} --no-ff --no-edit -q"
 
-      run_command "git rebase" \
-        " --onto #{last_config_commit} #{last_merged_commit} #{last_fetched_commit}" \
-        " --rebase-merges" \
-        " -X subtree=\"#{subdir}\""
-
-      rebased_head = `git rev-parse HEAD`.chomp
-      run_command "git checkout -q #{current_branch}"
-      run_command "git merge #{rebased_head} --no-ff --no-edit -q"
+      split_branch = repo.branches[split_branch_name]
+      split_branch_commit = split_branch.target
 
       if squash
-        run_command "git reset --soft #{last_local_commit}"
-        run_command "git commit -q -m WIP"
+        subtree = split_branch_commit.tree
+        base_tree = last_local_commit.tree
+        new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
+
+        options = {}
+        options[:tree] = new_tree
+        options[:parents] = [last_local_commit]
+        options[:message] = "WIP"
+        new_commit_sha = Rugged::Commit.create(repo, options)
+
+        run_command "git merge --ff-only #{new_commit_sha}"
         config.parent = last_config_commit
       else
+        walker = Rugged::Walker.new(repo)
+        walker.push split_branch_commit.oid
+        walker.hide mapped_commit
+
+        inverse_map = commit_map.invert
+
+        walker.to_a.reverse_each do |commit|
+          parent_oids = commit.parents.map(&:oid)
+          main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
+
+          # Pick the first parent to provide the main tree. This is an
+          # arbitrary choice!
+          main_parent = repo.lookup main_repo_parent_oids.first
+
+          subtree = commit.tree
+          base_tree = main_parent.tree
+          new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
+
+          options = {}
+          options[:tree] = new_tree
+          options[:parents] = main_repo_parent_oids
+          options[:author] = commit.author
+          options[:committer] = commit.committer
+          options[:message] = commit.message
+          new_commit_oid = Rugged::Commit.create(repo, options)
+          inverse_map[commit.oid] = new_commit_oid
+        end
+
+        rebased_head = inverse_map[last_fetched_commit]
+        mapped_merge_commit = inverse_map[split_branch_commit.oid]
+        run_command "git merge --ff-only #{mapped_merge_commit}"
+
         config.parent = rebased_head
       end
 
@@ -111,6 +143,22 @@ module Subrepo
       else
         run_command command
       end
+    end
+
+    def validate_last_merged_commit_present_in_fetched_commits
+      walker = Rugged::Walker.new(repo)
+      walker.push last_fetched_commit
+      found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
+      unless found
+        raise "Last merged commit #{last_merged_commit} not found in fetched commits"
+      end
+    end
+
+    def create_split_branch_if_needed
+      return if repo.branches.exist? split_branch_name
+
+      branch_commit = last_merged_commit || repo.head.target_id
+      repo.branches.create split_branch_name, branch_commit
     end
 
     def remove_local_commits_branch
@@ -166,31 +214,29 @@ module Subrepo
     end
 
     # Map all commits that haven't been pushed yet
-    def map_commits(last_pushed_commit, last_merged_commit)
+    def map_commits(last_pushed_commit)
+      create_split_branch_if_needed
+      create_worktree_if_needed
+
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
-      if last_pushed_commit
-        walker.hide last_pushed_commit
-        commit_map = full_commit_map
-      else
-        commit_map = {}
-      end
+      walker.hide last_pushed_commit if last_pushed_commit
 
       commits = walker.to_a
 
       last_commit = nil
 
       commits.reverse_each do |commit|
-        mapped_commit = map_commit(last_merged_commit, commit, commit_map)
+        mapped_commit = map_commit(commit)
         last_commit = mapped_commit if mapped_commit
       end
 
       last_commit
     end
 
-    def map_commit(last_merged_commit, commit, commit_map)
-      target_parents = calculate_target_parents(commit, commit_map, last_merged_commit)
-      target_tree = calculate_target_tree(commit, target_parents, commit_map) or return
+    def map_commit(commit)
+      target_parents = calculate_target_parents(commit)
+      target_tree = calculate_target_tree(commit, target_parents) or return
 
       # Check if there were relevant changes
       if last_merged_commit
@@ -212,7 +258,7 @@ module Subrepo
       new_commit_sha
     end
 
-    def calculate_target_parents(commit, commit_map, last_merged_commit)
+    def calculate_target_parents(commit)
       parents = commit.parents
 
       # Map parent commits
@@ -227,7 +273,7 @@ module Subrepo
       target_parent_shas.map { |sha| repo.lookup sha }
     end
 
-    def calculate_target_tree(commit, target_parents, commit_map)
+    def calculate_target_tree(commit, target_parents)
       parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
@@ -287,6 +333,10 @@ module Subrepo
       subtree[".gitrepo"] if subtree
     end
 
+    def commit_map
+      @commit_map ||= full_commit_map
+    end
+
     def full_commit_map
       commit_map = {}
       walker = Rugged::Walker.new(repo)
@@ -304,10 +354,10 @@ module Subrepo
 
         remote_commit_tree = repo.lookup(last_merged_commit_oid).tree
 
-        previous_mapped_oids = commit_map.keys
         sub_walker = Rugged::Walker.new(repo)
         sub_walker.push last_pushed_commit_oid
-        previous_mapped_oids.each { |oid| sub_walker.hide oid }
+        commit_map.each_key { |oid| sub_walker.hide oid }
+
         sub_walker.to_a.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           if sub_commit_tree.oid == remote_commit_tree.oid
@@ -356,6 +406,26 @@ module Subrepo
         subtree_oid = tree[part]&.fetch(:oid) or break
         repo.lookup subtree_oid
       end
+    end
+
+    def graft_subrepo_tree(path_parts, base_tree, subrepo_tree)
+      part, *rest = *path_parts
+
+      builder = Rugged::Tree::Builder.new(repo)
+
+      if part.nil?
+        items = subrepo_tree.to_a
+        config_item = base_tree[".gitrepo"]
+        items << config_item if config_item
+      else
+        items = base_tree.to_a
+        sub_item = items.find { |it| it[:name] == part }
+        subtree = repo.lookup sub_item[:oid]
+        sub_item[:oid] = graft_subrepo_tree(rest, subtree, subrepo_tree)
+      end
+
+      items.each { |it| builder << it }
+      builder.write
     end
 
     def subdir_parts
