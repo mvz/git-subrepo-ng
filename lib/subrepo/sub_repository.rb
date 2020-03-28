@@ -201,9 +201,6 @@ module Subrepo
       walker.push repo.head.target_id
       if last_pushed_commit
         walker.hide last_pushed_commit
-        commit_map = full_commit_map
-      else
-        commit_map = {}
       end
 
       commits = walker.to_a
@@ -211,16 +208,16 @@ module Subrepo
       last_commit = nil
 
       commits.reverse_each do |commit|
-        mapped_commit = map_commit(commit, commit_map)
+        mapped_commit = map_commit(commit)
         last_commit = mapped_commit if mapped_commit
       end
 
       last_commit
     end
 
-    def map_commit(commit, commit_map)
-      target_parents = calculate_target_parents(commit, commit_map)
-      target_tree = calculate_target_tree(commit, target_parents, commit_map) or return
+    def map_commit(commit)
+      target_parents = calculate_target_parents(commit)
+      target_tree = calculate_target_tree(commit, target_parents) or return
 
       # Check if there were relevant changes
       if last_merged_commit
@@ -242,7 +239,7 @@ module Subrepo
       new_commit_sha
     end
 
-    def calculate_target_parents(commit, commit_map)
+    def calculate_target_parents(commit)
       parents = commit.parents
 
       # Map parent commits
@@ -257,7 +254,7 @@ module Subrepo
       target_parent_shas.map { |sha| repo.lookup sha }
     end
 
-    def calculate_target_tree(commit, target_parents, commit_map)
+    def calculate_target_tree(commit, target_parents)
       parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
@@ -315,6 +312,10 @@ module Subrepo
     def config_file_in_tree(tree)
       subtree = tree_in_subrepo(tree)
       subtree[".gitrepo"] if subtree
+    end
+
+    def commit_map
+      @commit_map ||= full_commit_map
     end
 
     def full_commit_map
