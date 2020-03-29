@@ -55,12 +55,13 @@ module Subrepo
 
       run_command_in_worktree "git checkout #{split_branch_name}"
       run_command_in_worktree "git reset --hard #{mapped_commit}"
-      if squash
-        run_command_in_worktree "git reset --soft #{last_merged_commit}"
-        run_command_in_worktree "git commit --reuse-message=#{mapped_commit}"
-        mapped_commit = repo.branches[split_branch_name].target.oid
-      end
       mapped_commit
+    end
+
+    def prepare_squashed_subrepo_branch_for_push(message:)
+      run_command_in_worktree "git checkout #{split_branch_name}"
+      run_command_in_worktree "git reset --soft #{last_merged_commit}"
+      run_command_in_worktree "git commit --message=#{message.inspect}"
     end
 
     def merge_subrepo_commits_into_main_repo(squash:, message:, edit:)

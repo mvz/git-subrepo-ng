@@ -25,6 +25,18 @@ Feature: Pushing a subrepo
       * Add bar/a_file in repo foo
       """
 
+  Scenario: Squash-pushing to an existing subrepo
+    When I push the subrepo "bar"
+    And I commit a new file "other_file" in subdirectory "bar"
+    And I commit a new file "third_file" in subdirectory "bar"
+    And I push the subrepo "bar" again, squashing the commits
+    Then the subrepo and the remote should have the same contents
+    And the remote's log should equal:
+      """
+      * Push subrepo bar
+      * Add bar/a_file in repo foo
+      """
+
   Scenario: Pushing with unrelated merge commits
     Given I have pushed the subrepo "bar"
     When I create a branch with some commits in the main project

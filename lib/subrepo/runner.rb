@@ -163,7 +163,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      last_commit = subrepo.make_subrepo_branch_for_local_commits(squash: squash)
+      last_commit = subrepo.make_subrepo_branch_for_local_commits
 
       unless last_commit
         if last_fetched_commit
@@ -172,6 +172,12 @@ module Subrepo
           warn "Nothing mapped"
         end
         return
+      end
+
+      message = "Push subrepo #{subdir}"
+
+      if squash
+        subrepo.prepare_squashed_subrepo_branch_for_push(message: message)
       end
 
       split_branch_name = subrepo.split_branch_name
@@ -188,7 +194,7 @@ module Subrepo
       config.commit = pushed_commit
       config.parent = parent_commit
       run_command "git add -f -- \"#{config.file_name}\""
-      run_command "git commit -q -m \"Push subrepo #{subdir}\""
+      run_command "git commit -q -m #{message.inspect}"
 
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
     end
