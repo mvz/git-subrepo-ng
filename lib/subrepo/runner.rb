@@ -163,7 +163,7 @@ module Subrepo
           raise "There are new changes upstream, you need to pull first."
       end
 
-      last_commit = subrepo.make_subrepo_branch_for_local_commits(squash: squash)
+      last_commit = subrepo.make_subrepo_branch_for_local_commits
 
       unless last_commit
         if last_fetched_commit
@@ -174,21 +174,27 @@ module Subrepo
         return
       end
 
+      message = "Push subrepo #{subdir}"
+
+      if squash
+        subrepo.prepare_squashed_subrepo_branch_for_push(message: message)
+      end
+
       split_branch_name = subrepo.split_branch_name
       if force
         run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
       else
         run_command "git push -q \"#{remote}\" #{split_branch_name}:#{branch}"
       end
-      pushed_commit = last_commit
 
+      pushed_commit = repo.branches[split_branch_name].target.oid
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
       run_command "git add -f -- \"#{config.file_name}\""
-      run_command "git commit -q -m \"Push subrepo #{subdir}\""
+      run_command "git commit -q -m #{message.inspect}"
 
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
     end

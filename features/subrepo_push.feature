@@ -13,6 +13,7 @@ Feature: Pushing a subrepo
       """
       * Add bar/a_file in repo foo
       """
+    And the subrepo configuration should contain the latest commit and parent
 
   Scenario: Pushing again to an existing subrepo
     When I push the subrepo "bar"
@@ -22,6 +23,34 @@ Feature: Pushing a subrepo
     And the remote's log should equal:
       """
       * Add bar/other_file in repo foo
+      * Add bar/a_file in repo foo
+      """
+    And the subrepo configuration should contain the latest commit and parent
+
+  Scenario: Squash-pushing to an existing subrepo
+    When I push the subrepo "bar"
+    And I commit a new file "other_file" in subdirectory "bar"
+    And I commit a new file "third_file" in subdirectory "bar"
+    And I push the subrepo "bar" again, squashing the commits
+    Then the subrepo and the remote should have the same contents
+    And the remote's log should equal:
+      """
+      * Push subrepo bar
+      * Add bar/a_file in repo foo
+      """
+    And the subrepo configuration should contain the latest commit and parent
+
+  Scenario: Pushing after squash-pushing to an existing subrepo
+    When I push the subrepo "bar"
+    And I commit a new file "other_file" in subdirectory "bar"
+    And I push the subrepo "bar" again, squashing the commits
+    And I commit a new file "third_file" in subdirectory "bar"
+    And I push the subrepo "bar" again
+    Then the subrepo and the remote should have the same contents
+    And the remote's log should equal:
+      """
+      * Add bar/third_file in repo foo
+      * Push subrepo bar
       * Add bar/a_file in repo foo
       """
 
