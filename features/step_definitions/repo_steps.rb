@@ -22,6 +22,32 @@ Given "I have a remote named {string} with some commits" do |remote|
   remote_commit_add(full_remote, "other_file", "more stuff")
 end
 
+When "I have updated and committed {string} in the remote" do |file|
+  repo = Rugged::Repository.new expand_path(@remote)
+  index = repo.index
+  index.read_tree(repo.head.target.tree)
+  new_blob_oid = repo.write("new remote content", :blob)
+  index.add path: file, oid: new_blob_oid, mode: 0o100644
+  Rugged::Commit.create(repo, tree: index.write_tree,
+                        message: "Update #{file} in remote #{@remote}",
+                        parents: [repo.head.target], update_ref: "HEAD")
+end
+
+When "I (have )update(d) and commit(ted) {string} in the subrepo" do |file|
+  cd @main_repo do
+    repo = Rugged::Repository.new(".")
+    write_file "#{@subrepo}/#{file}", "updated stuff"
+    index = repo.index
+    index.add "#{@subrepo}/#{file}"
+    index.write
+    Rugged::Commit.create(repo,
+                          tree: index.write_tree,
+                          message: "Update #{@subrepo}/#{file} in repo #{@main_repo}",
+                          parents: [repo.head.target],
+                          update_ref: "HEAD")
+  end
+end
+
 When "I add a new commit to the subrepo" do
   cd @main_repo do
     repo = Rugged::Repository.new(".")
@@ -72,6 +98,20 @@ end
 
 When "I commit a new file {string} in the subrepo" do |file|
   subdir_with_commits_in_project(@main_repo, subdir: @subrepo, file: file)
+end
+
+When "I resolve the merge conflict with merged content" do
+  expect(@error).not_to be_nil
+  cd @main_repo do
+    cd ".git/tmp/subrepo/#{@subrepo}" do
+      status = `git status --porcelain`.chomp
+      expect(status).to start_with "UU "
+      file = status[3..-1]
+      write_file "#{@subrepo}/#{file}", "merged content for #{file}"
+      `git add #{file}`
+      `git commit --no-edit`
+    end
+  end
 end
 
 Then "the subrepo and the remote should have the same contents" do
