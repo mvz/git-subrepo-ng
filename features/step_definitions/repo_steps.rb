@@ -82,8 +82,6 @@ Then "the subrepo and the remote should have the same contents" do
   subrepo_entries = tree.entries.map { |it| it[:name] }
   expect(subrepo_entries).to match_array expected_entries
   tree.entries.each do |entry|
-    raise "Unsupported" unless entry[:type] == :blob
-
     blob = repo.lookup entry[:oid]
     expect(blob.text).to eq File.read(File.join(subrepo, entry[:name]))
   end
