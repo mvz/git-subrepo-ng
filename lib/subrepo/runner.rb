@@ -186,8 +186,8 @@ module Subrepo
       else
         run_command "git push -q \"#{remote}\" #{split_branch_name}:#{branch}"
       end
-      pushed_commit = last_commit
 
+      pushed_commit = repo.branches[split_branch_name].target.oid
       parent_commit = `git rev-parse HEAD`.chomp
 
       config.remote = remote

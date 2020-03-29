@@ -13,6 +13,7 @@ Feature: Pushing a subrepo
       """
       * Add bar/a_file in repo foo
       """
+    And the subrepo configuration should contain the latest commit and parent
 
   Scenario: Pushing again to an existing subrepo
     When I push the subrepo "bar"
@@ -24,6 +25,7 @@ Feature: Pushing a subrepo
       * Add bar/other_file in repo foo
       * Add bar/a_file in repo foo
       """
+    And the subrepo configuration should contain the latest commit and parent
 
   Scenario: Squash-pushing to an existing subrepo
     When I push the subrepo "bar"
@@ -36,6 +38,7 @@ Feature: Pushing a subrepo
       * Push subrepo bar
       * Add bar/a_file in repo foo
       """
+    And the subrepo configuration should contain the latest commit and parent
 
   Scenario: Pushing with unrelated merge commits
     Given I have pushed the subrepo "bar"
