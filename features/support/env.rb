@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 
-require "rugged"
+require "simplecov"
 require "subrepo/runner"
