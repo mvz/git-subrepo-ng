@@ -36,7 +36,7 @@ end
 When "I (have )update(d) and commit(ted) {string} in the subrepo" do |file|
   cd @main_repo do
     repo = Rugged::Repository.new(".")
-    write_file "#{@subrepo}/#{file}", "updated stuff"
+    write_file "#{@subrepo}/#{file}", "new subrepo content"
     index = repo.index
     index.add "#{@subrepo}/#{file}"
     index.write
