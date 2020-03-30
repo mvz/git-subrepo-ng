@@ -72,10 +72,30 @@ module Subrepo
       run_command_in_worktree "git reset --hard #{mapped_commit}"
       run_command_in_worktree "git merge #{last_fetched_commit} --no-ff --no-edit -q"
 
-      commit_subrepo_commits(squash: squash, message: message, edit: edit)
+      commit_mapped_subrepo_commits(squash: squash, message: message, edit: edit)
     end
 
-    def commit_subrepo_commits(squash:, message:, edit:)
+    def commit_subrepo_commits_into_main_repo(squash:, message:, edit:)
+      validate_last_merged_commit_present_in_fetched_commits
+
+      mapped_commit = map_commits(config.parent) || last_merged_commit
+      last_split_branch_commit = repo.branches[split_branch_name].target
+
+      # TODO: Validate that last_split_branch_commit is the expected merge commit
+
+      options = {}
+      options[:tree] = last_split_branch_commit.tree
+      options[:parents] = [mapped_commit, last_fetched_commit]
+      options[:message] = "WIP"
+      new_commit_sha = Rugged::Commit.create(repo, options)
+
+      run_command_in_worktree "git checkout #{split_branch_name}"
+      run_command_in_worktree "git reset --hard #{new_commit_sha}"
+
+      commit_mapped_subrepo_commits(squash: squash, message: message, edit: edit)
+    end
+
+    def commit_mapped_subrepo_commits(squash:, message:, edit:)
       branch = config.branch
       config_name = config.file_name
       current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
