@@ -1,4 +1,4 @@
-Feature: Pulling a subrepo
+Feature: Commiting merge conflict resolutions in a subrepo
 
   Background:
     Given I have an existing git project named "foo"
