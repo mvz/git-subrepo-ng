@@ -46,6 +46,7 @@ When "I pull the subrepo without squashing( again)" do
 end
 
 When "I attempt to pull the subrepo" do
+  @error = nil
   cd @main_repo do
     Subrepo::Runner.new.run_pull @subrepo, squash: false
   end
@@ -67,3 +68,11 @@ When "I finalize the pull using the subrepo commit subcommand" do
   end
 end
 
+When "I attempt to commit without resolving the conflict" do
+  @error = nil
+  cd @main_repo do
+    Subrepo::Runner.new.run_commit @subrepo, squash: false, message: nil, edit: false
+  end
+rescue => e
+  @error = e.message
+end

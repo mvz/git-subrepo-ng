@@ -162,3 +162,7 @@ Then "the commit map should equal:" do |string|
     expect(result.reverse.join("\n")).to eq string
   end
 end
+
+Then "I see that I need to resolve the conflict first" do
+  expect(@error.to_s).to match(/resolve/)
+end

@@ -15,3 +15,10 @@ Feature: Commiting merge conflict resolutions in a subrepo
     And I finalize the pull using the subrepo commit subcommand
     And I push the subrepo
     Then the subrepo and the remote should have the same contents
+
+  Scenario: Attempting commit without resolving the conflict
+    Given I have updated and committed "a_file" in the remote
+    And I have updated and committed "a_file" in the subrepo
+    When I attempt to pull the subrepo
+    And I attempt to commit without resolving the conflict
+    Then I see that I need to resolve the conflict first
