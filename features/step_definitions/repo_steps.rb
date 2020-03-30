@@ -114,6 +114,20 @@ When "I resolve the merge conflict with merged content" do
   end
 end
 
+When "I resolve the merge conflict with local content" do
+  expect(@error).not_to be_nil
+  cd @main_repo do
+    cd ".git/tmp/subrepo/#{@subrepo}" do
+      status = `git status --porcelain`.chomp
+      expect(status).to start_with "UU "
+      file = status[3..-1]
+      `git checkout -q --ours #{file}`
+      `git add #{file}`
+      `git commit --no-edit`
+    end
+  end
+end
+
 Then "the subrepo and the remote should have the same contents" do
   repo = Rugged::Repository.new expand_path(@remote)
   tree = repo.head.target.tree
