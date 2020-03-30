@@ -47,7 +47,7 @@ module Subrepo
       @fetch_ref ||= "refs/subrepo/#{subref}/fetch"
     end
 
-    def make_subrepo_branch_for_local_commits(squash: false)
+    def make_subrepo_branch_for_local_commits
       last_pushed_commit = config.parent
 
       mapped_commit = map_commits(last_pushed_commit)
@@ -91,7 +91,8 @@ module Subrepo
       expected_first_parent_tree_oid = repo.lookup(mapped_commit).tree.oid
       expected_second_parent_tree_oid = repo.lookup(last_fetched_commit).tree.oid
       actual_parent_tree_oids = last_split_branch_commit.parents.map(&:tree).map(&:oid)
-      unless actual_parent_tree_oids == [expected_first_parent_tree_oid, expected_second_parent_tree_oid]
+      expected_tree_oids = [expected_first_parent_tree_oid, expected_second_parent_tree_oid]
+      unless actual_parent_tree_oids == expected_tree_oids
         raise "No valid existing merge commit found in #{split_branch_name}"
       end
 
