@@ -78,10 +78,22 @@ module Subrepo
     def commit_subrepo_commits_into_main_repo(squash:, message:, edit:)
       validate_last_merged_commit_present_in_fetched_commits
 
+      if worktree_exists?
+        worktree_repo = Rugged::Repository.new(worktree_name)
+        if worktree_repo.index.conflicts?
+          raise "Conflicts found in #{worktree_name}. Resolve them first"
+        end
+      end
+
       mapped_commit = map_commits(config.parent) || last_merged_commit
       last_split_branch_commit = repo.branches[split_branch_name].target
 
-      # TODO: Validate that last_split_branch_commit is the expected merge commit
+      expected_first_parent_tree_oid = repo.lookup(mapped_commit).tree.oid
+      expected_second_parent_tree_oid = repo.lookup(last_fetched_commit).tree.oid
+      actual_parent_tree_oids = last_split_branch_commit.parents.map(&:tree).map(&:oid)
+      unless actual_parent_tree_oids == [expected_first_parent_tree_oid, expected_second_parent_tree_oid]
+        raise "No valid existing merge commit found in #{split_branch_name}"
+      end
 
       options = {}
       options[:tree] = last_split_branch_commit.tree

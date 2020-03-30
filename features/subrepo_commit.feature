@@ -16,6 +16,13 @@ Feature: Commiting merge conflict resolutions in a subrepo
     And I push the subrepo
     Then the subrepo and the remote should have the same contents
 
+  Scenario: Attempting commit without an available merge commit
+    Given I have updated and committed "a_file" in the remote
+    And I have updated and committed "a_file" in the subrepo
+    When I fetch new commits for the subrepo from the remote
+    When I attempt to commit
+    Then I see that no existing merge commit is available
+
   Scenario: Attempting commit without resolving the conflict
     Given I have updated and committed "a_file" in the remote
     And I have updated and committed "a_file" in the subrepo

@@ -164,5 +164,9 @@ Then "the commit map should equal:" do |string|
 end
 
 Then "I see that I need to resolve the conflict first" do
-  expect(@error.to_s).to match(/resolve/)
+  expect(@error.to_s).to match(/Conflicts found/)
+end
+
+Then "I see that no existing merge commit is available" do
+  expect(@error.to_s).to match(/No valid existing merge commit found/)
 end

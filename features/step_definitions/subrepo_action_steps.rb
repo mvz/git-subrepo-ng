@@ -54,6 +54,12 @@ rescue => e
   @error = e.message
 end
 
+When "I fetch new commits for the subrepo from the remote" do
+  cd @main_repo do
+    Subrepo::Runner.new.run_fetch @subrepo
+  end
+end
+
 When "I clone into {string} from the remote {string} with branch {string}" \
   do |subdir, remote, branch|
   cd @main_repo do
@@ -68,7 +74,7 @@ When "I finalize the pull using the subrepo commit subcommand" do
   end
 end
 
-When "I attempt to commit without resolving the conflict" do
+When "I attempt to commit( without resolving the conflict)" do
   @error = nil
   cd @main_repo do
     Subrepo::Runner.new.run_commit @subrepo, squash: false, message: nil, edit: false
