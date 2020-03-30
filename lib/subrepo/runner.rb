@@ -163,9 +163,7 @@ module Subrepo
 
       message = "Push subrepo #{subdir}"
 
-      if squash
-        subrepo.prepare_squashed_subrepo_branch_for_push(message: message)
-      end
+      subrepo.prepare_squashed_subrepo_branch_for_push(message: message) if squash
 
       split_branch_name = subrepo.split_branch_name
       if force

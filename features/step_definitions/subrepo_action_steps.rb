@@ -50,7 +50,7 @@ When "I attempt to pull the subrepo" do
   cd @main_repo do
     Subrepo::Runner.new.run_pull @subrepo, squash: false
   end
-rescue => e
+rescue StandardError => e
   @error = e.message
 end
 
@@ -79,6 +79,6 @@ When "I attempt to commit( without resolving the conflict)" do
   cd @main_repo do
     Subrepo::Runner.new.run_commit @subrepo, squash: false, message: nil, edit: false
   end
-rescue => e
+rescue StandardError => e
   @error = e.message
 end
