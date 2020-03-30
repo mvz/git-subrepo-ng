@@ -65,21 +65,6 @@ module Subrepo
       end
     end
 
-    def run_merge(subdir, squash:, message: nil, edit: false)
-      subdir or raise "Command 'merge' requires arg 'subdir'."
-      subrepo = sub_repository(subdir)
-
-      last_merged_commit = subrepo.config.commit
-      if subrepo.last_fetched_commit == last_merged_commit
-        puts "Subrepo '#{subdir}' is up to date."
-        return
-      end
-
-      subrepo.merge_subrepo_commits_into_main_repo(squash: squash,
-                                                   message: message,
-                                                   edit: edit)
-    end
-
     def run_commit(subdir, squash:, message:, edit:)
       subdir or raise "Command 'commit' requires arg 'subdir'."
       subrepo = sub_repository(subdir)
@@ -141,7 +126,9 @@ module Subrepo
       if last_fetched_commit == last_merged_commit
         puts "Subrepo '#{subdir}' is up to date."
       else
-        run_merge(subdir, squash: squash, message: message, edit: edit)
+        subrepo.merge_subrepo_commits_into_main_repo(squash: squash,
+                                                     message: message,
+                                                     edit: edit)
         puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)."
       end
     end

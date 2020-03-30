@@ -25,8 +25,8 @@ Summary:
 git subrepo init subdir --remote remote --branch branch
 git subrepo push subdir
 git subrepo fetch subdir
-git subrepo merge subdir
 git subrepo pull subdir
+git subrepo commit subdir
 ```
 
 ## What Does This Do?

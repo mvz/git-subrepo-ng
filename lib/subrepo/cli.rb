@@ -33,7 +33,6 @@ module Subrepo
       setup_clean_command
       setup_config_command
 
-      setup_merge_command
       setup_commit_command
     end
 
@@ -105,14 +104,6 @@ module Subrepo
         # FIXME: Make update actually do something
         cmd.switch [:update, :u], default_value: false
         setup_action(cmd, :run_push_command)
-      end
-    end
-
-    def setup_merge_command
-      desc "Squash-merge latest fetched commits into a subrepo"
-      arg :dir
-      command :merge do |cmd|
-        setup_action(cmd, :run_merge_command)
       end
     end
 

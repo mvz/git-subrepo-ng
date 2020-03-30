@@ -36,10 +36,6 @@ module Subrepo
       runner.run_fetch(args[0], remote: options[:remote])
     end
 
-    def run_merge_command
-      runner.run_merge(args.shift, squash: true)
-    end
-
     def run_commit_command
       runner.run_commit(args.shift, **options.slice(:squash, :message, :edit))
     end
