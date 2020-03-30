@@ -327,26 +327,39 @@ module Subrepo
 
         first_target_parent = target_parents.first
 
-        # If the commit tree is no different from the first parent, this is
-        # either:
+        # If there is only one target parent, and at least one of the original
+        # diffs is empty, then this would become an empty commit.
         #
-        # - a regular commit that makes no changes to the subrepo, or
-        # - a merge that has no effect on the mainline
+        # If the rewritten_tree is identical to the single target parent tree,
+        # this would also become an empty commit.
         #
-        # Otherwise, if there is only one target parent, and at least one of
-        # the original diffs is empty, then this would become an empty merge
-        # commit.
-        #
-        # Finally, if the rewritten_tree is identical to the single target
-        # parent tree. this would also become an empty regular commit.
-        #
-        # In all of these cases, map this commit to the target parent and
+        # In both of these cases, map this commit to the target parent and
         # skip to the next commit.
-        if diffs.first.none? ||
-            target_parents.one? && diffs.any?(&:none?) ||
-            target_parents.one? && rewritten_tree.oid == first_target_parent.tree.oid
+        if target_parents.one? &&
+            (diffs.any?(&:none?) || rewritten_tree.oid == first_target_parent.tree.oid)
           commit_map[commit.oid] ||= first_target_parent.oid
           return
+        end
+
+        # If the commit tree is no different from the first parent, at this
+        # point this can only be a merge that has no effect on the mainline.
+        #
+        # If all of the other target parents are ancestors of the first, we can
+        # skip this commit safely.
+        #
+        # This prevents histories like the following:
+        #
+        # *   Merge branch 'some-branch'
+        # |\
+        # * | Add bar/other_file in repo foo
+        # |/
+        # * Add bar/a_file in repo foo
+        if diffs.first.none?
+          other_target_parents = target_parents[1..-1]
+          if other_target_parents.all? { |it| repo.descendant_of? first_target_parent, it }
+            commit_map[commit.oid] ||= first_target_parent.oid
+            return
+          end
         end
 
         if first_target_parent

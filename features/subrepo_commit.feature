@@ -7,11 +7,20 @@ Feature: Commiting merge conflict resolutions in a subrepo
     And I have initialized the subrepo "bar" with that remote
     And I have pushed the subrepo "bar"
 
-  Scenario: Pulling conflicting updates from the remote
+  Scenario: Resolving conflicting update from the remote with merged content
     Given I have updated and committed "a_file" in the remote
     And I have updated and committed "a_file" in the subrepo
     When I attempt to pull the subrepo
     And I resolve the merge conflict with merged content
+    And I finalize the pull using the subrepo commit subcommand
+    And I push the subrepo
+    Then the subrepo and the remote should have the same contents
+
+  Scenario: Resolving conflicting update from the remote with local content
+    Given I have updated and committed "a_file" in the remote
+    And I have updated and committed "a_file" in the subrepo
+    When I attempt to pull the subrepo
+    And I resolve the merge conflict with local content
     And I finalize the pull using the subrepo commit subcommand
     And I push the subrepo
     Then the subrepo and the remote should have the same contents
