@@ -16,7 +16,7 @@ module Subrepo
     end
 
     def perform_fetch(remote, branch)
-      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
+      remote_commit = run_command "git ls-remote --no-tags \"#{remote}\" \"#{branch}\""
       return false if remote_commit.empty?
 
       run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
