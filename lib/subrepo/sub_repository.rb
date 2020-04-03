@@ -3,6 +3,7 @@
 require "rugged"
 require "tempfile"
 require "fileutils"
+require "shellwords"
 
 module Subrepo
   # SubRepository, represents a subrepo
@@ -16,10 +17,10 @@ module Subrepo
     end
 
     def perform_fetch(remote, branch)
-      remote_commit = run_command "git ls-remote --no-tags \"#{remote}\" \"#{branch}\""
+      remote_commit = run_command "git ls-remote --no-tags #{remote.shellescape} #{branch}"
       return false if remote_commit.empty?
 
-      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
+      run_command "git fetch -q --no-tags #{remote.shellescape} #{branch}"
       new_commit = `git rev-parse FETCH_HEAD`.chomp
 
       run_command "git update-ref #{fetch_ref} #{new_commit}"
@@ -168,13 +169,13 @@ module Subrepo
       end
 
       config.commit = last_fetched_commit
-      run_command "git add -- \"#{config_name}\""
+      run_command "git add -- #{config_name.shellescape}"
 
       message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
-        "merged:   \\\"#{last_fetched_commit}\\\""
+        "merged:   \"#{last_fetched_commit}\""
 
-      command = "git commit -q -m \"#{message}\" --amend"
+      command = "git commit -q -m #{message.shellescape} --amend"
       if edit
         run_command "#{command} --edit"
       else
@@ -235,7 +236,8 @@ module Subrepo
     def create_worktree_if_needed
       return if worktree_exists?
 
-      run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
+      run_command "git worktree add #{worktree_name.shellescape}" \
+        " #{split_branch_name.shellescape}"
     end
 
     def remove_worktree_if_needed

@@ -159,9 +159,10 @@ module Subrepo
 
       split_branch_name = subrepo.split_branch_name
       if force
-        run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
+        run_command "git push -q --force #{remote.shellescape}" \
+          " #{split_branch_name}:#{branch}"
       else
-        run_command "git push -q \"#{remote}\" #{split_branch_name}:#{branch}"
+        run_command "git push -q #{remote.shellescape} #{split_branch_name}:#{branch}"
       end
 
       pushed_commit = repo.branches[split_branch_name].target.oid
@@ -170,8 +171,8 @@ module Subrepo
       config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
-      run_command "git add -f -- \"#{config.file_name}\""
-      run_command "git commit -q -m #{message.inspect}"
+      run_command "git add -f -- #{config.file_name.shellescape}"
+      run_command "git commit -q -m #{message.shellescape}"
 
       subrepo.remove_local_commits_branch
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
@@ -213,9 +214,9 @@ module Subrepo
           puts "Subrepo '#{subdir}' is up to date."
           return
         end
-        run_command "git rm -r \"#{subdir}\""
+        run_command "git rm -r #{subdir.shellescape}"
       end
-      run_command "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\""
+      run_command "git read-tree --prefix=#{subdir.shellescape} -u #{last_fetched_commit}"
 
       parent_commit = repo.head.target
 
