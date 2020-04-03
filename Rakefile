@@ -19,7 +19,6 @@ namespace :compat do
     # TODO: Add the following tests
     #
     #   error
-    #   pull-ours
     #   pull-theirs
     #
     test_names = %w(
@@ -43,6 +42,7 @@ namespace :compat do
       pull-merge
       pull-message
       pull-new-branch
+      pull-ours
       pull-twice
       pull-worktree
       push
