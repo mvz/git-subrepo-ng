@@ -162,7 +162,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo clone dummy-repo
     )" \
-    "error: Command failed: 'git ls-remote dummy-repo'." \
+    "error: Command failed: 'git ls-remote --no-tags dummy-repo master'." \
     "Error OK: clone non-repo"
 }
 
