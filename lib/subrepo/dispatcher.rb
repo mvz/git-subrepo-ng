@@ -21,7 +21,7 @@ module Subrepo
         runner.run_branch_all
       else
         args[0] or raise "Command 'branch' requires arg 'subdir'."
-        runner.run_branch(args[0])
+        runner.run_branch(args[0], force: options[:force])
       end
     end
 

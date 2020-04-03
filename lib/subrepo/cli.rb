@@ -69,6 +69,7 @@ module Subrepo
       command :branch do |cmd|
         cmd.switch :all, default_value: false
         cmd.switch :fetch, default_value: false
+        cmd.switch :force, default_value: false
         setup_action(cmd, :run_branch_command)
       end
     end

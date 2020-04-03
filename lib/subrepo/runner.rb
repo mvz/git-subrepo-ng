@@ -191,10 +191,14 @@ module Subrepo
       main_repository.subrepos.each { |subdir| run_branch subdir }
     end
 
-    def run_branch(subdir)
+    def run_branch(subdir, force: false)
       main_repository.check_clean
 
       subrepo = sub_repository(subdir)
+      if !force && subrepo.split_branch_exists?
+        raise "Branch '#{subrepo.split_branch_name}' already exists." \
+          " Use '--force' to override."
+      end
       subrepo.make_subrepo_branch_for_local_commits
 
       puts "Created branch '#{subrepo.split_branch_name}'" \

@@ -195,8 +195,12 @@ module Subrepo
       end
     end
 
+    def split_branch_exists?
+      repo.branches.exist? split_branch_name
+    end
+
     def create_split_branch_if_needed
-      return if repo.branches.exist? split_branch_name
+      return if split_branch_exists?
 
       branch_commit = last_merged_commit || repo.head.target_id
       repo.branches.create split_branch_name, branch_commit
