@@ -277,9 +277,20 @@ module Subrepo
 
       # Check if there were relevant changes
       if last_merged_commit
-        old_tree_oid = repo.lookup(last_merged_commit).tree.oid
-        new_tree_oid = target_tree.oid
-        return if old_tree_oid == new_tree_oid
+        if target_parents.map(&:oid).include? last_merged_commit
+
+          old_tree_oid = repo.lookup(last_merged_commit).tree.oid
+          new_tree_oid = target_tree.oid
+          if old_tree_oid == new_tree_oid
+            return if target_parents.any? do |target|
+              next unless target.oid == last_merged_commit
+
+              target_parents.all? do |it|
+                target == it || repo.descendant_of?(target, it)
+              end
+            end
+          end
+        end
       end
 
       # Commit has multiple mapped parents or is non-empty: We should
