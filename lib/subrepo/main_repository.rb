@@ -8,7 +8,10 @@ module Subrepo
     attr_reader :repo
 
     def initialize
-      @repo = Rugged::Repository.new(".")
+      @repo = Rugged::Repository.discover(".").tap do |it|
+        File.expand_path(it.workdir) == Dir.pwd or
+          raise "Need to run subrepo command from top level directory of the repo."
+      end
     end
 
     def subrepos(recursive: false)
