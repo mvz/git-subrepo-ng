@@ -25,6 +25,15 @@ Feature: Commiting merge conflict resolutions in a subrepo
     And I push the subrepo
     Then the subrepo and the remote should have the same contents
 
+  Scenario: Resolving conflicting update from the remote with remote content
+    Given I have updated and committed "a_file" in the remote
+    And I have updated and committed "a_file" in the subrepo
+    When I attempt to pull the subrepo
+    And I resolve the merge conflict with remote content
+    And I finalize the pull using the subrepo commit subcommand
+    And I push the subrepo
+    Then the subrepo and the remote should have the same contents
+
   Scenario: Attempting commit without an available merge commit
     Given I have updated and committed "a_file" in the remote
     And I have updated and committed "a_file" in the subrepo
