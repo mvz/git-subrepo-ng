@@ -339,17 +339,15 @@ module Subrepo
       if parents.empty?
         return if rewritten_tree.entries.empty?
       else
-        # TODO: Compare tree oids directly instead of doing a full diff
-        # should be faster.
-        diffs = parents.map do |parent|
-          rewritten_parent_tree = calculate_subtree(parent)
-          rewritten_parent_tree.diff rewritten_tree
+        rewritten_parent_trees = parents.map do |parent|
+          calculate_subtree(parent)
         end
 
         first_target_parent = target_parents.first
 
-        # If there is only one target parent, and at least one of the original
-        # diffs is empty, then this would become an empty commit.
+        # If there is only one target parent, and at least one of the orignal
+        # parents has the same subtree as the current commit, then this would
+        # become an empty commit.
         #
         # If the rewritten_tree is identical to the single target parent tree,
         # this would also become an empty commit.
@@ -357,7 +355,8 @@ module Subrepo
         # In both of these cases, map this commit to the target parent and
         # skip to the next commit.
         if target_parents.one? &&
-            (diffs.any?(&:none?) || rewritten_tree.oid == first_target_parent.tree.oid)
+            (rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid } ||
+             rewritten_tree.oid == first_target_parent.tree.oid)
           commit_map[commit.oid] ||= first_target_parent.oid
           return
         end
@@ -375,7 +374,7 @@ module Subrepo
         # * | Add bar/other_file in repo foo
         # |/
         # * Add bar/a_file in repo foo
-        if diffs.first.none?
+        if first_target_parent && first_target_parent.tree.oid == rewritten_tree.oid
           other_target_parents = target_parents[1..-1]
           if other_target_parents.all? { |it| repo.descendant_of? first_target_parent, it }
             commit_map[commit.oid] ||= first_target_parent.oid
@@ -384,13 +383,14 @@ module Subrepo
         end
 
         if first_target_parent
-          rewritten_patch = diffs.first.patch
+          first_rewritten_diff = rewritten_parent_trees.first.diff rewritten_tree
+          rewritten_patch = first_rewritten_diff.patch
           target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
           if rewritten_patch != target_patch
             worktree_repo = Rugged::Repository.new(worktree_name)
             index = worktree_repo.index
             index.read_tree(first_target_parent.tree)
-            worktree_repo.apply diffs.first, location: :index
+            worktree_repo.apply first_rewritten_diff, location: :index
             target_tree = worktree_repo.lookup index.write_tree(worktree_repo)
           end
         end
