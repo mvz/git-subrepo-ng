@@ -197,10 +197,8 @@ module Subrepo
 
       raise "You can't clone into an empty repository" if repo.empty?
 
-      unless force
-        last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
-        last_subdir_commit.empty? or
-          raise "The subdir '#{subdir}' is already part of this repo."
+      if !force && File.exist?(subdir)
+        Dir.empty? subdir or raise "The subdir '#{subdir}' exists and is not empty."
       end
 
       subrepo = sub_repository(subdir)
