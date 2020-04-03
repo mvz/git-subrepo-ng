@@ -5,13 +5,12 @@ require "rugged"
 module Subrepo
   # Main repository, possibly containing subrepo's
   class MainRepository
+    include Commands
+
     attr_reader :repo
 
     def initialize
-      @repo = Rugged::Repository.discover(".").tap do |it|
-        File.expand_path(it.workdir) == Dir.pwd or
-          raise "Need to run subrepo command from top level directory of the repo."
-      end
+      @repo = Rugged::Repository.discover(".")
     end
 
     def subrepos(recursive: false)
@@ -26,6 +25,13 @@ module Subrepo
         subrepos << path
       end
       subrepos.map(&:chop)
+    end
+
+    def check_conditions
+      run_command("git rev-parse --is-inside-work-tree").chomp == "true" or
+        raise "Can't run subrepo command outside a working tree."
+      File.expand_path(repo.workdir) == Dir.pwd or
+        raise "Need to run subrepo command from top level directory of the repo."
     end
   end
 end

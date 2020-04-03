@@ -18,6 +18,7 @@ module Subrepo
 
     def initialize(output: NullOutput.new)
       @output = output
+      main_repository.check_conditions
     end
 
     def run_status(recursive: false)

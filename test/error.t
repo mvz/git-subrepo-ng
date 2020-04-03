@@ -120,7 +120,7 @@ clone-foo-and-bar
       cd .git
       catch git subrepo status
     )" \
-    "error: Can't 'subrepo status' outside a working tree." \
+    "error: Can't run subrepo command outside a working tree." \
     "Error OK: check inside working tree"
 }
 
