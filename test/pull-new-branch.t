@@ -28,10 +28,14 @@ gitrepo=$OWNER/foo/bar/.gitrepo
   test-gitrepo-field cmdver "$VERSION"
 }
 
-(
-  cd "$OWNER/foo"
-  git subrepo pull bar -b branch1 -u
-) &> /dev/null || die
+{
+  is "$(
+    cd $OWNER/foo
+    git subrepo pull bar -b branch1 -u
+  )" \
+    "Subrepo 'bar' pulled from '../../../tmp/upstream/bar' (branch1)." \
+    'subrepo pull commits config even when we dont need to pull'
+}
 
 {
   foo_pull_commit=$(cd "$OWNER/foo"; git rev-parse HEAD^)

@@ -123,13 +123,13 @@ module Subrepo
       config.branch = branch if update
 
       last_fetched_commit = subrepo.perform_fetch(remote, branch)
-      if last_fetched_commit == last_merged_commit
+      if !update && (last_fetched_commit == last_merged_commit)
         puts "Subrepo '#{subdir}' is up to date."
       else
         subrepo.merge_subrepo_commits_into_main_repo(squash: squash,
                                                      message: message,
                                                      edit: edit)
-        puts "Subrepo '#{subdir}' pulled from '#{remote}' (master)."
+        puts "Subrepo '#{subdir}' pulled from '#{remote}' (#{branch})."
       end
     end
 
