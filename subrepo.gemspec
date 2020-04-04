@@ -27,8 +27,8 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency("gli", "~> 2.5")
-  spec.add_runtime_dependency "rugged", "~> 0.99.0"
+  spec.add_runtime_dependency "gli", "~> 2.5"
+  spec.add_runtime_dependency "rugged", "~> 1.0"
 
   spec.add_development_dependency "aruba", "~> 1.0.0"
   spec.add_development_dependency "pry", "~> 0.13.0"
