@@ -28,6 +28,7 @@ module Subrepo
     end
 
     def check_ready
+      repo.head_detached? and raise "Must be on a branch to run this command."
       run_command("git rev-parse --is-inside-work-tree").chomp == "true" or
         raise "Can't run subrepo command outside a working tree."
       File.expand_path(repo.workdir) == Dir.pwd or
