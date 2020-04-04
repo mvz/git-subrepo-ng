@@ -204,7 +204,7 @@ module Subrepo
     def run_clone(remote, subdir = nil, branch: nil, method: nil, force: false)
       main_repository.check_clean
 
-      subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
+      subdir ||= guess_subdir_from_remote(remote)
       branch ||= "master"
       method ||= "merge"
 
@@ -269,6 +269,12 @@ module Subrepo
 
     def repo
       @repo ||= main_repository.repo
+    end
+
+    def guess_subdir_from_remote(remote)
+      guess = remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
+      raise "Can't determine subdir from '#{remote}'." if guess.empty?
+      guess
     end
   end
 end
