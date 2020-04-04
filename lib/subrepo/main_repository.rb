@@ -27,11 +27,16 @@ module Subrepo
       subrepos.map(&:chop)
     end
 
-    def check_conditions
+    def check_ready
       run_command("git rev-parse --is-inside-work-tree").chomp == "true" or
         raise "Can't run subrepo command outside a working tree."
       File.expand_path(repo.workdir) == Dir.pwd or
         raise "Need to run subrepo command from top level directory of the repo."
+    end
+
+    def check_clean
+      run_command("git status --porcelain") == "" or
+        raise "Ensure your working tree is clean before running subrepo command."
     end
   end
 end

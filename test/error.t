@@ -131,7 +131,7 @@ clone-foo-and-bar
       git add me
       catch git subrepo clone ../../../$UPSTREAM/foo
     )" \
-    "error: Can't clone subrepo. Working tree has changes." \
+    "error: Ensure your working tree is clean before running subrepo command." \
     "Error OK: check no working tree changes"
   (
     cd $OWNER/bar

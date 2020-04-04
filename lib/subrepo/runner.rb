@@ -18,7 +18,7 @@ module Subrepo
 
     def initialize(output: NullOutput.new)
       @output = output
-      main_repository.check_conditions
+      main_repository.check_ready
     end
 
     def run_status(recursive: false)
@@ -62,6 +62,8 @@ module Subrepo
     end
 
     def run_commit(subdir, squash:, message:, edit:)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
 
       subrepo.commit_subrepo_commits_into_main_repo(squash: squash,
@@ -71,6 +73,8 @@ module Subrepo
     end
 
     def run_init(subdir, remote: nil, branch: nil, method: nil)
+      main_repository.check_clean
+
       branch ||= "master"
       remote ||= "none"
       method ||= "merge"
@@ -107,6 +111,8 @@ module Subrepo
 
     def run_pull(subdir, squash:, remote: nil, branch: nil, message: nil,
                  edit: false, update: false)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
 
       config = subrepo.config
@@ -129,6 +135,8 @@ module Subrepo
     end
 
     def run_push(subdir, remote: nil, branch: nil, force: false, squash: false)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
       config = subrepo.config
 
@@ -184,6 +192,8 @@ module Subrepo
     end
 
     def run_branch(subdir)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
       subrepo.make_subrepo_branch_for_local_commits
 
@@ -192,6 +202,8 @@ module Subrepo
     end
 
     def run_clone(remote, subdir = nil, branch: nil, method: nil, force: false)
+      main_repository.check_clean
+
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
       method ||= "merge"
