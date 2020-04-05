@@ -50,7 +50,7 @@ module Subrepo
         runner.run_pull_all(**options.slice(:squash))
       else
         runner
-          .run_pull(args.shift,
+          .run_pull(args[0],
                     **options.slice(:squash, :remote, :branch, :message, :edit, :update))
       end
     end
