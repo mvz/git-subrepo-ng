@@ -34,6 +34,10 @@ module Subrepo
       setup_config_command
 
       setup_commit_command
+
+      on_error do |ex|
+        output_error_message(ex)
+      end
     end
 
     def setup_init_command
