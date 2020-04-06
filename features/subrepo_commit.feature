@@ -15,6 +15,7 @@ Feature: Commiting merge conflict resolutions in a subrepo
     And I finalize the pull using the subrepo commit subcommand
     And I push the subrepo
     Then the subrepo and the remote should have the same contents
+    And the subrepo branch has been removed
 
   Scenario: Resolving conflicting update from the remote with local content
     Given I have updated and committed "a_file" in the remote
@@ -47,3 +48,11 @@ Feature: Commiting merge conflict resolutions in a subrepo
     When I attempt to pull the subrepo
     And I attempt to commit without resolving the conflict
     Then I see that I need to resolve the conflict first
+
+  Scenario: Commit cleans up subdir branch
+    Given I have updated and committed "a_file" in the remote
+    And I have updated and committed "a_file" in the subrepo
+    When I attempt to pull the subrepo
+    And I resolve the merge conflict with merged content
+    And I finalize the pull using the subrepo commit subcommand
+    Then the subrepo branch has been removed

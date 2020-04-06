@@ -32,6 +32,7 @@ Feature: Pulling a subrepo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
       """
+    And the subrepo branch has been removed
 
   Scenario: Pulling with squashing after committing to the main repo
     When I add a new commit to the remote

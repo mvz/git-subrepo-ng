@@ -14,6 +14,7 @@ Feature: Pushing a subrepo
       * Add bar/a_file in repo foo
       """
     And the subrepo configuration should contain the latest commit and parent
+    And the subrepo branch has been removed
 
   Scenario: Pushing again to an existing subrepo
     When I push the subrepo "bar"
