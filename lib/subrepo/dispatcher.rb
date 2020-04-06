@@ -20,6 +20,7 @@ module Subrepo
       if options[:all]
         runner.run_branch_all
       else
+        args[0] or raise "Command 'branch' requires arg 'subdir'."
         runner.run_branch(args[0])
       end
     end
@@ -49,6 +50,7 @@ module Subrepo
       if options[:all]
         runner.run_pull_all(**options.slice(:squash))
       else
+        args[0] or raise "Command 'pull' requires arg 'subdir'."
         runner
           .run_pull(args[0],
                     **options.slice(:squash, :remote, :branch, :message, :edit, :update))
