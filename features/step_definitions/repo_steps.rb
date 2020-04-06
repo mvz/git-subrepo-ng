@@ -198,3 +198,8 @@ end
 Then "I see that no existing merge commit is available" do
   expect(@error.to_s).to match(/No valid existing merge commit found/)
 end
+
+Then "the subrepo branch has been removed" do
+  repo = Rugged::Repository.new expand_path(@main_repo)
+  expect(repo.branches.map(&:name)).to eq ["master"]
+end

@@ -66,6 +66,7 @@ module Subrepo
       subrepo.commit_subrepo_commits_into_main_repo(squash: squash,
                                                     message: message,
                                                     edit: edit)
+      subrepo.remove_local_commits_branch
     end
 
     def run_init(subdir, remote: nil, branch: nil, method: nil)
@@ -121,6 +122,7 @@ module Subrepo
         subrepo.merge_subrepo_commits_into_main_repo(squash: squash,
                                                      message: message,
                                                      edit: edit)
+        subrepo.remove_local_commits_branch
         puts "Subrepo '#{subdir}' pulled from '#{remote}' (#{branch})."
       end
     end
@@ -171,6 +173,7 @@ module Subrepo
       run_command "git add -f -- \"#{config.file_name}\""
       run_command "git commit -q -m #{message.inspect}"
 
+      subrepo.remove_local_commits_branch
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
     end
 
