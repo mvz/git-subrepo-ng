@@ -50,7 +50,7 @@ clone-foo-and-bar
 {
   is "$(
       cd $OWNER/bar
-      catch git subrepo pull --update
+      catch git subrepo pull foo --update
     )" \
     "error: Can't use '--update' without '--branch' or '--remote'." \
     "Error OK: --update requires --branch or --remote options"
