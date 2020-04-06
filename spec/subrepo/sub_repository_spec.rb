@@ -3,6 +3,13 @@
 RSpec.describe Subrepo::SubRepository do
   let(:main) { Subrepo::MainRepository.new }
 
+  describe "#initialize" do
+    it "does not accept absolute paths" do
+      expect { described_class.new(main, "/foo/bar") }
+        .to raise_error /relative path/
+    end
+  end
+
   describe "#split_branch_name" do
     it "replaces initial dot in the subdir" do
       subrepo = described_class.new(main, ".foo")
@@ -45,7 +52,7 @@ RSpec.describe Subrepo::SubRepository do
     end
 
     it "condenses extra slashes" do
-      subrepo = described_class.new(main, "/foo//bar/")
+      subrepo = described_class.new(main, "foo//bar/")
       expect(subrepo.split_branch_name).to eq "subrepo/foo/bar"
     end
 

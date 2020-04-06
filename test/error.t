@@ -58,7 +58,7 @@ clone-foo-and-bar
       cd $OWNER/bar
       catch git subrepo pull /home/user/bar/foo
     )" \
-    "error: The subdir '.*/home/user/bar/foo' should not be absolute path." \
+    "error: Expected subdir to be a relative path, got '.*/home/user/bar/foo'." \
     "Error OK: check subdir is not absolute path"
 }
 
