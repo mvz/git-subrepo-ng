@@ -30,9 +30,6 @@ module Subrepo
     end
 
     def run_config(subdir, option:, value:, force: false)
-      subdir or raise "Command 'config' requires arg 'subdir'."
-      option or raise "Command 'config' requires arg 'option'."
-
       subrepo = sub_repository(subdir)
       config = subrepo.config
       if value
@@ -49,8 +46,6 @@ module Subrepo
     end
 
     def run_fetch(subdir, remote: nil)
-      subdir or raise "Command 'fetch' requires arg 'subdir'."
-
       subrepo = sub_repository(subdir)
       config = subrepo.config
       remote ||= config.remote
@@ -66,7 +61,6 @@ module Subrepo
     end
 
     def run_commit(subdir, squash:, message:, edit:)
-      subdir or raise "Command 'commit' requires arg 'subdir'."
       subrepo = sub_repository(subdir)
 
       subrepo.commit_subrepo_commits_into_main_repo(squash: squash,
@@ -78,7 +72,6 @@ module Subrepo
       branch ||= "master"
       remote ||= "none"
       method ||= "merge"
-      subdir or raise "Command 'init' requires arg 'subdir'."
 
       subrepo = sub_repository(subdir)
 
@@ -112,7 +105,6 @@ module Subrepo
 
     def run_pull(subdir, squash:, remote: nil, branch: nil, message: nil,
                  edit: false, update: false)
-      subdir or raise "Command 'pull' requires arg 'subdir'."
       subrepo = sub_repository(subdir)
 
       config = subrepo.config
@@ -134,8 +126,6 @@ module Subrepo
     end
 
     def run_push(subdir, remote: nil, branch: nil, force: false, squash: false)
-      subdir or raise "Command 'push' requires arg 'subdir'."
-
       subrepo = sub_repository(subdir)
       config = subrepo.config
 
@@ -189,8 +179,6 @@ module Subrepo
     end
 
     def run_branch(subdir)
-      subdir or raise "Command 'branch' requires arg 'subdir'."
-
       subrepo = sub_repository(subdir)
       subrepo.make_subrepo_branch_for_local_commits
 
@@ -199,7 +187,6 @@ module Subrepo
     end
 
     def run_clone(remote, subdir = nil, branch: nil, method: nil, force: false)
-      remote or raise "Command 'clone' requires arg 'remote'."
       subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       branch ||= "master"
       method ||= "merge"
@@ -245,7 +232,6 @@ module Subrepo
     end
 
     def run_clean(subdir, force: false)
-      subdir or raise "Command 'clean' requires arg 'subdir'."
       subrepo = sub_repository(subdir)
       subrepo.remove_local_commits_branch
       subrepo.remove_fetch_ref if force

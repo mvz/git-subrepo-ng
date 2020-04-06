@@ -50,7 +50,7 @@ module Subrepo
     def setup_clone_command
       desc "Clone a subrepo"
       arg :remote
-      arg :dir
+      arg :dir, :optional
       command :clone do |cmd|
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
@@ -61,7 +61,7 @@ module Subrepo
 
     def setup_branch_command
       desc "Create a branch containing the local subrepo commits"
-      arg :dir
+      arg :dir, :optional
       command :branch do |cmd|
         cmd.switch :all, default_value: false
         cmd.switch :fetch, default_value: false
@@ -80,7 +80,7 @@ module Subrepo
 
     def setup_pull_command
       desc "Pull upstream changes into a subrepo"
-      arg :dir
+      arg :dir, :optional
       command :pull do |cmd|
         cmd.switch :squash, default_value: true
         cmd.flag [:branch, :b], arg_name: "branch"
@@ -129,7 +129,11 @@ module Subrepo
 
     def setup_config_command
       desc "Config"
+      arg :dir
+      arg :option
+      arg :value, :optional
       command :config do |cmd|
+        cmd.switch :force, default_value: false
         setup_action(cmd, :run_config_command)
       end
     end
@@ -145,7 +149,22 @@ module Subrepo
 
     def setup_action(cmd, runner_method)
       cmd.action do |global_options, options, args|
-        Dispatcher.new(global_options, options, args).send runner_method
+        params = []
+        cmd.arguments.each do |arg|
+          if args.any?
+            if arg.multiple?
+              params += args
+              args.clear
+            else
+              params << args.shift
+            end
+          else
+            arg.optional? or raise "Command '#{cmd.name}' requires arg '#{arg.name}'."
+          end
+        end
+        args.empty? or
+          raise "Unknown argument(s) '#{args.join(" ")}' for '#{cmd.name}' command."
+        Dispatcher.new(global_options, options, params).send runner_method
       end
     end
   end
