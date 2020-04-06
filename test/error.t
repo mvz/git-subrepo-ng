@@ -30,25 +30,37 @@ clone-foo-and-bar
 }
 
 {
-  like "$(catch git subrepo clone --foo)" \
+  like "$(
+      cd $OWNER/bar
+      catch git subrepo clone --foo
+    )" \
     "error: Unknown option --foo" \
     "Error OK: unknown command option"
 }
 
 {
-  is "$(catch git subrepo main 1 2 3)" \
+  is "$(
+      cd $OWNER/bar
+      catch git subrepo main 1 2 3
+    )" \
     "error: Unknown command 'main'" \
     "Error OK: unknown command"
 }
 
 {
-  is "$(catch git subrepo pull --update)" \
+  is "$(
+      cd $OWNER/bar
+      catch git subrepo pull --update
+    )" \
     "error: Can't use '--update' without '--branch' or '--remote'." \
     "Error OK: --update requires --branch or --remote options"
 }
 
 {
-  is "$(catch git subrepo clone --all)" \
+  is "$(
+      cd $OWNER/bar
+      catch git subrepo clone --all
+    )" \
     "error: Unknown option --all" \
     "Error OK: Invalid option '--all' for 'clone'"
 }
@@ -117,6 +129,7 @@ clone-foo-and-bar
 
 {
   is "$(
+      cd $OWNER/bar
       cd .git
       catch git subrepo status
     )" \
@@ -141,7 +154,8 @@ clone-foo-and-bar
 
 {
   is "$(
-      cd lib
+      cd $OWNER/bar
+      cd foo
       catch git subrepo status
     )" \
     "error: Need to run subrepo command from top level directory of the repo." \
