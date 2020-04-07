@@ -34,11 +34,15 @@ module Subrepo
       setup_config_command
 
       setup_commit_command
+
+      on_error do |ex|
+        output_error_message(ex)
+      end
     end
 
     def setup_init_command
       desc "Initialize a subrepo"
-      arg :dir
+      arg :subdir
       command :init do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
@@ -50,7 +54,7 @@ module Subrepo
     def setup_clone_command
       desc "Clone a subrepo"
       arg :remote
-      arg :dir, :optional
+      arg :subdir, :optional
       command :clone do |cmd|
         cmd.flag [:branch, :b], arg_name: "branch"
         cmd.flag [:method, :M]
@@ -61,17 +65,18 @@ module Subrepo
 
     def setup_branch_command
       desc "Create a branch containing the local subrepo commits"
-      arg :dir, :optional
+      arg :subdir, :optional
       command :branch do |cmd|
         cmd.switch :all, default_value: false
         cmd.switch :fetch, default_value: false
+        cmd.switch :force, default_value: false
         setup_action(cmd, :run_branch_command)
       end
     end
 
     def setup_fetch_command
       desc "Fetch latest commits from a subrepo's remote"
-      arg :dir
+      arg :subdir
       command :fetch do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         setup_action(cmd, :run_fetch_command)
@@ -80,7 +85,7 @@ module Subrepo
 
     def setup_pull_command
       desc "Pull upstream changes into a subrepo"
-      arg :dir, :optional
+      arg :subdir, :optional
       command :pull do |cmd|
         cmd.switch :squash, default_value: true
         cmd.flag [:branch, :b], arg_name: "branch"
@@ -95,7 +100,7 @@ module Subrepo
 
     def setup_push_command
       desc "Push latest changes to a subrepo to its remote"
-      arg :dir
+      arg :subdir
       command :push do |cmd|
         cmd.flag [:remote, :r], arg_name: "url"
         cmd.flag [:branch, :b], arg_name: "branch"
@@ -109,7 +114,7 @@ module Subrepo
 
     def setup_commit_command
       desc "commit"
-      arg :dir
+      arg :subdir
       command :commit do |cmd|
         cmd.flag [:message, :m], arg_name: "message"
         cmd.switch :squash, default_value: true
@@ -129,7 +134,7 @@ module Subrepo
 
     def setup_config_command
       desc "Config"
-      arg :dir
+      arg :subdir
       arg :option
       arg :value, :optional
       command :config do |cmd|
@@ -140,7 +145,7 @@ module Subrepo
 
     def setup_clean_command
       desc "Clean subrepo stuff"
-      arg :dir
+      arg :subdir
       command :clean do |cmd|
         cmd.switch :force, default_value: false
         setup_action(cmd, :run_clean_command)

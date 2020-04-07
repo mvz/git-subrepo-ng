@@ -3,6 +3,7 @@
 require "rugged"
 require "tempfile"
 require "fileutils"
+require "shellwords"
 
 module Subrepo
   # SubRepository, represents a subrepo
@@ -12,14 +13,17 @@ module Subrepo
 
     def initialize(main_repository, subdir)
       @main_repository = main_repository
+      if Pathname.new(subdir).absolute?
+        raise ArgumentError, "Expected subdir to be a relative path, got '#{subdir}'."
+      end
       @subdir = subdir
     end
 
     def perform_fetch(remote, branch)
-      remote_commit = `git ls-remote --no-tags \"#{remote}\" \"#{branch}\"`
+      remote_commit = run_command "git ls-remote --no-tags #{remote.shellescape} #{branch}"
       return false if remote_commit.empty?
 
-      run_command "git fetch -q --no-tags \"#{remote}\" \"#{branch}\""
+      run_command "git fetch -q --no-tags #{remote.shellescape} #{branch}"
       new_commit = `git rev-parse FETCH_HEAD`.chomp
 
       run_command "git update-ref #{fetch_ref} #{new_commit}"
@@ -168,13 +172,13 @@ module Subrepo
       end
 
       config.commit = last_fetched_commit
-      run_command "git add -- \"#{config_name}\""
+      run_command "git add -- #{config_name.shellescape}"
 
       message ||=
         "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
-        "merged:   \\\"#{last_fetched_commit}\\\""
+        "merged:   \"#{last_fetched_commit}\""
 
-      command = "git commit -q -m \"#{message}\" --amend"
+      command = "git commit -q -m #{message.shellescape} --amend"
       if edit
         run_command "#{command} --edit"
       else
@@ -191,8 +195,12 @@ module Subrepo
       end
     end
 
+    def split_branch_exists?
+      repo.branches.exist? split_branch_name
+    end
+
     def create_split_branch_if_needed
-      return if repo.branches.exist? split_branch_name
+      return if split_branch_exists?
 
       branch_commit = last_merged_commit || repo.head.target_id
       repo.branches.create split_branch_name, branch_commit
@@ -235,7 +243,8 @@ module Subrepo
     def create_worktree_if_needed
       return if worktree_exists?
 
-      run_command "git worktree add \"#{worktree_name}\" \"#{split_branch_name}\""
+      run_command "git worktree add #{worktree_name.shellescape}" \
+        " #{split_branch_name.shellescape}"
     end
 
     def remove_worktree_if_needed

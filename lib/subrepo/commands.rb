@@ -8,9 +8,13 @@ module Subrepo
     module_function
 
     def run_command(command)
-      _out, err, status = Open3.capture3 command
-      status == 0 or
-        raise "Command failed: #{command}\nreason: #{err}"
+      out, err, status = Open3.capture3 command
+      if status != 0
+        message = "Command failed: '#{command}'."
+        message += "\nreason: #{err}" if $DEBUG
+        raise message
+      end
+      out
     end
   end
 end

@@ -75,7 +75,11 @@ module Subrepo
     private
 
     def config
-      @config ||= Rugged::Config.new file_name
+      @config ||=
+        begin
+          File.exist? file_name or raise "No '#{file_name}' file."
+          Rugged::Config.new file_name
+        end
     end
   end
 end

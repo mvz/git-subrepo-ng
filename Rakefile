@@ -30,6 +30,7 @@ namespace :compat do
       clone-annotated-tag
       config
       encode
+      error
       fetch
       gitignore
       init

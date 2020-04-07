@@ -18,6 +18,7 @@ module Subrepo
 
     def initialize(output: NullOutput.new)
       @output = output
+      main_repository.check_ready
     end
 
     def run_status(recursive: false)
@@ -61,6 +62,8 @@ module Subrepo
     end
 
     def run_commit(subdir, squash:, message:, edit:)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
 
       subrepo.commit_subrepo_commits_into_main_repo(squash: squash,
@@ -70,6 +73,8 @@ module Subrepo
     end
 
     def run_init(subdir, remote: nil, branch: nil, method: nil)
+      main_repository.check_clean
+
       branch ||= "master"
       remote ||= "none"
       method ||= "merge"
@@ -106,6 +111,8 @@ module Subrepo
 
     def run_pull(subdir, squash:, remote: nil, branch: nil, message: nil,
                  edit: false, update: false)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
 
       config = subrepo.config
@@ -128,6 +135,8 @@ module Subrepo
     end
 
     def run_push(subdir, remote: nil, branch: nil, force: false, squash: false)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
       config = subrepo.config
 
@@ -159,9 +168,10 @@ module Subrepo
 
       split_branch_name = subrepo.split_branch_name
       if force
-        run_command "git push -q --force \"#{remote}\" #{split_branch_name}:#{branch}"
+        run_command "git push -q --force #{remote.shellescape}" \
+          " #{split_branch_name}:#{branch}"
       else
-        run_command "git push -q \"#{remote}\" #{split_branch_name}:#{branch}"
+        run_command "git push -q #{remote.shellescape} #{split_branch_name}:#{branch}"
       end
 
       pushed_commit = repo.branches[split_branch_name].target.oid
@@ -170,8 +180,8 @@ module Subrepo
       config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
-      run_command "git add -f -- \"#{config.file_name}\""
-      run_command "git commit -q -m #{message.inspect}"
+      run_command "git add -f -- #{config.file_name.shellescape}"
+      run_command "git commit -q -m #{message.shellescape}"
 
       subrepo.remove_local_commits_branch
       puts "Subrepo '#{subdir}' pushed to '#{remote}' (#{branch})."
@@ -181,8 +191,14 @@ module Subrepo
       main_repository.subrepos.each { |subdir| run_branch subdir }
     end
 
-    def run_branch(subdir)
+    def run_branch(subdir, force: false)
+      main_repository.check_clean
+
       subrepo = sub_repository(subdir)
+      if !force && subrepo.split_branch_exists?
+        raise "Branch '#{subrepo.split_branch_name}' already exists." \
+          " Use '--force' to override."
+      end
       subrepo.make_subrepo_branch_for_local_commits
 
       puts "Created branch '#{subrepo.split_branch_name}'" \
@@ -190,16 +206,16 @@ module Subrepo
     end
 
     def run_clone(remote, subdir = nil, branch: nil, method: nil, force: false)
-      subdir ||= remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
+      main_repository.check_clean
+
+      subdir ||= guess_subdir_from_remote(remote)
       branch ||= "master"
       method ||= "merge"
 
       raise "You can't clone into an empty repository" if repo.empty?
 
-      unless force
-        last_subdir_commit = `git log -n 1 --pretty=format:%H -- "#{subdir}"`.chomp
-        last_subdir_commit.empty? or
-          raise "The subdir '#{subdir}' is already part of this repo."
+      if !force && File.exist?(subdir)
+        Dir.empty? subdir or raise "The subdir '#{subdir}' exists and is not empty."
       end
 
       subrepo = sub_repository(subdir)
@@ -213,9 +229,9 @@ module Subrepo
           puts "Subrepo '#{subdir}' is up to date."
           return
         end
-        run_command "git rm -r \"#{subdir}\""
+        run_command "git rm -r #{subdir.shellescape}"
       end
-      run_command "git read-tree --prefix=\"#{subdir}\" -u \"#{last_fetched_commit}\""
+      run_command "git read-tree --prefix=#{subdir.shellescape} -u #{last_fetched_commit}"
 
       parent_commit = repo.head.target
 
@@ -257,6 +273,12 @@ module Subrepo
 
     def repo
       @repo ||= main_repository.repo
+    end
+
+    def guess_subdir_from_remote(remote)
+      guess = remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
+      raise "Can't determine subdir from '#{remote}'." if guess.empty?
+      guess
     end
   end
 end
