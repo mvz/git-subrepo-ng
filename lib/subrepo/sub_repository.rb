@@ -13,7 +13,7 @@ module Subrepo
 
     def initialize(main_repository, subdir)
       @main_repository = main_repository
-      if File.absolute_path? subdir
+      if Pathname.new(subdir).absolute?
         raise ArgumentError, "Expected subdir to be a relative path, got '#{subdir}'."
       end
       @subdir = subdir
