@@ -16,10 +16,6 @@ namespace :compat do
   end
 
   task :regression do
-    # TODO: Add the following tests
-    #
-    #   error
-    #
     test_names = %w(
       branch
       branch-all
