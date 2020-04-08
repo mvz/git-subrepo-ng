@@ -387,11 +387,7 @@ module Subrepo
           rewritten_patch = first_rewritten_diff.patch
           target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
           if rewritten_patch != target_patch
-            worktree_repo = Rugged::Repository.new(worktree_name)
-            index = worktree_repo.index
-            index.read_tree(first_target_parent.tree)
-            worktree_repo.apply first_rewritten_diff, location: :index
-            target_tree = worktree_repo.lookup index.write_tree(worktree_repo)
+            raise "Different patch detected. This should not happen"
           end
         end
       end
