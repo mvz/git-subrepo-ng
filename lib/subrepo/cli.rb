@@ -168,7 +168,7 @@ module Subrepo
           end
         end
         args.empty? or
-          raise "Unknown argument(s) '#{args.join(" ")}' for '#{cmd.name}' command."
+          raise "Unknown argument(s) '#{args.join(' ')}' for '#{cmd.name}' command."
         Dispatcher.new(global_options, options, params).send runner_method
       end
     end

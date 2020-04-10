@@ -16,6 +16,7 @@ module Subrepo
       if Pathname.new(subdir).absolute?
         raise ArgumentError, "Expected subdir to be a relative path, got '#{subdir}'."
       end
+
       @subdir = subdir
     end
 

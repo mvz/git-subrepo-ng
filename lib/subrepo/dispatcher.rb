@@ -55,6 +55,7 @@ module Subrepo
           options[:branch] or options[:remote] or
             raise "Can't use '--update' without '--branch' or '--remote'."
         end
+
         runner
           .run_pull(args[0],
                     **options.slice(:squash, :remote, :branch, :message, :edit, :update))
