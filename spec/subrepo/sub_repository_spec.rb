@@ -6,7 +6,7 @@ RSpec.describe Subrepo::SubRepository do
   describe "#initialize" do
     it "does not accept absolute paths" do
       expect { described_class.new(main, "/foo/bar") }
-        .to raise_error /relative path/
+        .to raise_error(/relative path/)
     end
   end
 

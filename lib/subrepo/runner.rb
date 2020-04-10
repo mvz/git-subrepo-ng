@@ -278,6 +278,7 @@ module Subrepo
     def guess_subdir_from_remote(remote)
       guess = remote.sub(/\.git$/, "").sub(%r{/$}, "").sub(%r{.*/}, "")
       raise "Can't determine subdir from '#{remote}'." if guess.empty?
+
       guess
     end
   end

@@ -16,6 +16,7 @@ module Subrepo
       if Pathname.new(subdir).absolute?
         raise ArgumentError, "Expected subdir to be a relative path, got '#{subdir}'."
       end
+
       @subdir = subdir
     end
 
@@ -136,33 +137,9 @@ module Subrepo
         run_command "git merge --ff-only #{new_commit_sha}"
         config.parent = last_config_commit
       else
-        walker = Rugged::Walker.new(repo)
-        walker.push split_branch_commit.oid
-        walker.hide split_branch_commit.parents.first.oid
-
         inverse_map = commit_map.invert
 
-        walker.to_a.reverse_each do |commit|
-          parent_oids = commit.parents.map(&:oid)
-          main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
-
-          # Pick the first parent to provide the main tree. This is an
-          # arbitrary choice!
-          main_parent = repo.lookup main_repo_parent_oids.first
-
-          subtree = commit.tree
-          base_tree = main_parent.tree
-          new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
-
-          options = {}
-          options[:tree] = new_tree
-          options[:parents] = main_repo_parent_oids
-          options[:author] = commit.author
-          options[:committer] = commit.committer
-          options[:message] = commit.message
-          new_commit_oid = Rugged::Commit.create(repo, options)
-          inverse_map[commit.oid] = new_commit_oid
-        end
+        reverse_map_commits(inverse_map, split_branch_commit)
 
         rebased_head = inverse_map[last_fetched_commit]
         mapped_merge_commit = inverse_map[split_branch_commit.oid]
@@ -284,21 +261,16 @@ module Subrepo
       target_parents = calculate_target_parents(commit)
       target_tree = calculate_target_tree(commit, target_parents) or return
 
-      # Check if there were relevant changes
+      # Skip trivial subrepo merge commits: Tree does not change
+      # from last merged commit, last merged commit is one of
+      # the parents, and all the other parents are ancestors of
+      # the last merged commit.
       if last_merged_commit
-        if target_parents.map(&:oid).include? last_merged_commit
+        merged_commit_parent = target_parents.find { |it| it.oid == last_merged_commit }
+        if merged_commit_parent && merged_commit_parent.tree.oid == target_tree.oid
+          other_target_parents = target_parents - [merged_commit_parent]
 
-          old_tree_oid = repo.lookup(last_merged_commit).tree.oid
-          new_tree_oid = target_tree.oid
-          if old_tree_oid == new_tree_oid
-            return if target_parents.any? do |target|
-              next unless target.oid == last_merged_commit
-
-              target_parents.all? do |it|
-                target == it || repo.descendant_of?(target, it)
-              end
-            end
-          end
+          return if all_ancestor_of? other_target_parents, merged_commit_parent
         end
       end
 
@@ -313,6 +285,34 @@ module Subrepo
       new_commit_sha = Rugged::Commit.create(repo, options)
       commit_map[commit.oid] = new_commit_sha
       new_commit_sha
+    end
+
+    def reverse_map_commits(inverse_map, split_branch_commit)
+      walker = Rugged::Walker.new(repo)
+      walker.push split_branch_commit.oid
+      walker.hide split_branch_commit.parents.first.oid
+
+      walker.to_a.reverse_each do |commit|
+        parent_oids = commit.parents.map(&:oid)
+        main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
+
+        # Pick the first parent to provide the main tree. This is an
+        # arbitrary choice!
+        main_parent = repo.lookup main_repo_parent_oids.first
+
+        subtree = commit.tree
+        base_tree = main_parent.tree
+        new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
+
+        options = {}
+        options[:tree] = new_tree
+        options[:parents] = main_repo_parent_oids
+        options[:author] = commit.author
+        options[:committer] = commit.committer
+        options[:message] = commit.message
+        new_commit_oid = Rugged::Commit.create(repo, options)
+        inverse_map[commit.oid] = new_commit_oid
+      end
     end
 
     def calculate_target_parents(commit)
@@ -334,64 +334,64 @@ module Subrepo
       parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
-      target_tree = rewritten_tree
-
       if parents.empty?
-        return if rewritten_tree.entries.empty?
-      else
-        rewritten_parent_trees = parents.map do |parent|
-          calculate_subtree(parent)
-        end
+        return rewritten_tree.entries.empty? ? nil : rewritten_tree
+      end
 
-        first_target_parent = target_parents.first
+      rewritten_parent_trees = parents.map do |parent|
+        calculate_subtree(parent)
+      end
 
-        # If there is only one target parent, and at least one of the orignal
-        # parents has the same subtree as the current commit, then this would
-        # become an empty commit.
-        #
-        # If the rewritten_tree is identical to the single target parent tree,
-        # this would also become an empty commit.
-        #
-        # In both of these cases, map this commit to the target parent and
-        # skip to the next commit.
-        if target_parents.one? &&
-            (rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid } ||
-             rewritten_tree.oid == first_target_parent.tree.oid)
+      first_target_parent = target_parents.first
+
+      return rewritten_tree unless first_target_parent
+
+      # If there is only one target parent, and at least one of the orignal
+      # parents has the same subtree as the current commit, then this would
+      # become an empty commit.
+      #
+      # If the rewritten_tree is identical to the single target parent tree,
+      # this would also become an empty commit.
+      #
+      # In both of these cases, map this commit to the target parent and
+      # skip to the next commit.
+      if target_parents.one? &&
+          (rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid } ||
+           rewritten_tree.oid == first_target_parent.tree.oid)
+        commit_map[commit.oid] ||= first_target_parent.oid
+        return
+      end
+
+      # If the commit tree is no different from the first parent, at this
+      # point this can only be a merge that has no effect on the mainline.
+      #
+      # If all of the other target parents are ancestors of the first, we can
+      # skip this commit safely.
+      #
+      # This prevents histories like the following:
+      #
+      # *   Merge branch 'some-branch'
+      # |\
+      # * | Add bar/other_file in repo foo
+      # |/
+      # * Add bar/a_file in repo foo
+      if first_target_parent.tree.oid == rewritten_tree.oid
+        other_target_parents = target_parents[1..-1]
+        if all_ancestor_of? other_target_parents, first_target_parent
           commit_map[commit.oid] ||= first_target_parent.oid
           return
         end
-
-        # If the commit tree is no different from the first parent, at this
-        # point this can only be a merge that has no effect on the mainline.
-        #
-        # If all of the other target parents are ancestors of the first, we can
-        # skip this commit safely.
-        #
-        # This prevents histories like the following:
-        #
-        # *   Merge branch 'some-branch'
-        # |\
-        # * | Add bar/other_file in repo foo
-        # |/
-        # * Add bar/a_file in repo foo
-        if first_target_parent && first_target_parent.tree.oid == rewritten_tree.oid
-          other_target_parents = target_parents[1..-1]
-          if other_target_parents.all? { |it| repo.descendant_of? first_target_parent, it }
-            commit_map[commit.oid] ||= first_target_parent.oid
-            return
-          end
-        end
-
-        if first_target_parent
-          first_rewritten_diff = rewritten_parent_trees.first.diff rewritten_tree
-          rewritten_patch = first_rewritten_diff.patch
-          target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
-          if rewritten_patch != target_patch
-            raise "Different patch detected. This should not happen"
-          end
-        end
       end
-      target_tree
+
+      # Sanity check: rewritten tree has same diff compared to rewritten
+      # original parent and first target parent
+      rewritten_patch = calculate_patch(rewritten_tree, rewritten_parent_trees.first)
+      target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
+      if rewritten_patch != target_patch
+        raise "Different patch detected. This should not happen"
+      end
+
+      rewritten_tree
     end
 
     def config_file_in_tree(tree)
@@ -415,31 +415,31 @@ module Subrepo
         next if previous && current[:oid] == previous[:oid]
 
         config = config_from_blob_oid current[:oid]
-        last_pushed_commit_oid = config["subrepo.parent"] or next
-        last_merged_commit_oid = config["subrepo.commit"]
+        pushed_commit_oid = config["subrepo.parent"] or next
+        merged_commit_oid = config["subrepo.commit"]
 
-        remote_commit_tree = repo.lookup(last_merged_commit_oid).tree
+        remote_commit_tree = repo.lookup(merged_commit_oid).tree
 
         sub_walker = Rugged::Walker.new(repo)
-        sub_walker.push last_pushed_commit_oid
+        sub_walker.push pushed_commit_oid
         commit_map.each_key { |oid| sub_walker.hide oid }
 
         sub_walker.to_a.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           if sub_commit_tree.oid == remote_commit_tree.oid
-            commit_map[sub_commit.oid] = last_merged_commit_oid
+            commit_map[sub_commit.oid] = merged_commit_oid
           end
         end
 
-        last_pushed_commit = repo.lookup last_pushed_commit_oid
+        last_pushed_commit = repo.lookup pushed_commit_oid
         last_pushed_commit_tree = calculate_subtree(last_pushed_commit)
         if last_pushed_commit_tree.oid == remote_commit_tree.oid
-          commit_map[last_pushed_commit_oid] = last_merged_commit_oid
+          commit_map[pushed_commit_oid] = merged_commit_oid
         end
 
         # FIXME: Only valid if current commit contains no other changes in
         # subrepo.
-        commit_map[commit.oid] = last_merged_commit_oid
+        commit_map[commit.oid] = merged_commit_oid
       end
       commit_map
     end
@@ -492,6 +492,10 @@ module Subrepo
 
       items.each { |it| builder << it }
       builder.write
+    end
+
+    def all_ancestor_of?(ancestors, descendant)
+      ancestors.all? { |ancestor| repo.descendant_of? descendant, ancestor }
     end
 
     def subdir_parts
