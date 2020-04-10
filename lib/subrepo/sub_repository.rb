@@ -261,7 +261,10 @@ module Subrepo
       target_parents = calculate_target_parents(commit)
       target_tree = calculate_target_tree(commit, target_parents) or return
 
-      # Check if there were relevant changes
+      # Skip trivial subrepo merge commits: Tree does not change
+      # from last merged commit, last merged commit is one of
+      # the parents, and all the other parents are ancestors of
+      # the last merged commit.
       if last_merged_commit
         merged_commit_parent = target_parents.find { |it| it.oid == last_merged_commit }
         if merged_commit_parent && merged_commit_parent.tree.oid == target_tree.oid
