@@ -416,31 +416,31 @@ module Subrepo
         next if previous && current[:oid] == previous[:oid]
 
         config = config_from_blob_oid current[:oid]
-        last_pushed_commit_oid = config["subrepo.parent"] or next
-        last_merged_commit_oid = config["subrepo.commit"]
+        pushed_commit_oid = config["subrepo.parent"] or next
+        merged_commit_oid = config["subrepo.commit"]
 
-        remote_commit_tree = repo.lookup(last_merged_commit_oid).tree
+        remote_commit_tree = repo.lookup(merged_commit_oid).tree
 
         sub_walker = Rugged::Walker.new(repo)
-        sub_walker.push last_pushed_commit_oid
+        sub_walker.push pushed_commit_oid
         commit_map.each_key { |oid| sub_walker.hide oid }
 
         sub_walker.to_a.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           if sub_commit_tree.oid == remote_commit_tree.oid
-            commit_map[sub_commit.oid] = last_merged_commit_oid
+            commit_map[sub_commit.oid] = merged_commit_oid
           end
         end
 
-        last_pushed_commit = repo.lookup last_pushed_commit_oid
+        last_pushed_commit = repo.lookup pushed_commit_oid
         last_pushed_commit_tree = calculate_subtree(last_pushed_commit)
         if last_pushed_commit_tree.oid == remote_commit_tree.oid
-          commit_map[last_pushed_commit_oid] = last_merged_commit_oid
+          commit_map[pushed_commit_oid] = merged_commit_oid
         end
 
         # FIXME: Only valid if current commit contains no other changes in
         # subrepo.
-        commit_map[commit.oid] = last_merged_commit_oid
+        commit_map[commit.oid] = merged_commit_oid
       end
       commit_map
     end
