@@ -270,9 +270,7 @@ module Subrepo
         if merged_commit_parent && merged_commit_parent.tree.oid == target_tree.oid
           other_target_parents = target_parents - [merged_commit_parent]
 
-          return if other_target_parents.all? do |it|
-            repo.descendant_of?(merged_commit_parent, it)
-          end
+          return if all_ancestor_of? other_target_parents, merged_commit_parent
         end
       end
 
@@ -378,7 +376,7 @@ module Subrepo
         # * Add bar/a_file in repo foo
         if first_target_parent && first_target_parent.tree.oid == rewritten_tree.oid
           other_target_parents = target_parents[1..-1]
-          if other_target_parents.all? { |it| repo.descendant_of? first_target_parent, it }
+          if all_ancestor_of? other_target_parents, first_target_parent
             commit_map[commit.oid] ||= first_target_parent.oid
             return
           end
@@ -494,6 +492,10 @@ module Subrepo
 
       items.each { |it| builder << it }
       builder.write
+    end
+
+    def all_ancestor_of?(ancestors, descendant)
+      ancestors.all? { |ancestor| repo.descendant_of? descendant, ancestor }
     end
 
     def subdir_parts
