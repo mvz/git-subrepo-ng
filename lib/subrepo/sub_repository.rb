@@ -137,33 +137,9 @@ module Subrepo
         run_command "git merge --ff-only #{new_commit_sha}"
         config.parent = last_config_commit
       else
-        walker = Rugged::Walker.new(repo)
-        walker.push split_branch_commit.oid
-        walker.hide split_branch_commit.parents.first.oid
-
         inverse_map = commit_map.invert
 
-        walker.to_a.reverse_each do |commit|
-          parent_oids = commit.parents.map(&:oid)
-          main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
-
-          # Pick the first parent to provide the main tree. This is an
-          # arbitrary choice!
-          main_parent = repo.lookup main_repo_parent_oids.first
-
-          subtree = commit.tree
-          base_tree = main_parent.tree
-          new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
-
-          options = {}
-          options[:tree] = new_tree
-          options[:parents] = main_repo_parent_oids
-          options[:author] = commit.author
-          options[:committer] = commit.committer
-          options[:message] = commit.message
-          new_commit_oid = Rugged::Commit.create(repo, options)
-          inverse_map[commit.oid] = new_commit_oid
-        end
+        reverse_map_commits(inverse_map, split_branch_commit)
 
         rebased_head = inverse_map[last_fetched_commit]
         mapped_merge_commit = inverse_map[split_branch_commit.oid]
@@ -314,6 +290,34 @@ module Subrepo
       new_commit_sha = Rugged::Commit.create(repo, options)
       commit_map[commit.oid] = new_commit_sha
       new_commit_sha
+    end
+
+    def reverse_map_commits(inverse_map, split_branch_commit)
+      walker = Rugged::Walker.new(repo)
+      walker.push split_branch_commit.oid
+      walker.hide split_branch_commit.parents.first.oid
+
+      walker.to_a.reverse_each do |commit|
+        parent_oids = commit.parents.map(&:oid)
+        main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
+
+        # Pick the first parent to provide the main tree. This is an
+        # arbitrary choice!
+        main_parent = repo.lookup main_repo_parent_oids.first
+
+        subtree = commit.tree
+        base_tree = main_parent.tree
+        new_tree = graft_subrepo_tree(subdir_parts, base_tree, subtree)
+
+        options = {}
+        options[:tree] = new_tree
+        options[:parents] = main_repo_parent_oids
+        options[:author] = commit.author
+        options[:committer] = commit.committer
+        options[:message] = commit.message
+        new_commit_oid = Rugged::Commit.create(repo, options)
+        inverse_map[commit.oid] = new_commit_oid
+      end
     end
 
     def calculate_target_parents(commit)
