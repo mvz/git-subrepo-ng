@@ -156,15 +156,17 @@ module Subrepo
       cmd.action do |global_options, options, args|
         params = []
         cmd.arguments.each do |arg|
-          if args.any?
-            if arg.multiple?
-              params += args
-              args.clear
-            else
-              params << args.shift
-            end
+          if args.empty?
+            next if arg.optional?
+
+            raise "Command '#{cmd.name}' requires arg '#{arg.name}'."
+          end
+
+          if arg.multiple?
+            params += args
+            args.clear
           else
-            arg.optional? or raise "Command '#{cmd.name}' requires arg '#{arg.name}'."
+            params << args.shift
           end
         end
         args.empty? or
