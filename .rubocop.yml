@@ -42,6 +42,12 @@ Lint/AmbiguousBlockAssociation:
 Lint/AssignmentInCondition:
   AllowSafeAssignment: true
 
+# Activate new cops for RuboCop 0.81.0
+Lint/RaiseException:
+  Enabled: true
+Lint/StructNewOverride:
+  Enabled: true
+
 # Allow and/or for control flow only
 Style/AndOr:
   EnforcedStyle: conditionals
@@ -50,12 +56,11 @@ Style/AndOr:
 Style/GuardClause:
   MinBodyLength: 2
 
+# Activate new cops for RuboCop 0.80.0
 Style/HashEachMethods:
   Enabled: true
-
 Style/HashTransformKeys:
   Enabled: true
-
 Style/HashTransformValues:
   Enabled: true
 
