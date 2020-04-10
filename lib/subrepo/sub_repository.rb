@@ -262,15 +262,13 @@ module Subrepo
       target_tree = calculate_target_tree(commit, target_parents) or return
 
       # Check if there were relevant changes
-      if last_merged_commit && target_parents.map(&:oid).include?(last_merged_commit)
-        old_tree_oid = repo.lookup(last_merged_commit).tree.oid
-        new_tree_oid = target_tree.oid
-        if old_tree_oid == new_tree_oid
-          target = target_parents.find { |it| it.oid == last_merged_commit }
-          other_target_parents = target_parents.reject { |it| it == target }
+      if last_merged_commit
+        merged_commit_parent = target_parents.find { |it| it.oid == last_merged_commit }
+        if merged_commit_parent && merged_commit_parent.tree.oid == target_tree.oid
+          other_target_parents = target_parents - [merged_commit_parent]
 
           return if other_target_parents.all? do |it|
-            repo.descendant_of?(target, it)
+            repo.descendant_of?(merged_commit_parent, it)
           end
         end
       end
