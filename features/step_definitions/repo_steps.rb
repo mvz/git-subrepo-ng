@@ -5,6 +5,11 @@ Given "I have an existing git project named {string}" do |proj|
   @main_repo = proj
 end
 
+Given "I have an empty git project named {string}" do |proj|
+  initialize_empty_project proj
+  @main_repo = proj
+end
+
 Given "I have committed a new file {string} in subdirectory {string}" do |file, subdir|
   subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
 end

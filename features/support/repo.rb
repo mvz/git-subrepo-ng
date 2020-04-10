@@ -4,13 +4,20 @@ require "rugged"
 
 # Helper methods for repo-related steps
 module Repo
-  def initialize_project(proj)
+  def initialize_empty_project(proj)
     create_directory proj
     cd proj do
       repo = Rugged::Repository.init_at(".")
       config = repo.config
       config["user.name"] = "Foo Bar"
       config["user.email"] = "foo@bar.net"
+    end
+  end
+
+  def initialize_project(proj)
+    initialize_empty_project(proj)
+    cd proj do
+      repo = Rugged::Repository.init_at(".")
       write_file "README", "Hi!"
       index = repo.index
       index.add "README"
@@ -28,10 +35,15 @@ module Repo
       index = repo.index
       index.add "#{subdir}/#{file}"
       index.write
+      parents = if repo.head_unborn?
+                  []
+                else
+                  [repo.head.target]
+                end
       Rugged::Commit.create(repo,
                             tree: index.write_tree,
                             message: "Add #{subdir}/#{file} in repo #{proj}",
-                            parents: [repo.head.target],
+                            parents: parents,
                             update_ref: "HEAD")
     end
   end

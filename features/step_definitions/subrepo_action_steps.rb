@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Given "I have initialized the subrepo {string} with that remote" do |subrepo|
+When "I (have )initialize(d) the subrepo {string} with the/that remote" do |subrepo|
   cd @main_repo do
     @subrepo = subrepo
     run_subrepo_command :init, @subrepo, remote: "../#{@remote}", branch: "master"
