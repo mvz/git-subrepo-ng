@@ -334,64 +334,64 @@ module Subrepo
       parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
-      target_tree = rewritten_tree
-
       if parents.empty?
-        return if rewritten_tree.entries.empty?
-      else
-        rewritten_parent_trees = parents.map do |parent|
-          calculate_subtree(parent)
-        end
+        return rewritten_tree.entries.empty? ? nil : rewritten_tree
+      end
 
-        first_target_parent = target_parents.first
+      rewritten_parent_trees = parents.map do |parent|
+        calculate_subtree(parent)
+      end
 
-        # If there is only one target parent, and at least one of the orignal
-        # parents has the same subtree as the current commit, then this would
-        # become an empty commit.
-        #
-        # If the rewritten_tree is identical to the single target parent tree,
-        # this would also become an empty commit.
-        #
-        # In both of these cases, map this commit to the target parent and
-        # skip to the next commit.
-        if target_parents.one? &&
-            (rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid } ||
-             rewritten_tree.oid == first_target_parent.tree.oid)
+      first_target_parent = target_parents.first
+
+      return rewritten_tree unless first_target_parent
+
+      # If there is only one target parent, and at least one of the orignal
+      # parents has the same subtree as the current commit, then this would
+      # become an empty commit.
+      #
+      # If the rewritten_tree is identical to the single target parent tree,
+      # this would also become an empty commit.
+      #
+      # In both of these cases, map this commit to the target parent and
+      # skip to the next commit.
+      if target_parents.one? &&
+          (rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid } ||
+           rewritten_tree.oid == first_target_parent.tree.oid)
+        commit_map[commit.oid] ||= first_target_parent.oid
+        return
+      end
+
+      # If the commit tree is no different from the first parent, at this
+      # point this can only be a merge that has no effect on the mainline.
+      #
+      # If all of the other target parents are ancestors of the first, we can
+      # skip this commit safely.
+      #
+      # This prevents histories like the following:
+      #
+      # *   Merge branch 'some-branch'
+      # |\
+      # * | Add bar/other_file in repo foo
+      # |/
+      # * Add bar/a_file in repo foo
+      if first_target_parent.tree.oid == rewritten_tree.oid
+        other_target_parents = target_parents[1..-1]
+        if all_ancestor_of? other_target_parents, first_target_parent
           commit_map[commit.oid] ||= first_target_parent.oid
           return
         end
-
-        # If the commit tree is no different from the first parent, at this
-        # point this can only be a merge that has no effect on the mainline.
-        #
-        # If all of the other target parents are ancestors of the first, we can
-        # skip this commit safely.
-        #
-        # This prevents histories like the following:
-        #
-        # *   Merge branch 'some-branch'
-        # |\
-        # * | Add bar/other_file in repo foo
-        # |/
-        # * Add bar/a_file in repo foo
-        if first_target_parent && first_target_parent.tree.oid == rewritten_tree.oid
-          other_target_parents = target_parents[1..-1]
-          if all_ancestor_of? other_target_parents, first_target_parent
-            commit_map[commit.oid] ||= first_target_parent.oid
-            return
-          end
-        end
-
-        if first_target_parent
-          first_rewritten_diff = rewritten_parent_trees.first.diff rewritten_tree
-          rewritten_patch = first_rewritten_diff.patch
-          target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
-          if rewritten_patch != target_patch
-            raise "Different patch detected. This should not happen"
-          end
-        end
       end
-      target_tree
+
+      # Sanity check: rewritten tree has same diff compared to rewritten
+      # original parent and first target parent
+      rewritten_patch = calculate_patch(rewritten_tree, rewritten_parent_trees.first)
+      target_patch = calculate_patch(rewritten_tree, first_target_parent.tree)
+      if rewritten_patch != target_patch
+        raise "Different patch detected. This should not happen"
+      end
+
+      rewritten_tree
     end
 
     def config_file_in_tree(tree)
