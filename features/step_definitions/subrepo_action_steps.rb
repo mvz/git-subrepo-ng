@@ -88,3 +88,11 @@ When "I attempt to commit( without resolving the conflict)" do
 rescue StandardError => e
   @error = e.message
 end
+
+Then "the subrepo command output should match:" do |string|
+  expect(cli_output.string).to match string
+end
+
+Then "the subrepo command output should equal:" do |string|
+  expect(cli_output.string).to eq string
+end

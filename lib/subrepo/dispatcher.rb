@@ -6,10 +6,11 @@ require "subrepo/null_output"
 module Subrepo
   # Dispatch commands from the CLI to the Runner
   class Dispatcher
-    def initialize(global_options, options, args)
+    def initialize(global_options, options, args, output:)
       @global_options = global_options
       @options = options
       @args = args
+      @output = output
     end
 
     def run_init_command
@@ -81,7 +82,7 @@ module Subrepo
           out = if global_options[:quiet]
                   NullOutput.new
                 else
-                  $stdout
+                  @output
                 end
           Runner.new(output: out)
         end

@@ -15,15 +15,20 @@ module Runner
         ["--#{name}", value.to_s]
       end
     end
-    arguments = ["--quiet", cmd, *args, *flags]
+    arguments = [cmd, *args, *flags]
+    cli_output.rewind
     runner.run arguments
   end
 
   def runner
-    @runner ||= Subrepo::CLI.new.tap do |cli|
+    @runner ||= Subrepo::CLI.new(output: cli_output).tap do |cli|
       cli.setup
       cli.on_error { |ex| raise ex }
     end
+  end
+
+  def cli_output
+    @cli_output ||= StringIO.new
   end
 end
 

@@ -12,6 +12,11 @@ module Subrepo
     include GLI::App
     include Subrepo::Commands
 
+    def initialize(output: $stdout)
+      super()
+      @output = output
+    end
+
     def setup
       program_desc "Subrepos -- improved"
 
@@ -171,7 +176,8 @@ module Subrepo
         end
         args.empty? or
           raise "Unknown argument(s) '#{args.join(' ')}' for '#{cmd.name}' command."
-        Dispatcher.new(global_options, options, params).send runner_method
+        Dispatcher.new(global_options, options, params,
+                       output: @output).send runner_method
       end
     end
   end
