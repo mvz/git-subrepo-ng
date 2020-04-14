@@ -15,6 +15,7 @@ namespace :compat do
     exit 1 unless success
   end
 
+  desc "Run integration tests from git-subrepo"
   task :regression do
     test_names = %w(
       branch
