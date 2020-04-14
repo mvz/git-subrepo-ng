@@ -45,6 +45,12 @@ When "I pull the subrepo without squashing( again)" do
   end
 end
 
+When "I pull all subrepos" do
+  cd @main_repo do
+    run_subrepo_command :pull, all: true
+  end
+end
+
 When "I attempt to pull the subrepo" do
   @error = nil
   cd @main_repo do

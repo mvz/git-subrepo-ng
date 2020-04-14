@@ -136,3 +136,16 @@ Feature: Pulling a subrepo
       * Add bar/a_file in repo foo
       * Initial commit
       """
+
+  Scenario: Pulling all subrepos
+    When I add a new commit to the remote
+    And I pull all subrepos
+    Then the subrepo and the remote should have the same contents
+    And the project's log should equal:
+      """
+      * Subrepo-merge bar/master into master
+      * Push subrepo bar
+      * Initialize subrepo bar
+      * Add bar/a_file in repo foo
+      * Initial commit
+      """
