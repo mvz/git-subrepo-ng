@@ -27,7 +27,14 @@ module Subrepo
     end
 
     def run_status_command
-      runner.run_status(recursive: options[:all_recursive])
+      if options[:all_recursive]
+        runner.run_status_all(recursive: true)
+      elsif options[:all]
+        runner.run_status_all
+      else
+        args[0] or raise "Command 'status' requires arg 'subdir'."
+        runner.run_status(args[0])
+      end
     end
 
     def run_config_command

@@ -130,6 +130,7 @@ module Subrepo
 
     def setup_status_command
       desc "Status"
+      arg :subdir, :optional
       command :status do |cmd|
         cmd.switch :all, default_value: false
         cmd.switch :all_recursive, default_value: false
