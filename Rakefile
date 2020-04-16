@@ -37,6 +37,7 @@ namespace :compat do
       pull
       pull-all
       pull-merge
+      pull-merge-no-squash
       pull-message
       pull-new-branch
       pull-ours
