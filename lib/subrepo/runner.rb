@@ -21,13 +21,32 @@ module Subrepo
       main_repository.check_ready
     end
 
-    def run_status(recursive: false)
+    def run_status_all(recursive: false)
       subrepos = main_repository.subrepos(recursive: recursive)
 
-      puts "#{subrepos.count} subrepos:"
-      subrepos.each do |it|
-        puts "Git subrepo '#{it}':"
+      case (count = subrepos.count)
+      when 0
+        puts "No subrepos"
+      when 1
+        puts "1 subrepo:"
+      else
+        puts "#{count} subrepos:"
       end
+
+      subrepos.each do |subdir|
+        puts
+        run_status subdir
+      end
+    end
+
+    def run_status(subdir)
+      subrepo = sub_repository(subdir)
+      config = subrepo.config
+      puts "Git subrepo '#{subdir}':"
+      puts "  Remote URL:      #{config.remote}"
+      puts "  Tracking Branch: #{config.branch}"
+      puts "  Pulled Commit:   #{config.commit[0..6]}"
+      puts "  Pull Parent:     #{config.parent[0..6]}"
     end
 
     def run_config(subdir, option:, value:, force: false)

@@ -33,6 +33,24 @@ When "I push the subrepo" do
   end
 end
 
+When "I get the status of the subrepo {string}" do |subrepo|
+  cd @main_repo do
+    run_subrepo_command :status, subrepo
+  end
+end
+
+When "I get the status of all subrepos recursively" do
+  cd @main_repo do
+    run_subrepo_command :status, all_recursive: true
+  end
+end
+
+When "I get the status of all subrepos" do
+  cd @main_repo do
+    run_subrepo_command :status, all: true
+  end
+end
+
 When "I pull the subrepo with squashing( again)" do
   cd @main_repo do
     run_subrepo_command :pull, @subrepo, squash: true
@@ -66,7 +84,7 @@ When "I fetch new commits for the subrepo from the remote" do
   end
 end
 
-When "I clone into {string} from the remote {string} with branch {string}" \
+When "I (have )clone(d) into {string} from the remote {string} with branch {string}" \
   do |subdir, remote, branch|
   cd @main_repo do
     @subrepo = subdir
@@ -87,4 +105,12 @@ When "I attempt to commit( without resolving the conflict)" do
   end
 rescue StandardError => e
   @error = e.message
+end
+
+Then "the subrepo command output should match:" do |string|
+  expect(cli_output.string).to match string
+end
+
+Then "the subrepo command output should equal:" do |string|
+  expect(cli_output.string).to eq string
 end
