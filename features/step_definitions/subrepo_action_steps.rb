@@ -17,7 +17,7 @@ end
 
 When "I (have )push(ed) the subrepo {string}( again)" do |subrepo|
   cd @main_repo do
-    run_subrepo_command :push, subrepo, squash: false
+    run_subrepo_command :push, subrepo
   end
 end
 
@@ -51,15 +51,15 @@ When "I get the status of all subrepos" do
   end
 end
 
-When "I pull the subrepo with squashing( again)" do
+When "I pull the subrepo( again)" do
   cd @main_repo do
-    run_subrepo_command :pull, @subrepo, squash: true
+    run_subrepo_command :pull, @subrepo
   end
 end
 
-When "I pull the subrepo without squashing( again)" do
+When "I pull the subrepo with squashing( again)" do
   cd @main_repo do
-    run_subrepo_command :pull, @subrepo, squash: false
+    run_subrepo_command :pull, @subrepo, squash: true
   end
 end
 
@@ -72,7 +72,7 @@ end
 When "I attempt to pull the subrepo" do
   @error = nil
   cd @main_repo do
-    run_subrepo_command :pull, @subrepo, squash: false
+    run_subrepo_command :pull, @subrepo
   end
 rescue StandardError => e
   @error = e.message
@@ -94,14 +94,14 @@ end
 
 When "I finalize the pull using the subrepo commit subcommand" do
   cd @main_repo do
-    run_subrepo_command :commit, @subrepo, squash: false
+    run_subrepo_command :commit, @subrepo
   end
 end
 
 When "I attempt to commit( without resolving the conflict)" do
   @error = nil
   cd @main_repo do
-    run_subrepo_command :commit, @subrepo, squash: false
+    run_subrepo_command :commit, @subrepo
   end
 rescue StandardError => e
   @error = e.message

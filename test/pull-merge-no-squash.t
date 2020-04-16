@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Squashless version of test/pull-merge.t
+#
 
 set -e
 
@@ -10,7 +13,7 @@ clone-foo-and-bar
 
 subrepo-clone-bar-into-foo
 
-note "Pull - Conflict - Merge ours/theirs - Push"
+note "Pull - Conflict - Merge ours/theirs without squashing - Push"
 
 (
   cd $OWNER/bar
@@ -30,12 +33,6 @@ gitrepo=$OWNER/foo/bar/.gitrepo
 (
   cd $OWNER/foo
   git subrepo pull bar
-) &> /dev/null || die
-
-foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD)"
-
-(
-  cd $OWNER/foo
   modify-files-ex bar/Bar2
   git push
 ) &> /dev/null || die
@@ -54,7 +51,7 @@ foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD)"
       git add Bar2
       git commit --file ../../../../.git/worktrees/bar/MERGE_MSG
       cd ../../../..
-      git subrepo commit bar --squash
+      git subrepo commit bar
       git subrepo clean bar
   }
 ) &> /dev/null || die
@@ -77,6 +74,7 @@ is "$(cat $OWNER/foo/bar/Bar2)" \
 
 # Test foo/bar/.gitrepo file contents:
 {
+  foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD^2)"
   bar_head_commit="$(cd $OWNER/bar; git rev-parse HEAD)"
   test-gitrepo-field "commit" "$bar_head_commit"
   test-gitrepo-field "parent" "$foo_pull_commit"

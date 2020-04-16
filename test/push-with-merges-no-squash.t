@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Squashless version of test/push-with-merges.t
+#
 
 set -e
 
@@ -48,7 +51,7 @@ test-commit-count "$OWNER/foo" HEAD 9
     cd $OWNER/foo
     git config user.name 'PushUser'
     git config user.email 'push@push'
-    git subrepo --quiet pull bar --squash
+    git subrepo --quiet pull bar
     git subrepo push bar
   )"
 

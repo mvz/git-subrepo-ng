@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Squashless version of test/pull.t
+#
 
 set -e
 
@@ -21,7 +24,7 @@ subrepo-clone-bar-into-foo
 {
   is "$(
     cd $OWNER/foo
-    git subrepo pull bar --squash
+    git subrepo pull bar
   )" \
     "Subrepo 'bar' pulled from '../../../tmp/upstream/bar' (master)." \
     'subrepo pull command output is correct'
@@ -37,7 +40,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
 
 # Test foo/bar/.gitrepo file contents:
 {
-  foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD^)"
+  foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD^2)"
   bar_head_commit="$(cd $OWNER/bar; git rev-parse HEAD)"
   test-gitrepo-comment-block
   test-gitrepo-field "remote" "../../../$UPSTREAM/bar"

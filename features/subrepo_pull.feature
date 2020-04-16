@@ -60,9 +60,9 @@ Feature: Pulling a subrepo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
       """
 
-  Scenario: Pulling updates from the remote without squashing
+  Scenario: Pulling updates from the remote
     When I add a new commit to the remote
-    And I pull the subrepo without squashing
+    And I pull the subrepo
     Then the subrepo and the remote should have the same contents
     And the project's log should equal:
       """
@@ -90,10 +90,10 @@ Feature: Pulling a subrepo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
       """
 
-  Scenario: Pulling without squashing after committing to the main repo
+  Scenario: Pulling after committing to the main repo
     When I add a new commit to the remote
     And I add a new commit to the subrepo
-    And I pull the subrepo without squashing
+    And I pull the subrepo
     Then the project's log should equal:
       """
       *   Subrepo-merge bar/master into master
@@ -122,8 +122,8 @@ Feature: Pulling a subrepo
 
   Scenario: Pulling twice in a row has no extra effect
     When I add a new commit to the remote
-    And I pull the subrepo without squashing
-    And I pull the subrepo without squashing again
+    And I pull the subrepo
+    And I pull the subrepo again
     Then the subrepo and the remote should have the same contents
     And the project's log should equal:
       """
@@ -143,7 +143,10 @@ Feature: Pulling a subrepo
     Then the subrepo and the remote should have the same contents
     And the project's log should equal:
       """
-      * Subrepo-merge bar/master into master
+      *   Subrepo-merge bar/master into master
+      |\  
+      | * Add another_file in remote baz
+      |/  
       * Push subrepo bar
       * Initialize subrepo bar
       * Add bar/a_file in repo foo

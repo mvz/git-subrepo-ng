@@ -9,7 +9,7 @@ Feature: Pushing after pulling
 
   Scenario: Pushing after pulling without change
     When I add a new commit to the remote
-    And I pull the subrepo without squashing
+    And I pull the subrepo
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
@@ -40,7 +40,7 @@ Feature: Pushing after pulling
   Scenario: Pushing older commits after pulling
     When I add a new commit to the remote
     And I add a new commit to the subrepo
-    And I pull the subrepo without squashing
+    And I pull the subrepo
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
     And the remote's log should equal:
@@ -68,7 +68,7 @@ Feature: Pushing after pulling
 
   Scenario: Pushing newer commits after pulling
     When I add a new commit to the remote
-    And I pull the subrepo without squashing
+    And I pull the subrepo
     And I add a new commit to the subrepo
     And I push the subrepo "bar"
     Then the subrepo and the remote should have the same contents
