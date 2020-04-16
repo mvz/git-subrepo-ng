@@ -40,6 +40,7 @@ namespace :compat do
       pull-merge-no-squash
       pull-message
       pull-new-branch
+      pull-no-squash
       pull-ours
       pull-theirs
       pull-twice
