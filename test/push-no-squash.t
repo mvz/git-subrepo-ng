@@ -65,12 +65,15 @@ clone-foo-and-bar
 
   expectedFooLog=\
 "* Push subrepo bar
-* Subrepo-merge bar/master into master
-* modified file: bar/FooBar
-* modified file: ./FooBar
-* modified file: bar/FooBar
-* add new file: ./FooBar
-* add new file: bar/FooBar
+*   Subrepo-merge bar/master into master
+|\  
+| * add new file: bargy
+* | modified file: bar/FooBar
+* | modified file: ./FooBar
+* | modified file: bar/FooBar
+* | add new file: ./FooBar
+* | add new file: bar/FooBar
+|/  
 * Clone remote ../../../tmp/upstream/bar into bar
 * Foo"
   is "$fooLog" \

@@ -50,6 +50,7 @@ namespace :compat do
       push-force
       push-new-branch
       push-no-changes
+      push-no-squash
       push-squash
       push-with-merges
       reclone
