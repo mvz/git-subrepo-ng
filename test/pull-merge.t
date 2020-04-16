@@ -54,7 +54,7 @@ foo_pull_commit="$(cd $OWNER/foo; git rev-parse HEAD)"
       git add Bar2
       git commit --file ../../../../.git/worktrees/bar/MERGE_MSG
       cd ../../../..
-      git subrepo commit bar
+      git subrepo commit bar --squash
       git subrepo clean bar
   }
 ) &> /dev/null || die

@@ -31,7 +31,7 @@ gitrepo=$OWNER/foo/bar/.gitrepo
 {
   is "$(
     cd $OWNER/foo
-    git subrepo pull bar -b branch1 -u
+    git subrepo pull bar -b branch1 -u --squash
   )" \
     "Subrepo 'bar' pulled from '../../../tmp/upstream/bar' (branch1)." \
     'subrepo pull commits config even when we dont need to pull'

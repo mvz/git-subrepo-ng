@@ -30,7 +30,7 @@ subrepo-clone-bar-into-foo
 {
   is "$(
     cd $OWNER/foo
-    git subrepo pull bar
+    git subrepo pull bar --squash
   )" \
     "Subrepo 'bar' pulled from '../../../tmp/upstream/bar' (master)." \
     'subrepo pull command output is correct'
