@@ -11,7 +11,7 @@ Given "I have an empty git project named {string}" do |proj|
 end
 
 Given "I have committed a new file {string} in subdirectory {string}" do |file, subdir|
-  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
+  create_and_commit_file_in_subdir(@main_repo, subdir: subdir, file: file)
 end
 
 Given "I have an empty remote named {string}" do |remote|
@@ -39,18 +39,7 @@ When "I have updated and committed {string} in the remote" do |file|
 end
 
 When "I (have )update(d) and commit(ted) {string} in the subrepo" do |file|
-  cd @main_repo do
-    repo = Rugged::Repository.new(".")
-    write_file "#{@subrepo}/#{file}", "new subrepo content"
-    index = repo.index
-    index.add "#{@subrepo}/#{file}"
-    index.write
-    Rugged::Commit.create(repo,
-                          tree: index.write_tree,
-                          message: "Update #{@subrepo}/#{file} in repo #{@main_repo}",
-                          parents: [repo.head.target],
-                          update_ref: "HEAD")
-  end
+  update_and_commit_file_in_subdir(@main_repo, subdir: @subrepo, file: file)
 end
 
 When "I add a new commit to the subrepo" do
@@ -98,11 +87,11 @@ When "I merge in the main project branch" do
 end
 
 When "I commit a new file {string} in subdirectory {string}" do |file, subdir|
-  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
+  create_and_commit_file_in_subdir(@main_repo, subdir: subdir, file: file)
 end
 
 When "I commit a new file {string} in the subrepo" do |file|
-  subdir_with_commits_in_project(@main_repo, subdir: @subrepo, file: file)
+  create_and_commit_file_in_subdir(@main_repo, subdir: @subrepo, file: file)
 end
 
 When "I resolve the merge conflict with merged content" do
