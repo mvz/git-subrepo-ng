@@ -19,7 +19,6 @@ namespace :compat do
   task :regression do
     #
     # TODO: Add the following tests:
-    #   test/push-with-merges-no-squash.t
     #   test/pull-new-branch-no-squash.t
     #
     test_names = %w(
@@ -58,6 +57,7 @@ namespace :compat do
       push-no-squash
       push-squash
       push-with-merges
+      push-with-merges-no-squash
       reclone
       status
       submodule
