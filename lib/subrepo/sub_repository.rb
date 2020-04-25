@@ -442,6 +442,7 @@ module Subrepo
           # Compare trees for earlier commits with the current tree
           if sub_commit_tree.oid == remote_commit_tree.oid
             commit_map[sub_commit.oid] = merged_commit_oid
+            next
           end
 
           # TODO: Also check children of the parents' mapped commits
@@ -451,9 +452,10 @@ module Subrepo
             next unless mapped_parent_oid
 
             sub_parent_tree = calculate_subtree(sub_parent)
-            if sub_commit_tree.oid == sub_parent_tree.oid
-              commit_map[sub_commit.oid] = mapped_parent_oid
-            end
+            next unless sub_commit_tree.oid == sub_parent_tree.oid
+
+            commit_map[sub_commit.oid] = mapped_parent_oid
+            break
           end
         end
 
