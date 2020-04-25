@@ -122,7 +122,3 @@ end
 Then "the subrepo command output should match:" do |string|
   expect(cli_output.string).to match string
 end
-
-Then "the subrepo command output should equal:" do |string|
-  expect(cli_output.string).to eq string
-end
