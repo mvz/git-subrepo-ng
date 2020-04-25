@@ -40,10 +40,10 @@ Feature: Complex push
       """
       Push subrepo bar                     -> Subrepo-merge bar/master into master
       Subrepo-merge bar/master into master -> Subrepo-merge bar/master into master
+      Add foobar                           -> Add foobar
       Merge branch 'unrelated-branch'      -> Add other_file
       Update zyxxy                         -> Add other_file
       Add zyxxy                            -> Add other_file
-      Add foobar                           -> Add foobar
       Clone remote ../bar into bar         -> Add other_file
       """
     And the remote's log should equal:

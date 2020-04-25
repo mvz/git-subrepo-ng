@@ -435,19 +435,17 @@ module Subrepo
 
         dependent_commits = sub_walker.to_a
 
-        # TODO: Maybe this section only makes sense for the first commit we handle?
-        # Compare trees for earlier commits with the current tree
         dependent_commits.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
+
+          # TODO: Maybe this section only makes sense for the first commit we handle?
+          # Compare trees for earlier commits with the current tree
           if sub_commit_tree.oid == remote_commit_tree.oid
             commit_map[sub_commit.oid] = merged_commit_oid
           end
-        end
 
-        # Compare trees for earlier commits with their parent trees
-        # TODO: Also check children of the parents' mapped commits
-        dependent_commits.reverse_each do |sub_commit|
-          sub_commit_tree = calculate_subtree(sub_commit)
+          # TODO: Also check children of the parents' mapped commits
+          # Compare trees for earlier commits with their parent trees
           sub_commit.parents.each do |sub_parent|
             mapped_parent_oid = commit_map[sub_parent.oid]
             next unless mapped_parent_oid
