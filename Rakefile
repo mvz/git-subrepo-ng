@@ -17,10 +17,6 @@ namespace :compat do
 
   desc "Run integration tests from git-subrepo"
   task :regression do
-    #
-    # TODO: Add the following tests:
-    #   test/pull-new-branch-no-squash.t
-    #
     test_names = %w(
       branch
       branch-all
@@ -44,6 +40,7 @@ namespace :compat do
       pull-merge-no-squash
       pull-message
       pull-new-branch
+      pull-new-branch-no-squash
       pull-no-squash
       pull-ours
       pull-theirs

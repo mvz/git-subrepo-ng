@@ -85,6 +85,12 @@ module Subrepo
 
       subrepo = sub_repository(subdir)
 
+      branch = subrepo.config.branch
+      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+      message ||=
+        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
+        "merged:   \"#{subrepo.last_fetched_commit}\""
+
       subrepo.commit_subrepo_commits_into_main_repo(squash: squash,
                                                     message: message,
                                                     edit: edit)
@@ -142,15 +148,24 @@ module Subrepo
       config.branch = branch if update
 
       last_fetched_commit = subrepo.perform_fetch(remote, branch)
-      if !update && (last_fetched_commit == last_merged_commit)
-        puts "Subrepo '#{subdir}' is up to date."
-      else
+
+      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+      message ||=
+        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
+        "merged:   \"#{last_fetched_commit}\""
+
+      if last_fetched_commit != last_merged_commit
         subrepo.merge_subrepo_commits_into_main_repo(squash: squash,
                                                      message: message,
                                                      edit: edit)
         subrepo.remove_local_commits_branch
-        puts "Subrepo '#{subdir}' pulled from '#{remote}' (#{branch})."
+      elsif update
+        subrepo.commit_config_update(message: message, edit: edit)
+      else
+        puts "Subrepo '#{subdir}' is up to date."
+        return
       end
+      puts "Subrepo '#{subdir}' pulled from '#{remote}' (#{branch})."
     end
 
     def run_push(subdir, remote: nil, branch: nil, force: false, squash: false)
