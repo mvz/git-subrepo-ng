@@ -422,10 +422,12 @@ module Subrepo
 
         sub_walker = Rugged::Walker.new(repo)
         sub_walker.push pushed_commit_oid
+        # TODO: Maybe make sure we don't hide pushed_commit_oid
         commit_map.each_key { |oid| sub_walker.hide oid }
 
         dependent_commits = sub_walker.to_a
 
+        # TODO: Maybe this section only makes sense for the first commit we handle?
         # Compare trees for earlier commits with the current tree
         dependent_commits.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
@@ -435,6 +437,7 @@ module Subrepo
         end
 
         # Compare trees for earlier commits with their parent trees
+        # TODO: Also check children of the parents' mapped commits
         dependent_commits.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           sub_commit.parents.each do |sub_parent|
