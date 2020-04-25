@@ -116,7 +116,6 @@ module Subrepo
     def commit_mapped_subrepo_commits(squash:, message:, edit:)
       branch = config.branch
       config_name = config.file_name
-      current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
       last_local_commit = repo.head.target
 
@@ -151,11 +150,21 @@ module Subrepo
       config.commit = last_fetched_commit
       run_command "git add -- #{config_name.shellescape}"
 
-      message ||=
-        "Subrepo-merge #{subdir}/#{branch} into #{current_branch}\n\n" \
-        "merged:   \"#{last_fetched_commit}\""
-
       command = "git commit -q -m #{message.shellescape} --amend"
+      if edit
+        run_command "#{command} --edit"
+      else
+        run_command command
+      end
+    end
+
+    def commit_config_update(message:, edit:)
+      parent_commit = repo.head.target
+      config.parent = parent_commit.oid
+      config_name = config.file_name
+      run_command "git add -- #{config_name.shellescape}"
+
+      command = "git commit -q -m #{message.shellescape}"
       if edit
         run_command "#{command} --edit"
       else
