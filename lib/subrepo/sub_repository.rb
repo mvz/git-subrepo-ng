@@ -424,10 +424,26 @@ module Subrepo
         sub_walker.push pushed_commit_oid
         commit_map.each_key { |oid| sub_walker.hide oid }
 
-        sub_walker.to_a.reverse_each do |sub_commit|
+        dependent_commits = sub_walker.to_a
+
+        # Compare trees for earlier commits with the current tree
+        dependent_commits.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           if sub_commit_tree.oid == remote_commit_tree.oid
             commit_map[sub_commit.oid] = merged_commit_oid
+          end
+        end
+
+        # Compare trees for earlier commits with their parent trees
+        dependent_commits.reverse_each do |sub_commit|
+          sub_commit_tree = calculate_subtree(sub_commit)
+          sub_commit.parents.each do |sub_parent|
+            if (mapped_parent_oid = commit_map[sub_parent.oid])
+              sub_parent_tree = calculate_subtree(sub_parent)
+              if sub_commit_tree.oid == sub_parent_tree.oid
+                commit_map[sub_commit.oid] = mapped_parent_oid
+              end
+            end
           end
         end
 
