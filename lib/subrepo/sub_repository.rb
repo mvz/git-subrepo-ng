@@ -437,9 +437,13 @@ module Subrepo
           commit_map[pushed_commit_oid] = merged_commit_oid
         end
 
-        # FIXME: Only valid if current commit contains no other changes in
-        # subrepo.
-        commit_map[commit.oid] = merged_commit_oid
+        # Map the commit containing a change to .gitrepo.
+        # If its subtree is equal to remote tree, we can safely map it.
+        # Otherwise, if it has one parent, assume it's a squash merge commit.
+        if commit.parents.count == 1 ||
+            calculate_subtree(commit).oid == remote_commit_tree.oid
+          commit_map[commit.oid] = merged_commit_oid
+        end
       end
       commit_map
     end
