@@ -114,7 +114,6 @@ module Subrepo
     end
 
     def commit_mapped_subrepo_commits(squash:, message:, edit:)
-      branch = config.branch
       config_name = config.file_name
       last_config_commit = `git log -n 1 --pretty=format:%H -- "#{config_name}"`
       last_local_commit = repo.head.target
