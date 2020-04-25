@@ -450,11 +450,12 @@ module Subrepo
         dependent_commits.reverse_each do |sub_commit|
           sub_commit_tree = calculate_subtree(sub_commit)
           sub_commit.parents.each do |sub_parent|
-            if (mapped_parent_oid = commit_map[sub_parent.oid])
-              sub_parent_tree = calculate_subtree(sub_parent)
-              if sub_commit_tree.oid == sub_parent_tree.oid
-                commit_map[sub_commit.oid] = mapped_parent_oid
-              end
+            mapped_parent_oid = commit_map[sub_parent.oid]
+            next unless mapped_parent_oid
+
+            sub_parent_tree = calculate_subtree(sub_parent)
+            if sub_commit_tree.oid == sub_parent_tree.oid
+              commit_map[sub_commit.oid] = mapped_parent_oid
             end
           end
         end
