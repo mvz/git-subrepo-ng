@@ -89,7 +89,7 @@ test-commit-count "$OWNER/foo" HEAD 9
 }
 
 # Check that all commits were created in main repo
-test-commit-count "$OWNER/foo" HEAD 11
+test-commit-count "$OWNER/foo" HEAD 12
 
 # Check that all commits arrived in subrepo
 test-commit-count "$OWNER/bar" HEAD 8
@@ -103,10 +103,14 @@ test-commit-count "$OWNER/bar" HEAD 8
 
   expectedFooLog=\
 "* Push subrepo bar
-* Subrepo-merge bar/master into master
-* modified file: bar/FooBar
-*   Merge branch with subrepo changes
+*   Subrepo-merge bar/master into master
 |\  
+| * add new file: bargy
+* | modified file: bar/FooBar
+* |   Merge branch with subrepo changes
+|\ \  
+| |/  
+|/|   
 | * modified file: bar/FooBar
 | * add new file: bar/FooBar
 * |   Merge branch without subrepo changes

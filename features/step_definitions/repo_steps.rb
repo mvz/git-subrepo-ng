@@ -10,10 +10,6 @@ Given "I have an empty git project named {string}" do |proj|
   @main_repo = proj
 end
 
-Given "I have committed a new file {string} in subdirectory {string}" do |file, subdir|
-  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
-end
-
 Given "I have an empty remote named {string}" do |remote|
   empty_remote(remote)
   @remote = remote
@@ -27,7 +23,12 @@ Given "I have a remote named {string} with some commits" do |remote|
   remote_commit_add(full_remote, "other_file", "more stuff")
 end
 
-When "I have updated and committed {string} in the remote" do |file|
+Given "I have created and committed {string} in the remote" do |file|
+  full_remote = expand_path @remote
+  remote_commit_add(full_remote, file, "stuff")
+end
+
+Given "I have updated and committed {string} in the remote" do |file|
   repo = Rugged::Repository.new expand_path(@remote)
   index = repo.index
   index.read_tree(repo.head.target.tree)
@@ -39,18 +40,7 @@ When "I have updated and committed {string} in the remote" do |file|
 end
 
 When "I (have )update(d) and commit(ted) {string} in the subrepo" do |file|
-  cd @main_repo do
-    repo = Rugged::Repository.new(".")
-    write_file "#{@subrepo}/#{file}", "new subrepo content"
-    index = repo.index
-    index.add "#{@subrepo}/#{file}"
-    index.write
-    Rugged::Commit.create(repo,
-                          tree: index.write_tree,
-                          message: "Update #{@subrepo}/#{file} in repo #{@main_repo}",
-                          parents: [repo.head.target],
-                          update_ref: "HEAD")
-  end
+  update_and_commit_file_in_subdir(@main_repo, subdir: @subrepo, file: file)
 end
 
 When "I add a new commit to the subrepo" do
@@ -91,18 +81,48 @@ When "I create a branch with some commits in the main project" do
   end
 end
 
-When "I merge in the main project branch" do
+When "I create a branch with commits for {string} in the main project" do |file|
   cd @main_repo do
-    `git merge unrelated-branch`
+    `git checkout -q -b unrelated-branch`
+    write_file file, "stuff"
+    `git add -A`
+    `git commit -am "Add #{file}"`
+    write_file file, "more stuff"
+    `git add -A`
+    `git commit -am "Update #{file}"`
+    `git checkout -q master`
   end
 end
 
-When "I commit a new file {string} in subdirectory {string}" do |file, subdir|
-  subdir_with_commits_in_project(@main_repo, subdir: subdir, file: file)
+When "I create a branch with commits for {string} in the subrepo" do |file|
+  cd @main_repo do
+    `git checkout -q -b subrepo-branch`
+  end
+  create_and_commit_file_in_subdir(@main_repo, subdir: @subrepo, file: file)
+  update_and_commit_file_in_subdir(@main_repo, subdir: @subrepo, file: file)
+  cd @main_repo do
+    `git checkout -q master`
+  end
+end
+
+When "I merge in the main project branch" do
+  cd @main_repo do
+    `git merge --no-ff unrelated-branch`
+  end
+end
+
+When "I merge in the subrepo branch" do
+  cd @main_repo do
+    `git merge --no-ff subrepo-branch`
+  end
+end
+
+When "I (have )commit(ted) a new file {string} in subdirectory {string}" do |file, subdir|
+  create_and_commit_file_in_subdir(@main_repo, subdir: subdir, file: file)
 end
 
 When "I commit a new file {string} in the subrepo" do |file|
-  subdir_with_commits_in_project(@main_repo, subdir: @subrepo, file: file)
+  create_and_commit_file_in_subdir(@main_repo, subdir: @subrepo, file: file)
 end
 
 When "I resolve the merge conflict with merged content" do
