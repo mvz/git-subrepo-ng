@@ -2,6 +2,7 @@ inherit_from: .rubocop_todo.yml
 
 require:
   - rubocop-performance
+  - rubocop-rspec
 
 AllCops:
   TargetRubyVersion: 2.5
@@ -49,6 +50,11 @@ Layout/SpaceAroundMethodCallOperator:
   Enabled: true
 Lint/StructNewOverride:
   Enabled: true
+
+# RSpec describe blocks can be any size
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
 
 # Allow and/or for control flow only
 Style/AndOr:

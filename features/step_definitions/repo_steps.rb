@@ -203,7 +203,7 @@ Then "the commit map should equal:" do |string|
   cd @main_repo do
     main = Subrepo::MainRepository.new
     sub = Subrepo::SubRepository.new(main, @subrepo)
-    commit_map = sub.send :full_commit_map
+    commit_map = Subrepo::CommitMapper.map_commits(sub)
     repo = main.repo
     named_map = commit_map.map do |from, to|
       [repo.lookup(from).summary, repo.lookup(to).summary]
