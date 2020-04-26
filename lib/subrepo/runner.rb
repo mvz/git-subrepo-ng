@@ -168,7 +168,8 @@ module Subrepo
       puts "Subrepo '#{subdir}' pulled from '#{remote}' (#{branch})."
     end
 
-    def run_push(subdir, remote: nil, branch: nil, force: false, squash: false)
+    def run_push(subdir, squash: false, remote: nil, branch: nil,
+                 update: false, force: false)
       main_repository.check_clean
 
       subrepo = sub_repository(subdir)
@@ -201,19 +202,16 @@ module Subrepo
       subrepo.prepare_squashed_subrepo_branch_for_push(message: message) if squash
 
       split_branch_name = subrepo.split_branch_name
-      if force
-        run_command "git push -q --force #{remote.shellescape}" \
-          " #{split_branch_name}:#{branch}"
-      else
-        run_command "git push -q #{remote.shellescape} #{split_branch_name}:#{branch}"
-      end
+      force_flag = "--force" if force
+      run_command "git push -q #{force_flag} #{remote.shellescape}" \
+        " #{split_branch_name}:#{branch}"
 
       pushed_commit = repo.branches[split_branch_name].target.oid
-      parent_commit = `git rev-parse HEAD`.chomp
+      parent_commit = repo.head.target.oid
 
-      config.remote = remote
       config.commit = pushed_commit
       config.parent = parent_commit
+      config.remote = remote if update
       run_command "git add -f -- #{config.file_name.shellescape}"
       run_command "git commit -q -m #{message.shellescape}"
 
