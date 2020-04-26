@@ -13,7 +13,7 @@ Metrics/AbcSize:
 # Configuration parameters: CountComments, ExcludedMethods.
 # ExcludedMethods: refine
 Metrics/BlockLength:
-  Max: 67
+  Max: 52
 
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
