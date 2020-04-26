@@ -24,13 +24,9 @@ module Subrepo
 
     def map_all_commits
       all_commits.reverse_each do |commit|
-        parent = commit.parents[0] or next
-        current = subrepo.config_file_in_tree(commit.tree) or next
+        next unless config_changed?(commit)
 
-        previous = subrepo.config_file_in_tree(parent.tree)
-        next if previous && current[:oid] == previous[:oid]
-
-        config = config_from_blob_oid current[:oid]
+        config = config_for_commit(commit)
         pushed_commit_oid = config["subrepo.parent"] or next
         merged_commit_oid = config["subrepo.commit"]
 
@@ -87,6 +83,28 @@ module Subrepo
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
       walker.to_a
+    end
+
+    def config_changed?(commit)
+      parent = commit.parents[0]
+      return false unless parent
+
+      current = config_blob_info_for_commit(commit)
+      return false unless current
+
+      previous = config_blob_info_for_commit(parent)
+      return true unless previous
+
+      current[:oid] != previous[:oid]
+    end
+
+    def config_blob_info_for_commit(commit)
+      subrepo.config_file_in_tree(commit.tree)
+    end
+
+    def config_for_commit(commit)
+      config_blob = config_blob_info_for_commit(commit)
+      config_from_blob_oid config_blob[:oid]
     end
 
     def config_from_blob_oid(oid)
