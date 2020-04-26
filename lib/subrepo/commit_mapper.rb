@@ -29,39 +29,9 @@ module Subrepo
         config = config_for_commit(commit)
         pushed_commit_oid = config["subrepo.parent"] or next
         merged_commit_oid = config["subrepo.commit"]
-
         remote_commit_tree = repo.lookup(merged_commit_oid).tree
 
-        sub_walker = Rugged::Walker.new(repo)
-        sub_walker.push pushed_commit_oid
-        # TODO: Maybe make sure we don't hide pushed_commit_oid
-        @mapping.each_key { |oid| sub_walker.hide oid }
-
-        dependent_commits = sub_walker.to_a
-
-        dependent_commits.reverse_each do |sub_commit|
-          sub_commit_tree = subrepo.calculate_subtree(sub_commit)
-
-          # TODO: Maybe this section only makes sense for the first commit we handle?
-          # Compare trees for earlier commits with the current tree
-          if sub_commit_tree.oid == remote_commit_tree.oid
-            @mapping[sub_commit.oid] = merged_commit_oid
-            next
-          end
-
-          # TODO: Also check children of the parents' mapped commits
-          # Compare trees for earlier commits with their parent trees
-          sub_commit.parents.each do |sub_parent|
-            mapped_parent_oid = @mapping[sub_parent.oid]
-            next unless mapped_parent_oid
-
-            sub_parent_tree = subrepo.calculate_subtree(sub_parent)
-            next unless sub_commit_tree.oid == sub_parent_tree.oid
-
-            @mapping[sub_commit.oid] = mapped_parent_oid
-            break
-          end
-        end
+        map_dependent_commits(pushed_commit_oid, merged_commit_oid, remote_commit_tree)
 
         last_pushed_commit = repo.lookup pushed_commit_oid
         last_pushed_commit_tree = subrepo.calculate_subtree(last_pushed_commit)
@@ -83,6 +53,39 @@ module Subrepo
       walker = Rugged::Walker.new(repo)
       walker.push repo.head.target_id
       walker.to_a
+    end
+
+    def map_dependent_commits(pushed_commit_oid, merged_commit_oid, remote_commit_tree)
+      sub_walker = Rugged::Walker.new(repo)
+      sub_walker.push pushed_commit_oid
+      # TODO: Maybe make sure we don't hide pushed_commit_oid
+      @mapping.each_key { |oid| sub_walker.hide oid }
+
+      dependent_commits = sub_walker.to_a
+
+      dependent_commits.reverse_each do |sub_commit|
+        sub_commit_tree = subrepo.calculate_subtree(sub_commit)
+
+        # TODO: Maybe this section only makes sense for the first commit we handle?
+        # Compare trees for earlier commits with the current tree
+        if sub_commit_tree.oid == remote_commit_tree.oid
+          @mapping[sub_commit.oid] = merged_commit_oid
+          next
+        end
+
+        # TODO: Also check children of the parents' mapped commits
+        # Compare trees for earlier commits with their parent trees
+        sub_commit.parents.each do |sub_parent|
+          mapped_parent_oid = @mapping[sub_parent.oid]
+          next unless mapped_parent_oid
+
+          sub_parent_tree = subrepo.calculate_subtree(sub_parent)
+          next unless sub_commit_tree.oid == sub_parent_tree.oid
+
+          @mapping[sub_commit.oid] = mapped_parent_oid
+          break
+        end
+      end
     end
 
     def config_changed?(commit)
