@@ -71,7 +71,7 @@ module Subrepo
 
     def run_push_command
       runner.run_push(args.shift,
-                      **options.slice(:remote, :branch, :force, :squash))
+                      **options.slice(:remote, :branch, :force, :squash, :update))
     end
 
     def run_clean_command
