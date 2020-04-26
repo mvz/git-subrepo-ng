@@ -23,9 +23,7 @@ module Subrepo
     attr_reader :subrepo, :repo, :mapping
 
     def map_all_commits
-      walker = Rugged::Walker.new(repo)
-      walker.push repo.head.target_id
-      walker.to_a.reverse_each do |commit|
+      all_commits.reverse_each do |commit|
         parent = commit.parents[0] or next
         current = subrepo.config_file_in_tree(commit.tree) or next
 
@@ -83,6 +81,12 @@ module Subrepo
           @mapping[commit.oid] = merged_commit_oid
         end
       end
+    end
+
+    def all_commits
+      walker = Rugged::Walker.new(repo)
+      walker.push repo.head.target_id
+      walker.to_a
     end
 
     def config_from_blob_oid(oid)
