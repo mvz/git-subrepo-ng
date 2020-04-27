@@ -105,7 +105,7 @@ When "I create a branch with commits for {string} in the subrepo" do |file|
   end
 end
 
-When "I create a branch with commits for {string} in the remote" do |file|
+When "I (have )create(d) a branch with commits for {string} in the remote" do |file|
   full_remote = expand_path @remote
   branch_name = "#{file}-branch"
   create_branch(full_remote, branch_name)
