@@ -73,19 +73,42 @@ module Subrepo
           next
         end
 
-        # TODO: Also check children of the parents' mapped commits
-        # Compare trees for earlier commits with their parent trees
+        # Compare trees for earlier commits with their mapped parents' trees,
+        # and with their mapped parents' children's trees
         sub_commit.parents.each do |sub_parent|
           mapped_parent_oid = @mapping[sub_parent.oid]
           next unless mapped_parent_oid
 
           sub_parent_tree = subrepo.calculate_subtree(sub_parent)
-          next unless sub_commit_tree.oid == sub_parent_tree.oid
-
-          @mapping[sub_commit.oid] = mapped_parent_oid
-          break
+          if sub_commit_tree.oid == sub_parent_tree.oid
+            @mapping[sub_commit.oid] = mapped_parent_oid
+            break
+          else
+            remote_children = remote_child_map[mapped_parent_oid] || []
+            remote_children.each do |remote_child|
+              if sub_commit_tree.oid == remote_child.tree.oid
+                @mapping[sub_commit.oid] = remote_child.oid
+              end
+            end
+          end
         end
       end
+    end
+
+    def remote_child_map
+      @remote_child_map ||=
+        begin
+          child_map = {}
+          walker = Rugged::Walker.new(repo)
+          walker.push subrepo.last_merged_commit
+          walker.to_a.each do |commit|
+            commit.parents.each do |parent|
+              child_map[parent.oid] ||= []
+              child_map[parent.oid] << commit
+            end
+          end
+          child_map
+        end
     end
 
     def config_changed?(commit)
