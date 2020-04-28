@@ -35,6 +35,13 @@ Feature: Complex pull
     And I pull the subrepo with squashing
     Then the subrepo and the remote should have the same contents
 
+  Scenario: Squash-pulling first commits, then pulling new changes without squashing
+    When I pull the subrepo with squashing
+    And I merge the branch for "qux" in the remote
+    And I merge the branch for "zyxxy" in the remote
+    And I pull the subrepo
+    Then the subrepo and the remote should have the same contents
+
   Scenario: Pulling new changes with intermediate branch points
     When I pull the subrepo
     And I merge the branch for "qux" in the remote
