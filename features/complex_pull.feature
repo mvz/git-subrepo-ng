@@ -10,6 +10,20 @@ Feature: Complex pull
     And I have created a branch with commits for "zyxxy" in the remote
     And I have updated and committed "quuz" in the remote
 
+  Scenario: Squash-pulling before and after changes with intermediate branch points
+    When I pull the subrepo with squashing
+    And I merge the branch for "qux" in the remote
+    And I merge the branch for "zyxxy" in the remote
+    And I pull the subrepo with squashing again
+    Then the subrepo and the remote should have the same contents
+
+  Scenario: Squash-pulling new changes with intermediate branch points
+    When I pull the subrepo
+    And I merge the branch for "qux" in the remote
+    And I merge the branch for "zyxxy" in the remote
+    And I pull the subrepo with squashing
+    Then the subrepo and the remote should have the same contents
+
   Scenario: Pulling new changes with intermediate branch points
     When I pull the subrepo
     And I merge the branch for "qux" in the remote
