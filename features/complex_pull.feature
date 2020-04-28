@@ -10,6 +10,17 @@ Feature: Complex pull
     And I have created a branch with commits for "zyxxy" in the remote
     And I have updated and committed "quuz" in the remote
 
+  Scenario: Commit map after pulling changes with several commits
+    When I pull the subrepo
+    Then the commit map should equal:
+      """
+      Subrepo-merge bar/master into master -> Update quuz in remote bar
+      Update quuz in remote bar            -> Update quuz in remote bar
+      Add quuz                             -> Add quuz
+      Add baz                              -> Add baz
+      Clone remote ../bar into bar         -> Add other_file
+      """
+
   Scenario: Squash-pulling before and after changes with intermediate branch points
     When I pull the subrepo with squashing
     And I merge the branch for "qux" in the remote
