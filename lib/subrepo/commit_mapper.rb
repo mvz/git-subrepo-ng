@@ -79,17 +79,19 @@ module Subrepo
           mapped_parent_oid = @mapping[sub_parent.oid]
           next unless mapped_parent_oid
 
+          remote_children = remote_child_map[mapped_parent_oid] || []
+          mapped = remote_children.find do |remote_child|
+            if sub_commit_tree.oid == remote_child.tree.oid
+              @mapping[sub_commit.oid] = remote_child.oid
+              true
+            end
+          end
+          break if mapped
+
           sub_parent_tree = subrepo.calculate_subtree(sub_parent)
           if sub_commit_tree.oid == sub_parent_tree.oid
             @mapping[sub_commit.oid] = mapped_parent_oid
             break
-          else
-            remote_children = remote_child_map[mapped_parent_oid] || []
-            remote_children.each do |remote_child|
-              if sub_commit_tree.oid == remote_child.tree.oid
-                @mapping[sub_commit.oid] = remote_child.oid
-              end
-            end
           end
         end
       end

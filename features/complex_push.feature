@@ -40,7 +40,8 @@ Feature: Complex push
       """
       Push subrepo bar                     -> Subrepo-merge bar/master into master
       Subrepo-merge bar/master into master -> Subrepo-merge bar/master into master
-      Merge branch 'subrepo-branch'        -> Update bar/barfoo in repo foo
+      Add bar/smurf in repo foo            -> Add bar/smurf in repo foo
+      Merge branch 'subrepo-branch'        -> Merge branch 'subrepo-branch'
       Update bar/barfoo in repo foo        -> Update bar/barfoo in repo foo
       Add bar/barfoo in repo foo           -> Add bar/barfoo in repo foo
       Add foobar                           -> Add foobar
