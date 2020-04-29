@@ -101,9 +101,7 @@ module Subrepo
       @remote_child_map ||=
         begin
           child_map = {}
-          walker = Rugged::Walker.new(repo)
-          walker.push subrepo.last_merged_commit
-          walker.to_a.each do |commit|
+          subrepo.remote_commits.each do |commit|
             commit.parents.each do |parent|
               child_map[parent.oid] ||= []
               child_map[parent.oid] << commit

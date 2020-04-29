@@ -224,6 +224,15 @@ module Subrepo
       repo.lookup rewritten_tree_sha
     end
 
+    def remote_commits
+      @remote_commits ||=
+        begin
+          walker = Rugged::Walker.new(repo)
+          walker.push last_merged_commit
+          walker.to_a
+        end
+    end
+
     private
 
     def subref
@@ -316,9 +325,7 @@ module Subrepo
     end
 
     def extend_inverse_map(inverse_map)
-      walker = Rugged::Walker.new(repo)
-      walker.push last_merged_commit
-      walker.to_a.each do |commit|
+      remote_commits.each do |commit|
         main_commit_oid = inverse_map[commit.oid]
         commit.parents.each do |parent|
           inverse_map[parent.oid] ||= main_commit_oid
