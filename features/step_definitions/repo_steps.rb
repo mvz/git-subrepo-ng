@@ -23,12 +23,12 @@ Given "I have a remote named {string} with some commits" do |remote|
   remote_commit_add(full_remote, "other_file", "more stuff")
 end
 
-Given "I have created and committed {string} in the remote" do |file|
+When "I (have )create(d) and commit(ted) {string} in the remote" do |file|
   full_remote = expand_path @remote
   remote_commit_add(full_remote, file, "stuff")
 end
 
-Given "I have updated and committed {string} in the remote" do |file|
+When "I (have )update(d) and commit(ted) {string} in the remote" do |file|
   repo = Rugged::Repository.new expand_path(@remote)
   index = repo.index
   index.read_tree(repo.head.target.tree)
@@ -105,6 +105,13 @@ When "I create a branch with commits for {string} in the subrepo" do |file|
   end
 end
 
+When "I (have )create(d) a branch with commits for {string} in the remote" do |file|
+  full_remote = expand_path @remote
+  branch_name = "#{file}-branch"
+  create_branch(full_remote, branch_name)
+  remote_commit_add(full_remote, file, "stuff", branch: branch_name)
+end
+
 When "I merge in the main project branch" do
   cd @main_repo do
     `git merge --no-ff unrelated-branch`
@@ -115,6 +122,12 @@ When "I merge in the subrepo branch" do
   cd @main_repo do
     `git merge --no-ff subrepo-branch`
   end
+end
+
+When "I merge the branch for {string} in the remote" do |file|
+  full_remote = expand_path @remote
+  branch_name = "#{file}-branch"
+  merge_branch(full_remote, branch_name)
 end
 
 When "I (have )commit(ted) a new file {string} in subdirectory {string}" do |file, subdir|

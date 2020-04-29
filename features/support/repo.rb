@@ -69,7 +69,7 @@ module Repo
     end
   end
 
-  def remote_commit_add(remote_path, file, contents)
+  def remote_commit_add(remote_path, file, contents, branch: nil)
     repo = Rugged::Repository.new(remote_path)
     oid = repo.write(contents, :blob)
     builder = Rugged::Tree::Builder.new(repo)
@@ -81,10 +81,28 @@ module Repo
       head_commit.tree.each { |it| builder << it }
       parents = [head_commit]
     end
+    ref = branch ? "refs/heads/#{branch}" : "HEAD"
     Rugged::Commit.create(repo,
                           tree: builder.write,
                           message: "Add #{file}",
                           parents: parents,
+                          update_ref: ref)
+  end
+
+  def create_branch(repo_path, branch_name)
+    repo = Rugged::Repository.new(repo_path)
+    repo.branches.create(branch_name, "HEAD")
+  end
+
+  def merge_branch(repo_path, branch_name)
+    repo = Rugged::Repository.new(repo_path)
+    head_commit = repo.head.target
+    branch_commit = repo.branches[branch_name].target
+    index = repo.merge_commits(repo.head.target, branch_commit)
+    Rugged::Commit.create(repo,
+                          tree: index.write_tree(repo),
+                          message: "Merge #{branch_name} into master",
+                          parents: [head_commit, branch_commit],
                           update_ref: "HEAD")
   end
 
