@@ -137,7 +137,7 @@ module Subrepo
         config.parent = last_config_commit
       else
         inverse_map = commit_map.invert
-
+        extend_inverse_map(inverse_map)
         reverse_map_commits(inverse_map, split_branch_commit)
 
         rebased_head = inverse_map[last_fetched_commit]
@@ -313,6 +313,17 @@ module Subrepo
       new_commit_sha = Rugged::Commit.create(repo, options)
       commit_map[commit.oid] = new_commit_sha
       new_commit_sha
+    end
+
+    def extend_inverse_map(inverse_map)
+      walker = Rugged::Walker.new(repo)
+      walker.push last_merged_commit
+      walker.to_a.each do |commit|
+        main_commit_oid = inverse_map[commit.oid]
+        commit.parents.each do |parent|
+          inverse_map[parent.oid] ||= main_commit_oid
+        end
+      end
     end
 
     def reverse_map_commits(inverse_map, split_branch_commit)
