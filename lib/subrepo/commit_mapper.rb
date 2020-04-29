@@ -23,7 +23,7 @@ module Subrepo
     attr_reader :subrepo, :repo, :mapping
 
     def map_all_commits
-      all_commits.reverse_each do |commit|
+      subrepo.local_commits.reverse_each do |commit|
         next unless config_changed?(commit)
 
         config = config_for_commit(commit)
@@ -47,12 +47,6 @@ module Subrepo
           @mapping[commit.oid] = merged_commit_oid
         end
       end
-    end
-
-    def all_commits
-      walker = Rugged::Walker.new(repo)
-      walker.push repo.head.target_id
-      walker.to_a
     end
 
     def map_dependent_commits(pushed_commit_oid, merged_commit_oid, remote_commit_tree)

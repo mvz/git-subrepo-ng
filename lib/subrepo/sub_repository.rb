@@ -224,6 +224,15 @@ module Subrepo
       repo.lookup rewritten_tree_sha
     end
 
+    def local_commits
+      @local_commits ||=
+        begin
+          walker = Rugged::Walker.new(repo)
+          walker.push repo.head.target_id
+          walker.to_a
+        end
+    end
+
     def remote_commits
       @remote_commits ||=
         begin
