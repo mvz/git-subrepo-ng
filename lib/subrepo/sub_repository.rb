@@ -137,7 +137,6 @@ module Subrepo
         config.parent = last_config_commit
       else
         inverse_map = commit_map.invert
-        extend_inverse_map(inverse_map)
         reverse_map_commits(inverse_map, split_branch_commit)
 
         rebased_head = inverse_map[last_fetched_commit]
@@ -340,6 +339,7 @@ module Subrepo
           inverse_map[parent.oid] ||= main_commit_oid
         end
       end
+      inverse_map
     end
 
     def reverse_map_commits(inverse_map, split_branch_commit)
@@ -349,7 +349,9 @@ module Subrepo
 
       walker.to_a.reverse_each do |commit|
         parent_oids = commit.parents.map(&:oid)
-        main_repo_parent_oids = parent_oids.map { |it| inverse_map.fetch it }
+        main_repo_parent_oids = parent_oids.map do |oid|
+          inverse_map[oid] || extend_inverse_map(inverse_map).fetch(oid)
+        end
 
         # Pick the first parent to provide the main tree. This is an
         # arbitrary choice!
