@@ -391,7 +391,7 @@ module Subrepo
       parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
-      if parents.empty?
+      if target_parents.empty?
         return rewritten_tree.entries.empty? ? nil : rewritten_tree
       end
 
@@ -400,8 +400,6 @@ module Subrepo
       end
 
       first_target_parent = target_parents.first
-
-      return rewritten_tree unless first_target_parent
 
       # If there is only one target parent, and at least one of the orignal
       # parents has the same subtree as the current commit, then this would
