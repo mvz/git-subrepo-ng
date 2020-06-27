@@ -377,11 +377,9 @@ module Subrepo
 
       # Map parent commits
       target_parent_shas = parents.map do |parent|
-        # TODO: Improve upon last_merged_commit as best guess
-        commit_map[parent.oid] || last_merged_commit
+        commit_map[parent.oid]
       end.uniq.compact
-      if commit_map[commit.oid]
-        mapped_oid = commit_map[commit.oid]
+      if (mapped_oid = commit_map[commit.oid])
         target_parent_shas << mapped_oid unless target_parent_shas.include? mapped_oid
       end
       target_parent_shas.map { |sha| repo.lookup sha }
@@ -391,32 +389,35 @@ module Subrepo
       parents = commit.parents
       rewritten_tree = calculate_subtree(commit)
 
-      if parents.empty?
+      if target_parents.empty?
         return rewritten_tree.entries.empty? ? nil : rewritten_tree
+      end
+
+      first_target_parent = target_parents.first
+
+      # If the rewritten_tree is identical to the single target parent tree,
+      # this would also become an empty commit.
+      #
+      # Map this commit to the target parent and skip to the next commit.
+      if target_parents.one? && rewritten_tree.oid == first_target_parent.tree.oid
+        commit_map[commit.oid] ||= first_target_parent.oid
+        return
       end
 
       rewritten_parent_trees = parents.map do |parent|
         calculate_subtree(parent)
       end
 
-      first_target_parent = target_parents.first
-
-      return rewritten_tree unless first_target_parent
-
       # If there is only one target parent, and at least one of the orignal
       # parents has the same subtree as the current commit, then this would
       # become an empty commit.
       #
-      # If the rewritten_tree is identical to the single target parent tree,
-      # this would also become an empty commit.
-      #
-      # In both of these cases, map this commit to the target parent and
-      # skip to the next commit.
+      # This should not happen because the tree should be indentical to the
+      # target parent tree.
       if target_parents.one? &&
-          (rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid } ||
-           rewritten_tree.oid == first_target_parent.tree.oid)
-        commit_map[commit.oid] ||= first_target_parent.oid
-        return
+          rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid }
+        raise "Commit represents no change but tree is different from target parent." \
+          " This should not happen"
       end
 
       # If the commit tree is no different from the first parent, at this
