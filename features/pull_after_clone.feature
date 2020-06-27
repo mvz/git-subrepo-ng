@@ -21,6 +21,7 @@ Feature: Pull after clone
       Subrepo-merge bar/master into master -> Add foobar
       Add foobar                           -> Add foobar
       Clone remote ../bar into bar         -> Add other_file
+      Initial commit                       -> 
       """
     And the remote's log should equal:
       """

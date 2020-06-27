@@ -304,7 +304,12 @@ module Subrepo
 
     def map_commit(commit)
       target_parents = calculate_target_parents(commit)
-      target_tree = calculate_target_tree(commit, target_parents) or return
+      target_tree = calculate_target_tree(commit, target_parents)
+
+      unless target_tree
+        commit_map[commit.oid] ||= nil
+        return
+      end
 
       # Skip trivial subrepo merge commits: Tree does not change
       # from last merged commit, last merged commit is one of
@@ -377,7 +382,7 @@ module Subrepo
 
       # Map parent commits
       target_parent_shas = parents.map do |parent|
-        commit_map[parent.oid]
+        commit_map.fetch(parent.oid)
       end.uniq.compact
       if (mapped_oid = commit_map[commit.oid])
         target_parent_shas << mapped_oid unless target_parent_shas.include? mapped_oid

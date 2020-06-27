@@ -219,7 +219,7 @@ Then "the commit map should equal:" do |string|
     commit_map = Subrepo::CommitMapper.map_commits(sub)
     repo = main.repo
     named_map = commit_map.map do |from, to|
-      [repo.lookup(from).summary, repo.lookup(to).summary]
+      [repo.lookup(from).summary, to && repo.lookup(to).summary]
     end
     width = named_map.map(&:first).map(&:length).max
     result = named_map.map do |from, to|

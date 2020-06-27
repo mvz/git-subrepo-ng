@@ -59,6 +59,11 @@ module Subrepo
       dependent_commits.reverse_each do |sub_commit|
         sub_commit_tree = subrepo.calculate_subtree(sub_commit)
 
+        if sub_commit.parents.empty? && sub_commit_tree.entries.empty?
+          @mapping[sub_commit.oid] = nil
+          next
+        end
+
         # TODO: Maybe this section only makes sense for the first commit we handle?
         # Compare trees for earlier commits with the current tree
         if sub_commit_tree.oid == remote_commit_tree.oid
