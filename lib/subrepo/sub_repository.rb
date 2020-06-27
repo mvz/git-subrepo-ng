@@ -380,8 +380,7 @@ module Subrepo
         # TODO: Improve upon last_merged_commit as best guess
         commit_map[parent.oid] || last_merged_commit
       end.uniq.compact
-      if commit_map[commit.oid]
-        mapped_oid = commit_map[commit.oid]
+      if (mapped_oid = commit_map[commit.oid])
         target_parent_shas << mapped_oid unless target_parent_shas.include? mapped_oid
       end
       target_parent_shas.map { |sha| repo.lookup sha }
