@@ -377,8 +377,7 @@ module Subrepo
 
       # Map parent commits
       target_parent_shas = parents.map do |parent|
-        # TODO: Improve upon last_merged_commit as best guess
-        commit_map[parent.oid] || last_merged_commit
+        commit_map[parent.oid]
       end.uniq.compact
       if (mapped_oid = commit_map[commit.oid])
         target_parent_shas << mapped_oid unless target_parent_shas.include? mapped_oid
