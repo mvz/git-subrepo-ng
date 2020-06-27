@@ -139,6 +139,7 @@ Feature: Pushing after pulling
     And the commit map should equal:
       """
       Push subrepo bar                     -> Subrepo-merge bar/master into master
+      Add bar/other_file in repo foo       -> Add bar/other_file in repo foo
       Subrepo-merge bar/master into master -> Subrepo-merge bar/master into master
       Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
