@@ -27,6 +27,26 @@ module Repo
     end
   end
 
+  def create_and_commit_file(proj, file)
+    cd proj do
+      repo = Rugged::Repository.new(".")
+      write_file file, "stuff"
+      index = repo.index
+      index.add file
+      index.write
+      parents = if repo.head_unborn?
+                  []
+                else
+                  [repo.head.target]
+                end
+      Rugged::Commit.create(repo,
+                            tree: index.write_tree,
+                            message: "Add #{file} in repo #{proj}",
+                            parents: parents,
+                            update_ref: "HEAD")
+    end
+  end
+
   def create_and_commit_file_in_subdir(proj, subdir:, file: "a_file")
     cd proj do
       repo = Rugged::Repository.new(".")

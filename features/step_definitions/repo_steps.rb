@@ -130,6 +130,10 @@ When "I merge the branch for {string} in the remote" do |file|
   merge_branch(full_remote, branch_name)
 end
 
+When "I (have )commit(ted) a new file {string}" do |file|
+  create_and_commit_file(@main_repo, file)
+end
+
 When "I (have )commit(ted) a new file {string} in subdirectory {string}" do |file, subdir|
   create_and_commit_file_in_subdir(@main_repo, subdir: subdir, file: file)
 end

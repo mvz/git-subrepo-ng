@@ -74,8 +74,9 @@ module Subrepo
         # Compare trees for earlier commits with their mapped parents' trees,
         # and with their mapped parents' children's trees
         sub_commit.parents.each do |sub_parent|
+          next unless @mapping.key? sub_parent.oid
+
           mapped_parent_oid = @mapping[sub_parent.oid]
-          next unless mapped_parent_oid
 
           remote_children = remote_child_map[mapped_parent_oid] || []
           mapped = remote_children.find do |remote_child|
