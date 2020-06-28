@@ -173,6 +173,7 @@ module Subrepo
 
     def validate_last_merged_commit_present_in_fetched_commits
       walker = Rugged::Walker.new(repo)
+      walker.sorting(Rugged::SORT_TOPO)
       walker.push last_fetched_commit
       found = walker.to_a.any? { |commit| commit.oid == last_merged_commit }
       unless found
@@ -227,6 +228,7 @@ module Subrepo
       @local_commits ||=
         begin
           walker = Rugged::Walker.new(repo)
+          walker.sorting(Rugged::SORT_TOPO)
           walker.push repo.head.target_id
           walker.to_a
         end
@@ -236,6 +238,7 @@ module Subrepo
       @remote_commits ||=
         begin
           walker = Rugged::Walker.new(repo)
+          walker.sorting(Rugged::SORT_TOPO)
           walker.push last_merged_commit
           walker.to_a
         end
@@ -287,6 +290,7 @@ module Subrepo
       create_worktree_if_needed
 
       walker = Rugged::Walker.new(repo)
+      walker.sorting(Rugged::SORT_TOPO)
       walker.push repo.head.target_id
       walker.hide last_pushed_commit if last_pushed_commit
 
@@ -349,6 +353,7 @@ module Subrepo
 
     def reverse_map_commits(inverse_map, split_branch_commit)
       walker = Rugged::Walker.new(repo)
+      walker.sorting(Rugged::SORT_TOPO)
       walker.push split_branch_commit.oid
       walker.hide split_branch_commit.parents.first.oid
 

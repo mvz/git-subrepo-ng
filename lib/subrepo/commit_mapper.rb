@@ -51,6 +51,7 @@ module Subrepo
 
     def map_dependent_commits(pushed_commit_oid, merged_commit_oid, remote_commit_tree)
       sub_walker = Rugged::Walker.new(repo)
+      sub_walker.sorting(Rugged::SORT_TOPO)
       sub_walker.push pushed_commit_oid
       @mapping.each_key { |oid| sub_walker.hide oid unless oid == pushed_commit_oid }
 
