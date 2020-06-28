@@ -51,6 +51,7 @@ module Subrepo
 
     def map_dependent_commits(pushed_commit_oid, merged_commit_oid, remote_commit_tree)
       sub_walker = Rugged::Walker.new(repo)
+      sub_walker.sorting(Rugged::SORT_TOPO)
       sub_walker.push pushed_commit_oid
       @mapping.each_key { |oid| sub_walker.hide oid unless oid == pushed_commit_oid }
 
@@ -58,6 +59,11 @@ module Subrepo
 
       dependent_commits.reverse_each do |sub_commit|
         sub_commit_tree = subrepo.calculate_subtree(sub_commit)
+
+        if sub_commit.parents.empty? && sub_commit_tree.entries.empty?
+          @mapping[sub_commit.oid] = nil
+          next
+        end
 
         # TODO: Maybe this section only makes sense for the first commit we handle?
         # Compare trees for earlier commits with the current tree
@@ -69,8 +75,9 @@ module Subrepo
         # Compare trees for earlier commits with their mapped parents' trees,
         # and with their mapped parents' children's trees
         sub_commit.parents.each do |sub_parent|
+          next unless @mapping.key? sub_parent.oid
+
           mapped_parent_oid = @mapping[sub_parent.oid]
-          next unless mapped_parent_oid
 
           remote_children = remote_child_map[mapped_parent_oid] || []
           mapped = remote_children.find do |remote_child|

@@ -49,6 +49,7 @@ Feature: Complex push
       Update zyxxy                         -> Add other_file
       Add zyxxy                            -> Add other_file
       Clone remote ../bar into bar         -> Add other_file
+      Initial commit                       -> 
       """
     And the remote's log should equal:
       """

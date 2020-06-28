@@ -31,6 +31,7 @@ Feature: Pulling a subrepo
       Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
+      Initial commit                       -> 
       """
     And the subrepo branch has been removed
 
@@ -58,6 +59,7 @@ Feature: Pulling a subrepo
       Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
+      Initial commit                       -> 
       """
 
   Scenario: Pulling updates from the remote
@@ -88,6 +90,7 @@ Feature: Pulling a subrepo
       Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
+      Initial commit                       -> 
       """
 
   Scenario: Pulling after committing to the main repo
@@ -117,6 +120,7 @@ Feature: Pulling a subrepo
       Push subrepo bar               -> Add bar/a_file in repo foo
       Initialize subrepo bar         -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo     -> Add bar/a_file in repo foo
+      Initial commit                 -> 
       """
 
   Scenario: Pulling twice in a row has no extra effect

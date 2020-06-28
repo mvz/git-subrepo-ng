@@ -19,6 +19,7 @@ Feature: Complex pull
       Add quuz                             -> Add quuz
       Add baz                              -> Add baz
       Clone remote ../bar into bar         -> Add other_file
+      Initial commit                       -> 
       """
 
   Scenario: Squash-pulling before and after changes with intermediate branch points

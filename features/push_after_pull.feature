@@ -35,6 +35,7 @@ Feature: Pushing after pulling
       Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
+      Initial commit                       -> 
       """
 
   Scenario: Pushing older commits after pulling
@@ -144,6 +145,7 @@ Feature: Pushing after pulling
       Push subrepo bar                     -> Add bar/a_file in repo foo
       Initialize subrepo bar               -> Add bar/a_file in repo foo
       Add bar/a_file in repo foo           -> Add bar/a_file in repo foo
+      Initial commit                       -> 
       """
 
   Scenario: Pushing newer commits after pulling with squashing

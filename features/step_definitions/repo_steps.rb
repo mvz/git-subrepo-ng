@@ -130,6 +130,10 @@ When "I merge the branch for {string} in the remote" do |file|
   merge_branch(full_remote, branch_name)
 end
 
+When "I (have )commit(ted) a new file {string}" do |file|
+  create_and_commit_file(@main_repo, file)
+end
+
 When "I (have )commit(ted) a new file {string} in subdirectory {string}" do |file, subdir|
   create_and_commit_file_in_subdir(@main_repo, subdir: subdir, file: file)
 end
@@ -219,7 +223,7 @@ Then "the commit map should equal:" do |string|
     commit_map = Subrepo::CommitMapper.map_commits(sub)
     repo = main.repo
     named_map = commit_map.map do |from, to|
-      [repo.lookup(from).summary, repo.lookup(to).summary]
+      [repo.lookup(from).summary, to && repo.lookup(to).summary]
     end
     width = named_map.map(&:first).map(&:length).max
     result = named_map.map do |from, to|
