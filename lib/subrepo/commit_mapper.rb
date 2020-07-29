@@ -26,6 +26,8 @@ module Subrepo
       subrepo.local_commits.reverse_each do |commit|
         next unless config_changed?(commit)
 
+        puts "Getting config from #{commit.oid}"
+
         config = config_for_commit(commit)
         pushed_commit_oid = config["subrepo.parent"] or next
         merged_commit_oid = config["subrepo.commit"]
@@ -93,6 +95,20 @@ module Subrepo
             @mapping[sub_commit.oid] = mapped_parent_oid
             break
           end
+        end
+
+        unless @mapping.key? sub_commit.oid
+          puts "sub commit #{sub_commit.oid} not mapped"
+
+          sub_commit.parents.each do |parent|
+            if @mapping.key? parent.oid
+              puts "parent #{parent.oid} is mapped"
+            else
+              puts "parent #{parent.oid} is not mapped"
+            end
+          end
+
+          raise "Aborting"
         end
       end
     end
