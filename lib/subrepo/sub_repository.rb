@@ -383,15 +383,12 @@ module Subrepo
     end
 
     def calculate_target_parents(commit)
-      puts "Calculating parents for #{commit.oid}"
       parents = commit.parents
-      puts "Parent shas: #{parents.map(&:oid).inspect}"
 
       # Map parent commits
       target_parent_shas = parents.map do |parent|
         commit_map.fetch(parent.oid)
       end.uniq.compact
-      p target_parent_shas
       if (mapped_oid = commit_map[commit.oid])
         target_parent_shas << mapped_oid unless target_parent_shas.include? mapped_oid
       end
