@@ -20,13 +20,13 @@ Feature: Complex push
       |\  
       | * Add foobar
       * | Add bar/smurf in repo foo
-      * |   Merge branch 'subrepo-branch'
+      * |   Merge branch 'subrepo-branch' into master
       |\ \  
       | |/  
       |/|   
       | * Update bar/barfoo in repo foo
       | * Add bar/barfoo in repo foo
-      * |   Merge branch 'unrelated-branch'
+      * |   Merge branch 'unrelated-branch' into master
       |\ \  
       | |/  
       |/|   
@@ -38,18 +38,18 @@ Feature: Complex push
       """
     And the commit map should equal:
       """
-      Push subrepo bar                     -> Subrepo-merge bar/master into master
-      Subrepo-merge bar/master into master -> Subrepo-merge bar/master into master
-      Add bar/smurf in repo foo            -> Add bar/smurf in repo foo
-      Merge branch 'subrepo-branch'        -> Merge branch 'subrepo-branch'
-      Update bar/barfoo in repo foo        -> Update bar/barfoo in repo foo
-      Add bar/barfoo in repo foo           -> Add bar/barfoo in repo foo
-      Add foobar                           -> Add foobar
-      Merge branch 'unrelated-branch'      -> Add other_file
-      Update zyxxy                         -> Add other_file
-      Add zyxxy                            -> Add other_file
-      Clone remote ../bar into bar         -> Add other_file
-      Initial commit                       -> 
+      Push subrepo bar                            -> Subrepo-merge bar/master into master
+      Subrepo-merge bar/master into master        -> Subrepo-merge bar/master into master
+      Add bar/smurf in repo foo                   -> Add bar/smurf in repo foo
+      Merge branch 'subrepo-branch' into master   -> Merge branch 'subrepo-branch' into master
+      Update bar/barfoo in repo foo               -> Update bar/barfoo in repo foo
+      Add bar/barfoo in repo foo                  -> Add bar/barfoo in repo foo
+      Add foobar                                  -> Add foobar
+      Merge branch 'unrelated-branch' into master -> Add other_file
+      Update zyxxy                                -> Add other_file
+      Add zyxxy                                   -> Add other_file
+      Clone remote ../bar into bar                -> Add other_file
+      Initial commit                              -> 
       """
     And the remote's log should equal:
       """
@@ -57,7 +57,7 @@ Feature: Complex push
       |\  
       | * Add foobar
       * | Add bar/smurf in repo foo
-      * |   Merge branch 'subrepo-branch'
+      * |   Merge branch 'subrepo-branch' into master
       |\ \  
       | |/  
       |/|   

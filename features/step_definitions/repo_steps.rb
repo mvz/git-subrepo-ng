@@ -114,13 +114,19 @@ end
 
 When "I merge in the main project branch" do
   cd @main_repo do
-    `git merge --no-ff unrelated-branch`
+    # NOTE: Explicit message given to ensure uniform result across git
+    # versions. The explicit message can be removed once git 2.28 is commonly
+    # used.
+    `git merge --no-ff unrelated-branch -m "Merge branch 'unrelated-branch' into master"`
   end
 end
 
 When "I merge in the subrepo branch" do
   cd @main_repo do
-    `git merge --no-ff subrepo-branch`
+    # NOTE: Explicit message given to ensure uniform result across git
+    # versions. The explicit message can be removed once git 2.28 is commonly
+    # used.
+    `git merge --no-ff subrepo-branch -m "Merge branch 'subrepo-branch' into master"`
   end
 end
 
