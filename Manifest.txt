@@ -1,0 +1,17 @@
+lib/subrepo
+lib/subrepo.rb
+lib/subrepo/cli.rb
+lib/subrepo/commands.rb
+lib/subrepo/commit_mapper.rb
+lib/subrepo/config.rb
+lib/subrepo/dispatcher.rb
+lib/subrepo/main_repository.rb
+lib/subrepo/null_output.rb
+lib/subrepo/runner.rb
+lib/subrepo/sub_repository.rb
+lib/subrepo/version.rb
+COPYING
+CODE_OF_CONDUCT.md
+Changelog.md
+README.md
+bin/git-subrepo

@@ -1,12 +1,19 @@
 inherit_from: .rubocop_todo.yml
 
 require:
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rspec
 
 AllCops:
+  Exclude:
+    - 'vendor/bundle/**/*'
   NewCops: enable
   TargetRubyVersion: 2.5
+
+# Make BeginEndAlignment behavior match EndAlignment
+Layout/BeginEndAlignment:
+  EnforcedStyleAlignWith: begin
 
 # Tables are nice
 Layout/HashAlignment:
@@ -44,10 +51,10 @@ Lint/AmbiguousBlockAssociation:
 Lint/AssignmentInCondition:
   AllowSafeAssignment: true
 
-# RSpec describe blocks can be any size
 Metrics/BlockLength:
   Exclude:
-    - 'spec/**/*'
+    - 'spec/**/*' # RSpec describe blocks can be any size
+    - '*.gemspec' # Gem spec blocks can be any size
 
 Performance/StartWith:
   AutoCorrect: true

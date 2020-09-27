@@ -3,6 +3,7 @@
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 require "cucumber/rake/task"
+require "rake/manifest"
 
 RSpec::Core::RakeTask.new(:spec)
 Cucumber::Rake::Task.new(:cucumber) do |t|
@@ -66,5 +67,10 @@ namespace :compat do
     exit 1 unless success
   end
 end
+
+Rake::Manifest::Task.new do |t|
+  t.patterns = ["lib/**/*", "COPYING", "*.md", "bin/*"]
+end
+task build: "manifest:check"
 
 task default: [:spec, :cucumber, "compat:regression"]
