@@ -1,40 +1,42 @@
 # frozen_string_literal: true
 
-require "rake/file_list"
 require_relative "lib/subrepo/version"
 
-Gem::Specification.new do |s|
-  s.name = "git-subrepo-ng"
-  s.version = Subrepo::VERSION
-  s.summary = "Clone of git subrepo, with improvements"
-  s.authors = ["Matijs van Zuijlen"]
-  s.email = ["matijs@matijs.net"]
-  s.homepage = "https://github.com/mvz/git-subrepo-ng"
+Gem::Specification.new do |spec|
+  spec.name = "git-subrepo-ng"
+  spec.version = Subrepo::VERSION
+  spec.authors = ["Matijs van Zuijlen"]
+  spec.email = ["matijs@matijs.net"]
 
-  s.required_ruby_version = ">= 2.5.0"
+  spec.summary = "Clone of git subrepo, with improvements"
+  spec.homepage = "https://github.com/mvz/git-subrepo-ng"
+  spec.license = "GPL-3.0+"
 
-  s.license = "GPL-3.0+"
+  spec.required_ruby_version = ">= 2.5.0"
 
-  s.metadata["homepage_uri"] = s.homepage
-  s.metadata["source_code_uri"] = "https://github.com/mvz/git-subrepo-ng"
-  s.metadata["changelog_uri"] = "https://github.com/mvz/git-subrepo-ng/blob/master/Changelog.md"
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/mvz/git-subrepo-ng"
+  spec.metadata["changelog_uri"] = "https://github.com/mvz/git-subrepo-ng/blob/master/Changelog.md"
 
-  s.files = Rake::FileList["{bin,lib}/**/*", "COPYING"]
-    .exclude(*File.read(".gitignore").split)
-  s.rdoc_options = ["--main", "README.md"]
-  s.extra_rdoc_files = ["Changelog.md", "README.md"]
+  spec.files = File.read("Manifest.txt").split
+  spec.rdoc_options = ["--main", "README.md"]
+  spec.extra_rdoc_files = ["Changelog.md", "README.md"]
+  spec.require_paths = ["lib"]
 
-  s.bindir = "bin"
-  s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.bindir = "bin"
+  spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
 
-  s.add_runtime_dependency "gli", "~> 2.5"
-  s.add_runtime_dependency "rugged", "~> 1.0"
+  spec.add_runtime_dependency "gli", "~> 2.5"
+  spec.add_runtime_dependency "rugged", "~> 1.0"
 
-  s.add_development_dependency "aruba", "~> 1.0.0"
-  s.add_development_dependency "pry", "~> 0.13.0"
-  s.add_development_dependency "rake", "~> 13.0"
-  s.add_development_dependency "rspec", "~> 3.0"
-  s.add_development_dependency "simplecov", "~> 0.19.0"
-
-  s.require_paths = ["lib"]
+  spec.add_development_dependency "aruba", "~> 1.0.0"
+  spec.add_development_dependency "pry", "~> 0.13.0"
+  spec.add_development_dependency "rake", "~> 13.0"
+  spec.add_development_dependency "rake-manifest", "~> 0.1.0"
+  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "rubocop", "~> 0.92.0"
+  spec.add_development_dependency "rubocop-packaging", "~> 0.5.0"
+  spec.add_development_dependency "rubocop-performance", "~> 1.8.0"
+  spec.add_development_dependency "rubocop-rspec", "~> 1.43.0"
+  spec.add_development_dependency "simplecov", "~> 0.19.0"
 end

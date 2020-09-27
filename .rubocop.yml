@@ -1,6 +1,7 @@
 inherit_from: .rubocop_todo.yml
 
 require:
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rspec
 
@@ -48,10 +49,10 @@ Lint/AmbiguousBlockAssociation:
 Lint/AssignmentInCondition:
   AllowSafeAssignment: true
 
-# RSpec describe blocks can be any size
 Metrics/BlockLength:
   Exclude:
-    - 'spec/**/*'
+    - 'spec/**/*' # RSpec describe blocks can be any size
+    - '*.gemspec' # Gem spec blocks can be any size
 
 Performance/StartWith:
   AutoCorrect: true
