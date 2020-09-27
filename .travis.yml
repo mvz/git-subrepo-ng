@@ -5,10 +5,16 @@ dist: bionic
 cache:
   bundler: true
 
-rvm:
-  - 2.5
-  - 2.6
-  - 2.7
+script: bundle exec rake
+
+jobs:
+  include:
+    - rvm: 2.5
+    - rvm: 2.6
+    - rvm: 2.7
+    - rvm: 2.7.1
+      name: "RuboCop"
+      script: bundle exec rubocop
 
 branches:
   only:

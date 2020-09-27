@@ -6,6 +6,8 @@ require:
   - rubocop-rspec
 
 AllCops:
+  Exclude:
+    - 'vendor/bundle/**/*'
   NewCops: enable
   TargetRubyVersion: 2.5
 
