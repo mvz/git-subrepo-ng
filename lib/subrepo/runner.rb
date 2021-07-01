@@ -204,7 +204,7 @@ module Subrepo
       split_branch_name = subrepo.split_branch_name
       force_flag = "--force" if force
       run_command "git push -q #{force_flag} #{remote.shellescape}" \
-        " #{split_branch_name}:#{branch}"
+                  " #{split_branch_name}:#{branch}"
 
       pushed_commit = repo.branches[split_branch_name].target.oid
       parent_commit = repo.head.target.oid
@@ -229,12 +229,12 @@ module Subrepo
       subrepo = sub_repository(subdir)
       if !force && subrepo.split_branch_exists?
         raise "Branch '#{subrepo.split_branch_name}' already exists." \
-          " Use '--force' to override."
+              " Use '--force' to override."
       end
       subrepo.make_subrepo_branch_for_local_commits
 
       puts "Created branch '#{subrepo.split_branch_name}'" \
-        " and worktree '.git/tmp/subrepo/#{subdir}'."
+           " and worktree '.git/tmp/subrepo/#{subdir}'."
     end
 
     def run_clone(remote, subdir = nil, branch: nil, method: nil, force: false)

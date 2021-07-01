@@ -269,7 +269,7 @@ module Subrepo
       return if worktree_exists?
 
       run_command "git worktree add #{worktree_name.shellescape}" \
-        " #{split_branch_name.shellescape}"
+                  " #{split_branch_name.shellescape}"
     end
 
     def remove_worktree_if_needed
@@ -427,7 +427,7 @@ module Subrepo
       if target_parents.one? &&
           rewritten_parent_trees.any? { |it| it.oid == rewritten_tree.oid }
         raise "Commit represents no change but tree is different from target parent." \
-          " This should not happen"
+              " This should not happen"
       end
 
       # If the commit tree is no different from the first parent, at this
