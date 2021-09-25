@@ -444,7 +444,7 @@ module Subrepo
       # |/
       # * Add bar/a_file in repo foo
       if first_target_parent.tree.oid == rewritten_tree.oid
-        other_target_parents = target_parents[1..-1]
+        other_target_parents = target_parents[1..]
         if all_ancestor_of? other_target_parents, first_target_parent
           commit_map[commit.oid] ||= first_target_parent.oid
           return
