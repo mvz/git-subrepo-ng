@@ -154,7 +154,7 @@ When "I resolve the merge conflict with merged content" do
     cd ".git/tmp/subrepo/#{@subrepo}" do
       status = `git status --porcelain`.chomp
       expect(status).to start_with "UU "
-      file = status[3..-1]
+      file = status[3..]
       write_file "#{@subrepo}/#{file}", "merged content for #{file}"
       `git add #{file}`
       `git commit --no-edit`
@@ -168,7 +168,7 @@ When "I resolve the merge conflict with local content" do
     cd ".git/tmp/subrepo/#{@subrepo}" do
       status = `git status --porcelain`.chomp
       expect(status).to start_with "UU "
-      file = status[3..-1]
+      file = status[3..]
       `git checkout -q --ours #{file}`
       `git add #{file}`
       `git commit --no-edit`
@@ -182,7 +182,7 @@ When "I resolve the merge conflict with remote content" do
     cd ".git/tmp/subrepo/#{@subrepo}" do
       status = `git status --porcelain`.chomp
       expect(status).to start_with "UU "
-      file = status[3..-1]
+      file = status[3..]
       `git checkout -q --theirs #{file}`
       `git add #{file}`
       `git commit --no-edit`
