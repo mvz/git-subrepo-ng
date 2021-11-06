@@ -35,6 +35,7 @@ test-exists \
 (
   set +x
   cd $OWNER/bar
+  git config pull.rebase false
   git pull
 ) &> /dev/null || die
 
