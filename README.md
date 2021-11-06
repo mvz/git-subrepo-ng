@@ -134,7 +134,7 @@ This is free software, distributed under the terms of the GNU General Public
 License, version 3.0 or later. See the file COPYING for more information.
 
 The test suite in `test/` is based on the test suite of git-subrepo, which is
-licensed under the MIT License and copyright &copy 2013-2020 Ingy döt Net.
+licensed under the MIT License and copyright &copy; 2013-2020 Ingy döt Net.
 
 ## Code of Conduct
 
