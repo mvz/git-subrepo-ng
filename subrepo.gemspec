@@ -5,6 +5,7 @@ require_relative "lib/subrepo/version"
 Gem::Specification.new do |spec|
   spec.name = "git-subrepo-ng"
   spec.version = Subrepo::VERSION
+
   spec.authors = ["Matijs van Zuijlen"]
   spec.email = ["matijs@matijs.net"]
 
@@ -17,6 +18,7 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/mvz/git-subrepo-ng"
   spec.metadata["changelog_uri"] = "https://github.com/mvz/git-subrepo-ng/blob/master/Changelog.md"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.files = File.read("Manifest.txt").split
   spec.rdoc_options = ["--main", "README.md"]
