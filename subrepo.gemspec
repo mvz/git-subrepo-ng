@@ -5,14 +5,12 @@ require_relative "lib/subrepo/version"
 Gem::Specification.new do |spec|
   spec.name = "git-subrepo-ng"
   spec.version = Subrepo::VERSION
-
   spec.authors = ["Matijs van Zuijlen"]
   spec.email = ["matijs@matijs.net"]
 
   spec.summary = "Clone of git subrepo, with improvements"
   spec.homepage = "https://github.com/mvz/git-subrepo-ng"
   spec.license = "GPL-3.0+"
-
   spec.required_ruby_version = ">= 2.6.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
@@ -21,12 +19,12 @@ Gem::Specification.new do |spec|
   spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.files = File.read("Manifest.txt").split
-  spec.rdoc_options = ["--main", "README.md"]
-  spec.extra_rdoc_files = ["Changelog.md", "README.md"]
-  spec.require_paths = ["lib"]
-
   spec.bindir = "bin"
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.require_paths = ["lib"]
+
+  spec.rdoc_options = ["--main", "README.md"]
+  spec.extra_rdoc_files = ["Changelog.md", "README.md"]
 
   spec.add_runtime_dependency "gli", "~> 2.5"
   spec.add_runtime_dependency "rugged", "~> 1.0"
