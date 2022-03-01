@@ -2,6 +2,6 @@
 
 RSpec.describe Subrepo do
   it "has a version number" do
-    expect(Subrepo::VERSION).not_to be nil
+    expect(Subrepo::VERSION).not_to be_nil
   end
 end
