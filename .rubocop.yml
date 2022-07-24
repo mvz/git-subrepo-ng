@@ -63,8 +63,8 @@ Lint/AssignmentInCondition:
 
 Metrics/BlockLength:
   Exclude:
-    - 'spec/**/*' # RSpec describe blocks can be any size
-    - '*.gemspec' # Gem spec blocks can be any size
+    - 'spec/**/*'  # RSpec describe blocks can be any size
+    - '*.gemspec'  # Gem spec blocks can be any size
 
 Performance/StartWith:
   AutoCorrect: true
