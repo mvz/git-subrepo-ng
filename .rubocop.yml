@@ -23,6 +23,10 @@ Layout/HashAlignment:
   EnforcedHashRocketStyle: table
   EnforcedLastArgumentHashStyle: ignore_implicit
 
+# Spaces in strings with line continuations go at the beginning of the line.
+Layout/LineContinuationLeadingSpace:
+  EnforcedStyle: leading
+
 # Be lenient with line length
 Layout/LineLength:
   Max: 92
