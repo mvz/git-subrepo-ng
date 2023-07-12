@@ -250,8 +250,8 @@ module Subrepo
       @subref ||= subdir
         .gsub(%r{(^|/)\.}, "\\1%2e") # dot at start or after /
         .gsub(%r{\.lock($|/)}, "%2elock\\1") # .lock at end or before /
-        .gsub(/\.\./, "%2e%2e") # pairs of consecutive dots
-        .gsub(/%2e\./, "%2e%2e") # odd numbers of dots
+        .gsub("..", "%2e%2e") # pairs of consecutive dots
+        .gsub("%2e.", "%2e%2e") # odd numbers of dots
         .gsub(/[\000-\037\177]/) { |ch| hexify ch } # ascii control characters
         .gsub(/[ ~^:?*\[\n\\]/) { |ch| hexify ch } # other forbidden characters
         .gsub(%r{//+}, "/") # consecutive slashes
