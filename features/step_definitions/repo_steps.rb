@@ -231,7 +231,7 @@ Then "the commit map should equal:" do |string|
     named_map = commit_map.map do |from, to|
       [repo.lookup(from).summary, to && repo.lookup(to).summary]
     end
-    width = named_map.map(&:first).map(&:length).max
+    width = named_map.map { _1.first.length }.max
     result = named_map.map do |from, to|
       "#{from.ljust(width)} -> #{to}"
     end
