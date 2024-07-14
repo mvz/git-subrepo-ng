@@ -26,8 +26,8 @@ Gem::Specification.new do |spec|
   spec.rdoc_options = ["--main", "README.md"]
   spec.extra_rdoc_files = ["Changelog.md", "README.md"]
 
-  spec.add_runtime_dependency "gli", "~> 2.5"
-  spec.add_runtime_dependency "rugged", "~> 1.0"
+  spec.add_dependency "gli", "~> 2.5"
+  spec.add_dependency "rugged", "~> 1.0"
 
   spec.add_development_dependency "aruba", "~> 2.0"
   spec.add_development_dependency "pry", "~> 0.14.0"
