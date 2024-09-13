@@ -27,6 +27,7 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files = ["Changelog.md", "README.md"]
 
   spec.add_dependency "gli", "~> 2.5"
+  spec.add_dependency "ostruct", "~> 0.6.0"
   spec.add_dependency "rugged", "~> 1.0"
 
   spec.add_development_dependency "aruba", "~> 2.0"
