@@ -2,6 +2,11 @@
 
 An experimental clone of git subrepo, to be extended with improvements.
 
+**NOTE: I'm not working on this anymore. It was an interesting experiment but
+there are too many edge cases to get right. For my Ruby projects, I've switched
+to specifiying git dependencies in the Gemfile. Git submodules are another good
+option.**
+
 ## Installation
 
 Add this line to your application's Gemfile:
